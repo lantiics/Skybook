@@ -1,0 +1,27 @@
+<% if (status.is_visible || ctx.elevated) { %>
+
+<% if (typeof posts !== 'undefined') { %>
+<% for (const post of posts) { %>
+<div class="entry" data-identifier="<%=post.identifier%>" data-can-alter="<%=((post.authenticated_user_identifier==(ctx.user ? ctx.user.identifier:'not an identifier'))||ctx.elevated&&!post.sys_lock)%>">
+  <% if (post.is_queued) { %> <div>QUEUED</div> <% } %>
+  <div class="entry-time" data-field="added-at">
+    <%= post.added %>
+  </div>
+  <div>
+    <div class="entry-author <% if (post.authentic) {%> authentic-author <% } %>" data-field="author" contenteditable="<%=((post.authenticated_user_identifier==(ctx.user ? ctx.user.identifier:'not an identifier'))||ctx.elevated&&!post.sys_lock)%>">
+      <%= post.author %>
+    </div>
+
+  </div>
+  <div>
+    <div class="entry-content" data-field="content" contenteditable="<%=((post.authenticated_user_identifier==(ctx.user ? ctx.user.identifier:'not an identifier'))||ctx.elevated&&!post.sys_lock)%>">
+      <%= post.content %>
+    </div>
+  </div><%- include('./post-actions', { post: post, ctx: ctx })%>
+</div>
+<% } %> <% } else { %> <div class="entry">
+  <div>no entries</div>
+</div> <% } %>
+<% } else { %>
+<div>Posts are currently not visible</div>
+<% } %>

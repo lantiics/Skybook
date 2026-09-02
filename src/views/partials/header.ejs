@@ -1,0 +1,15 @@
+<nav>
+  <a href="/">Kaiju</a>
+  <div class="auth-actions">
+    <% if (!ctx.authenticated) { %>
+    <a href="/login">Log in</a><a href="/signup">Sign up</a>
+    <% } else {%>
+    <a href="/<%=ctx.user.name %>">my guestbook</a>
+    <div class="authenticated-user-header"><a href="/account">
+        <%= (ctx.user?.name?ctx.user.name+(ctx.superAdmin?" - administrator":""):"undefined"??"undefined")
+                            %>
+      </a>&gt;</div> <button onclick="fetch('/api/auth/logout', {method: 'POST'}).then((req)=> {if (req.ok) location.reload()})">log
+      out</button>
+    <% }%>
+  </div>
+</nav>

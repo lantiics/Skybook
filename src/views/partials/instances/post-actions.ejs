@@ -1,0 +1,13 @@
+<div class="actions">
+  <% if ((post.authenticated_user_identifier==(ctx.user ? ctx.user.identifier:'not an identifier'))||ctx.elevated) { %>
+  <button onclick="actOnPost(this.parentNode.parentNode,this)" data-action="delete" class="danger" <% if (post.sys_lock && !ctx.superAdmin) {%> disabled="true" <% }%>>delete</button>
+  <% if (ctx.elevated) { %>
+  <button onclick="actOnPost(this.parentNode.parentNode,this)" data-action="<% if(post.creator_blocked)  {%>unblock<% } else {%>block<%}%>"><% if(post.creator_blocked)  {%> unblock <% } else {%>block<%}%></button>
+  <button onclick="actOnPost(this.parentNode.parentNode,this)" data-action="visibility" <% if (post.sys_lock && !ctx.superAdmin) {%> disabled=" true" <% }%>><%=post.is_visible?"hide":"unhide"%></button>
+  <% if (ctx.superAdmin) { %> <button onclick="actOnPost(this.parentNode.parentNode,this)" data-action="lock" <% if (post.sys_lock && !ctx.superAdmin) {%> disabled="true" <% }%>><%-post.sys_lock?"unlock":"lock" %></button> <% } %>
+  <% if (post.is_queued) { %>
+  <button onclick="actOnPost(this.parentNode.parentNode,this)" data-action="approve" <% if (post.sys_lock && !ctx.superAdmin) {%> disabled="true" <% }%>>approve</button>
+  <% } %>
+  <% } %>
+  <% } %>
+</div>

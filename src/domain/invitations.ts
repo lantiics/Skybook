@@ -1,0 +1,34 @@
+import { DB } from "../db";
+import { NotFoundError, UnauthorizedError } from "../errors";
+
+export const invitationIsValid = async (token: string): Promise<boolean> => {
+  if (
+    !(
+      await DB`SELECT EXISTS(SELECT 1 FROM invitations WHERE token = ${token} AND uses < 3)`
+    )[0].exists
+  ) {
+    throw new NotFoundError("Specified invitation token is invalid");
+  }
+  await DB`UPDATE invitations SET uses = uses + 1, last_used = now() WHERE token = ${token}`;
+  return true;
+};
+export const invalidateInvitation = async (token: string): Promise<void> => {
+  await DB`DELETE FROM invitations WHERE token = ${token}`;
+};
+export const newInvitation = async (
+  creatorIdentifier: string,
+): Promise<string> => {
+  const [creator] =
+    await DB`SELECT * FROM users WHERE identifier = ${creatorIdentifier}`;
+  if (!creator.can_create_invitations)
+    throw new UnauthorizedError(
+      "User is not permitted to create service invitations",
+    );
+  const token = crypto.randomUUID();
+  const [row] =
+    await DB`INSERT INTO invitations (token, created_by, created_at, uses) VALUES (${token}, ${creatorIdentifier}, now(), 0)`;
+  if (!row) {
+    throw new Error("Failed to insert invitation token");
+  }
+  return token;
+};

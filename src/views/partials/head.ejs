@@ -1,0 +1,14 @@
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="stylesheet" href="/stylesheets/style.css" />
+<script src="/js/main.js"></script>
+<% if (ctx.instance) { %>
+
+<link rel="stylesheet" href="/stylesheets/instance.css">
+<meta name="instance-name" content="<%=ctx.instance%>" />
+<script src="/js/instance.js"></script>
+
+<% if (ctx.elevated) {%>
+<link rel="stylesheet" href="/stylesheets/elevated-instance.css" /> <% }%>
+
+<% }%>

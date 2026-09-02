@@ -1,0 +1,64 @@
+export class NotFoundError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "NotFoundError";
+  }
+}
+
+export class UnauthorizedError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "UnauthorizedError";
+  }
+}
+export class LockedError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "LockedError";
+  }
+}
+
+export class FilteredError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "FilteredError";
+  }
+}
+export class ReservedError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ReservedError";
+  }
+}
+export class InvalidStatusError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "InvalidStatusError";
+  }
+}
+
+export class ForbiddenError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ForbiddenError";
+  }
+}
+
+export class UnavailableError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "UnavailableError";
+  }
+}
+
+export const errorStatus = (e: unknown, elevated: boolean): number => {
+  console.error(e);
+  if (e instanceof UnauthorizedError) return elevated ? 403 : 401;
+  if (e instanceof NotFoundError) return 404;
+  if (e instanceof LockedError) return 423;
+  if (e instanceof ReservedError || e instanceof InvalidStatusError) return 400;
+  if (e instanceof ForbiddenError) return 403;
+  if (e instanceof UnavailableError) return 503;
+
+  return 500;
+};
