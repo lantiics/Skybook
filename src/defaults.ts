@@ -1,0 +1,49 @@
+import type { Post, Instance } from "./types/entities.ts";
+
+export const PUBLIC_COLUMN_NAMES: Set<keyof Post> = new Set([
+  "seq",
+  "identifier",
+  "authenticated_user_identifier",
+  "parent",
+  "author",
+  "content",
+  "extra",
+  "added",
+  "can_flag",
+  "can_reply",
+  "is_pinned",
+  "is_highlighted",
+  "sys_lock",
+  "ip_hash",
+]);
+export const PRIVATE_COLUMN_NAMES: Set<keyof Post> = new Set([
+  ...PUBLIC_COLUMN_NAMES,
+  "instance",
+  "is_visible",
+  "is_queued",
+  "flag_count",
+]);
+export const ADMIN_COLUMN_NAMES: Set<keyof Post> = new Set([]);
+export const SYSTEM_COLUMN_NAMES: Set<keyof Post> = new Set([
+  ...PUBLIC_COLUMN_NAMES,
+  ...PRIVATE_COLUMN_NAMES,
+  ...ADMIN_COLUMN_NAMES,
+]);
+export const RESERVED_COLUMN_NAMES: Set<keyof Post> = new Set([
+  ...PUBLIC_COLUMN_NAMES,
+  ...PRIVATE_COLUMN_NAMES,
+  ...SYSTEM_COLUMN_NAMES,
+]);
+
+// export const PUBLICLY_WRITABLE_COLUMN_NAMES: Set<keyof Post|string> = new Set([''])
+
+export const DEFAULT_INSTANCE_STATUS: Omit<
+  Instance,
+  "name" | "queue_on_filtered"
+> = {
+  is_visible: true,
+  submission_enabled: true,
+  replying_enabled: true,
+  approval_required: false,
+  flagging_enabled: true,
+};

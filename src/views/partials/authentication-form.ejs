@@ -1,0 +1,13 @@
+<script src="/js/auth.js"></script>
+
+<form class="authentication" action="/api/auth/<%=authAction%>" method="POST" id="authentication">
+  <fieldset>
+    <input type="text" name="username" title="arr" pattern="[a-zA-Z0-9_]+" placeholder="username" required />
+    <input type="password" name="password" placeholder="password" minlength="8" required />
+    <% if (authAction === 'login') { %>
+    <input type="text" name="otp" placeholder="2fa code (if applicable)" minlength="6" maxlength="6" pattern="[0-9]+" />
+
+    <%  } %>
+    <input type="submit" value="Submit" id="authorize" />
+  </fieldset>
+</form>

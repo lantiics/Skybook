@@ -1,0 +1,47 @@
+project-root/
+├── src/
+│   ├── db.ts                       # sql (Bun SQL pool) + startTokenCleanup()
+│   ├── context.ts                  # RequestContext: instance, subInstance, elevated, superAdmin, token, user
+│   ├── reserved.ts                 # RESERVED_INSTANCE_NAMES, RESERVED_FIELD_NAMES, assert*Allowed()
+│   ├── defaults.ts                 # PUBLIC_COLUMN_NAMES, PRIVATE_COLUMN_NAMES, DEFAULT_INSTANCE_STATUS
+│   ├── errors.ts                   # UnauthorizedError, NotFoundError, LockedError, etc. + statusForError()
+│   │
+│   ├── types/
+│   │   ├── entities.ts             # InstanceStatus, Field, Entry, User
+│   │   └── express.d.ts            # declare global: Express.Request.ctx
+│   │
+│   ├── middleware/
+│   │   ├── resolveInstance.ts      # reads :instance/:subInstance, validates name, loads instance row → req.ctx
+│   │   ├── resolveUser.ts          # reads session/cookie → req.ctx.user (null if not logged in)
+│   │   └── authenticate.ts         # instance-admin key / superAdmin key / owner match → req.ctx.elevated
+│   │
+│   ├── domain/
+│   │   ├── instances.ts            # createInstance, createOwnerlessInstance, isVisible, canReply, canFlag,
+│   │   │                           # requiresApproval, submissionEnabled, toggleInstanceStatus, getEffectiveStatus
+│   │   ├── users.ts                # createUser, deleteAccount, verifyPassword
+│   │   ├── fields.ts               # setField, renameField, deleteField, validateExtraFields, publicFieldNames
+│   │   ├── posts.ts                # getPosts, createPost, editPost, deletePost, flagPost, togglePin,
+│   │   │                           # toggleHighlight, toggleVisibility, approvePost, clearFlags
+│   │   ├── tokens.ts               # generateToken, generateIdentifier, canAlter, clearExpiredTokens
+│   │   ├── overrides.ts            # getEffectiveStatus (system_overrides tier), toggleSystemOverride
+│   │   └── importExport.ts         # exportInstance, importInstance, signPayload, verifyPayload
+│   │
+│   ├── routes/
+│   │   ├── dropbox.ts              # per-instance router — mounted at /api/:instance/:subInstance?
+│   │   ├── users.ts                # signup / login / delete-account routes
+│   │   └── systemAdmin.ts          # superAdmin-only routes (system overrides), separate mount, no :instance
+│   │
+│   ├── utils.ts                    # isSafeIdentifier — genuinely generic helpers only
+│   └── app.ts                      # express() setup, mounts middleware + routers, error handler, startTokenCleanup()
+│
+├── migrations/
+│   ├── 001_init.sql                 # instances, fields, posts, tokens
+│   ├── 002_sub_instance.sql         # add sub_instance to posts/tokens
+│   ├── 003_system_overrides.sql
+│   ├── 004_drop_fields_sub_instance.sql
+│   ├── 005_users.sql                # users table
+│   └── 006_instances_owner.sql      # instances.owner (nullable FK → users.name)
+│
+├── .env                             # DATABASE_URL, SUPER_ADMIN_KEY, EXPORT_SIGNING_SECRET
+├── tsconfig.json
+└── package.json

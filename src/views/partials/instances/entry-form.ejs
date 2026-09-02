@@ -1,0 +1,15 @@
+<% if (status.submission_enabled || ctx.elevated ) {%>
+<div>
+  <form class="entry-submission" id="submission-form" action="/api/<%=ctx.instance%>" method="POST">
+    <fieldset>
+      <label for="author">your name: </label>
+      <input name="author" id="author" placeholder="anonymous">
+      <label for="content">message:</label>
+      <textarea id="content" name="content" placeholder="say something!" required></textarea>
+      <input type="submit" value="Submit" />
+    </fieldset>
+  </form>
+</div>
+<% } else { %>
+<div>submission disabled</div>
+<% } %>
