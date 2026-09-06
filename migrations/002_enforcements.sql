@@ -4,10 +4,19 @@ CREATE TABLE instance_blocks (
   ip_hash TEXT NOT NULL,
   user_identifier UUID REFERENCES users(identifier) ON DELETE CASCADE,
   blocked_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  reason TEXT,
   PRIMARY KEY (instance, ip_hash)
 );
-CREATE INDEX instance_blocks_iphash_idx ON instance_blocks (ip_hash);
-CREATE INDEX instance_blocks_user_idx ON instance_blocks (user_identifier);
+CREATE UNIQUE INDEX instance_blocks_unique_user ON instance_blocks (instance, user_identifier) WHERE user_identifier IS NOT NULL;
+CREATE UNIQUE INDEX instance_blocks_unique_ip ON instance_blocks (instance, ip_hash) WHERE ip_hash IS NOT NULL;
+-- CREATE TABLE instance_user_blocks (
+--   instance TEXT NOT NULL REFERENCES instances(name) ON DELETE CASCADE,
+--   user_identifier UUID REFERENCES users(identifier),
+--   blocked_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+--   reason TEXT,
+--   PRIMARY KEY (instance, user_identifier)
+-- );
+-- CREATE INDEX instance_user_blocks_user_idx ON instance_user_blocks (user_identifier);
 
 CREATE TABLE ip_block_stats (
   ip_hash TEXT PRIMARY KEY,
@@ -16,7 +25,7 @@ CREATE TABLE ip_block_stats (
   last_blocked_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE global_blocks (
+CREATE TABLE global_ip_blocks (
   ip_hash TEXT PRIMARY KEY,
   blocked_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   reason TEXT
@@ -29,4 +38,10 @@ CREATE TABLE user_enforcements (
     expires_at TIMESTAMPTZ,
     enforcements JSONB NOT NULL DEFAULT '{}',
     block_count INTEGER NOT NULL DEFAULT 0
-)
+);
+CREATE TABLE blocklist_ranges (
+  source TEXT NOT NULL,
+  range CIDR NOT NULL,
+  added TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_blocklist_range ON blocklist_ranges USING gist (range inet_ops);

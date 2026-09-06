@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { config } from "../config";
 
 export const renderWithLayout = (
   req: Request,
@@ -15,6 +16,7 @@ export const renderWithLayout = (
       title: locals.title ?? "Kaiju",
       body: innerHtml,
       ctx: req.ctx,
+      kaiju: config.kaiju,
     });
   });
 };

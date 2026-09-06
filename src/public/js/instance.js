@@ -5,6 +5,7 @@ class PostAlterationError extends Error {
     createPopup(message);
   }
 }
+
 const additionalPostAlterationHeaders = (identifier) => {
   const postToken = localStorage.getItem(identifier);
 
@@ -17,6 +18,7 @@ const additionalPostAlterationHeaders = (identifier) => {
 const instanceName = () => {
   return document.querySelector("meta[name='instance-name']").content;
 };
+
 const actOnPost = async (post, actionButton) => {
   const identifier = post.getAttribute("data-identifier");
   const action = actionButton.getAttribute("data-action");
@@ -35,14 +37,112 @@ const actOnPost = async (post, actionButton) => {
           post.remove();
         }
         break;
+      case "flag": {
+        const flag = await fetch(
+          `/api/${instanceName()}/entry/${identifier}/flag`,
+          {
+            method: "POST",
+          },
+        );
+        if (!flag.ok) throw new Error(flag.status);
+        else {
+          actionButton.disabled = true;
+        }
+        break;
+      }
+      case "toggle-flagging": {
+        const flagging = await fetch(
+          `/api/${instanceName()}/entry/${identifier}/flagging`,
+          { method: "PATCH" },
+        );
+        if (!flagging.ok) throw new Error(flag.status);
+        else {
+          switch (actionButton.innerText) {
+          }
+        }
+        break;
+      }
+      case "pin": {
+        const pin = await fetch(
+          `/api/${instanceName()}/entry/${identifier}/pin`,
+          { method: "PATCH" },
+        );
+        if (!pin.ok) throw new Error(pin.status);
+        else {
+          actionButton.removeAttribute("disabled");
+          switch (actionButton.innerText) {
+            case "pin":
+              actionButton.innerText = "unpin";
+              break;
+            case "unpin":
+              actionButton.innerText = "pin";
+              break;
+          }
+        }
+        break;
+      }
+      case "highlight": {
+        const highlight = await fetch(
+          `/api/${instanceName()}/entry/${identifier}/highlight`,
+          { method: "PATCH" },
+        );
+        if (!highlight.ok) throw new Error(highlight.status);
+        else {
+          actionButton.removeAttribute("disabled");
+          switch (actionButton.innerText) {
+            case "highlight":
+              actionButton.innerText = "un-highlight";
+              break;
+            case "un-highlight":
+              actionButton.innerText = "highlight";
+              break;
+          }
+        }
+        break;
+      }
+      case "clear-flags": {
+        const clearFlags = await fetch(
+          `/api/${instanceName()}/entry/${identifier}/clear-flags`,
+          { method: "PATCH" },
+        );
+        if (!clearFlags.ok) throw new Error(clearFlags.status);
+        else {
+          actionButton.removeAttribute("disabled");
+        }
+        break;
+      }
+      case "flagging": {
+        const flagging = await fetch(
+          `/api/${instanceName()}/entry/${identifier}/flagging`,
+          { method: "PATCH" },
+        );
+        if (!flagging.ok) throw new Error(flagging.status);
+        else {
+          actionButton.removeAttribute("disabled");
+        }
+        switch (actionButton.innerText) {
+          case "disable flagging":
+            actionButton.innerText = "enable flagging";
+            break;
+          case "enable flagging":
+            actionButton.innerText = "disable flagging";
+            break;
+        }
+        break;
+      }
       case "approve":
+        const approve = await fetch(
+          `/api/${instanceName()}/entry/${identifier}/approve`,
+          { method: "PATCH" },
+        );
+        if (!approve.ok) throw new Error(approve.status);
+        else post.remove();
         break;
       case "visibility":
         const visibility = await fetch(
           `/api/${instanceName()}/entry/${identifier}/visibility`,
           {
             method: "PATCH",
-            headers: { ...additionalHeaders },
           },
         );
         if (!visibility.ok) {
@@ -56,31 +156,37 @@ const actOnPost = async (post, actionButton) => {
               actionButton.textContent = "unhide";
               break;
           }
-          return;
+          break;
         }
       case "block":
+        const blockReason = window.prompt("Reason?");
+        console.log(blockReason);
+
         const block = await fetch(
           `/api/${instanceName()}/entry/${identifier}/block`,
           {
             method: "PATCH",
+            headers: { "Content-Type": "text/plain" },
+            body: blockReason,
           },
         );
         if (!block.ok) {
           throw new Error(block.status);
         } else {
-          return;
+          break;
         }
+
       case "unblock":
         const unblock = await fetch(
-          `/api/${instanceName()}/entry/${identifier}/unblock`,
+          `/api/${instanceName()}/entry/${identifier}/block`,
           {
-            method: "PATCH",
+            method: "DELETE",
           },
         );
         if (!unblock.ok) {
           throw new Error(unblock.status);
         } else {
-          return;
+          break;
         }
 
       case "lock":
@@ -98,21 +204,17 @@ const actOnPost = async (post, actionButton) => {
             case false:
               actionButton.innerText = "lock";
           }
-          return;
+          break;
         }
     }
+    location.reload();
   } catch (e) {
-    let errorMessage;
-    switch (e.message) {
-      case "423":
-        errorMessage = "Insufficient privileges";
-        break;
-      default:
-        errorMessage = e.message;
-    }
+    const errorMessage = errorStatus(e.message) ?? e.message;
     throw new PostAlterationError("Failed to act on post: " + errorMessage);
   } finally {
-    setTimeout(() => actionButton.removeAttribute("disabled"), 1000);
+    if (action !== "flag") {
+      setTimeout(() => actionButton.removeAttribute("disabled"), 1000);
+    }
   }
 };
 
@@ -130,17 +232,24 @@ const postActionBtn = (post, action) => {
     .querySelector(`[data-action=${action}]`);
 };
 const addPostActionButtons = (post) => {
-  const actionRow = Object.assign(document.createElement("div"), {
-    className: "actions",
-  });
+  const existingRow = post.querySelector("div.actions");
+  const actionRow =
+    existingRow ??
+    Object.assign(document.createElement("div"), {
+      className: "actions",
+    });
   const deleteButton = Object.assign(document.createElement("button"), {
     className: "danger",
     onclick: () => actOnPost(post, deleteButton),
     innerText: "delete",
   }); //  <button onclick="approvePost(this.parentNode.parentNode)" data-action="approve">approve</button>
   deleteButton.setAttribute("data-action", "delete");
-  actionRow.append(deleteButton);
-  post.appendChild(actionRow);
+  if (!actionRow.querySelector('[data-action="delete"]')) {
+    actionRow.insertBefore(deleteButton, actionRow.firstChild);
+  }
+  if (!existingRow) {
+    post.append(actionRow);
+  }
 };
 
 const editPost = async (post, field) => {
@@ -176,11 +285,12 @@ const editPost = async (post, field) => {
 };
 
 const checkForAlterableEntries = () => {
-  const entries = document.querySelectorAll("[data-can-alter='false']");
+  const entries = document.querySelectorAll("[data-can-alter]");
   console.log(entries);
 
   for (const entry of entries) {
     if (localStorage.getItem(postIdentifier(entry))) {
+      entry.querySelector("div.actions > button[data-action='flag']")?.remove();
       entry.setAttribute("data-can-alter", true);
       const userDefinedEntryFields = entry.querySelectorAll(
         "div > [contenteditable]",
@@ -213,6 +323,48 @@ const addEditListeners = () => {
 
 const refreshEntries = async () => {};
 
+const submitEntry = async (identifier, fields) => {
+  const res = await fetch(`/api/${instanceName()}/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(fields),
+  });
+  if (!res.ok) {
+    createPopup("Failed to submit entry");
+  } else {
+    const identifier = (await res.json()).identifier;
+    const token = res.headers.get("token");
+    localStorage.setItem(identifier, token);
+    console.log(res.status);
+    if (res.status === 201) {
+      location.reload();
+    } else if (res.status === 202) {
+      createPopup(
+        "Your entry was filtered and will require manual approval before becoming visible.",
+        3000,
+      );
+    }
+  }
+};
+const reply = async (post) => {
+  const identifier = post.getAttribute("data-identifier");
+  const prompt = window.prompt("message");
+  if (prompt) {
+    const message = prompt;
+    // console.log(author, message);
+    const res = await fetch(
+      `/api/${instanceName()}/entry/${identifier}/reply`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: message }),
+      },
+    );
+    if (!res.ok) createPopup(res.status.toString(), 3000);
+    else location.reload();
+  }
+};
+
 document.addEventListener("DOMContentLoaded", () => {
   document
     .getElementById("submission-form")
@@ -230,9 +382,19 @@ document.addEventListener("DOMContentLoaded", () => {
           const identifier = (await res.json()).identifier;
           const token = res.headers.get("token");
           localStorage.setItem(identifier, token);
+          if (res.status === 201) {
+            location.reload();
+          } else if (res.status === 202)
+            createPopup(
+              "Your entry was filtered and will require manual approval before becoming visible",
+              3000,
+            );
         })
         .catch((e) => {
-          createPopup("Unable to submit entry: " + e.message, 3000);
+          createPopup(
+            "Unable to submit entry: " + errorStatus(e.message.toString()),
+            3000,
+          );
         });
       setTimeout(
         () => this.querySelector("fieldset").removeAttribute("disabled"),

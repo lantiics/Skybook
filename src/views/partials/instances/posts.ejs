@@ -1,0 +1,7 @@
+<% for (post of posts) {%>
+<%- include('./post',{post:post,ctx:ctx}) %>
+<% } %>
+<div class="page-switcher" style="display:grid;grid-auto-flow: column;justify-content: space-between;padding-inline:4px;">
+  <a href="?p=<%=page-1%>"><button id="prevPage">prev</button></a>
+  <a href="?p=<%=page+1%>"><button id="nextPage">next</button></a>
+</div>

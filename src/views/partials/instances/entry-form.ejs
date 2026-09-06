@@ -1,4 +1,5 @@
 <% if (status.submission_enabled || ctx.elevated ) {%>
+<% if (captcha.implementation==='cap') { %><script src="https://cdn.jsdelivr.net/npm/cap-widget@latest"></script> <% } %>
 <div>
   <form class="entry-submission" id="submission-form" action="/api/<%=ctx.instance%>" method="POST">
     <fieldset>
@@ -6,10 +7,30 @@
       <input name="author" id="author" placeholder="anonymous">
       <label for="content">message:</label>
       <textarea id="content" name="content" placeholder="say something!" required></textarea>
-      <input type="submit" value="Submit" />
+      <% for (field of fields) { if (!['content','author'].includes(field.name)) {%><input name="<%=field.name%>" placeholder="<%=field.name%>" <% if (field.required) {%> required <% } %>> <% } } %>
+      <% if (captcha.implementation==='cap') {%> <script>
+        const cap = new Cap({
+          apiEndpoint: "/api/captcha/<%=captcha.site_key%>"
+        });
+        cap.addEventListener("progress", (event) => {
+          console.log(`Solving... ${event.detail.progress}% done`);
+        });
+        (async () => {
+          const solution = await cap.solve();
+          if (solution.success) {
+            document.getElementById("submission-form").append(Object.assign(document.createElement("input"), {
+              type: "hidden",
+              name: "cap-token",
+              value: solution.token
+            }));
+            document.getElementById("submit-entry").removeAttribute("disabled");
+          }
+        })()
+      </script><%}%>
+      <input type="submit" value="Submit" id="submit-entry" disabled/>
     </fieldset>
   </form>
 </div>
 <% } else { %>
-<div>submission disabled</div>
-<% } %>
+      <div>submission disabled</div>
+      <% } %>

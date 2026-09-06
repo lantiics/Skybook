@@ -6,7 +6,12 @@ export const hashIp = (ip: string): string => {
     .update(ip)
     .digest("hex");
 };
+export const ipSource = async (ip: string) => {
+  const [m] =
+    await DB`SELECT source FROM blocklist_ranges WHERE ${ip}::inet <<= range LIMIT 1`;
 
+  return m?.source;
+};
 const ipIsBlockedOnInstance = async (ip: string, instance: string) => {
   const ipHash = hashIp(ip);
   const [block] =
@@ -17,7 +22,7 @@ const ipIsBlockedOnInstance = async (ip: string, instance: string) => {
 export const ipIsBlockedGlobally = async (ip: string) => {
   const ipHash = hashIp(ip);
   const [block] =
-    await DB`SELECT EXISTS(SELECT 1 FROM global_blocks WHERE ip_hash IS ${ipHash})`;
+    await DB`SELECT EXISTS(SELECT 1 FROM global_ip_blocks WHERE ip_hash IS ${ipHash})`;
   return block.exists;
 };
 
@@ -45,19 +50,32 @@ const tryGlobalBlock = async (
   ipHash: string,
   blockCount: number,
 ): Promise<void> => {
-  if (blockCount < config.ip_blocking.global_block_threshold) return;
+  if (
+    !config.ip_blocking.automated_enforcements_enabled ||
+    blockCount < config.ip_blocking.global_block_threshold
+  )
+    return;
   await DB`
-    INSERT INTO global_blocks (ip_hash, reason) VALUES (${ipHash}, 'SYSTEM: Exceeded per-instance block threshold of ${config.ip_blocking.global_block_threshold}')
+    INSERT INTO global_ip_blocks (ip_hash, reason) VALUES (${ipHash}, ${DB`SYSTEM: Exceeded per-instance block threshold of ${config.ip_blocking.global_block_threshold}`}')
     ON CONFLICT (ip_hash) DO NOTHING`;
 };
 
-export const blockIpOnInstance = async (instance: string, ipHash: string) => {
+export const blockIpOnInstance = async (
+  instance: string,
+  ipHash: string,
+  reason?: string,
+) => {
   const isNewBlock = await DB.begin(async (tx) => {
     const [row] = await tx`
-    INSERT INTO instance_blocks (instance, ip_hash) VALUES (${instance},${ipHash}) 
+    INSERT INTO instance_blocks (instance, ip_hash, reason) VALUES (${instance},${ipHash},${reason}) 
     ON CONFLICT (instance, ip_hash) DO NOTHING
     RETURNING ip_hash
     `;
+    await tx`UPDATE posts AS t1
+    SET creator_ip_blocked_reason = t2.reason
+    FROM instance_blocks AS t2
+    WHERE t1.ip_hash = t2.ip_hash
+    AND t1.instance - ${instance}`;
     return !!row;
   });
   if (!isNewBlock) return;
@@ -88,7 +106,7 @@ export const unblockIpOnInstance = async (
       await tx`SELECT block_count FROM ip_block_stats WHERE ip_hash = ${ipHash}`
     )[0].block_count;
     if (currentBlockCount < config.ip_blocking.global_block_threshold) {
-      await tx`DELETE FROM global_blocks WHERE ip_hash = ${ipHash} AND reason LIKE 'SYSTEM:%'`;
+      await tx`DELETE FROM global_ip_blocks WHERE ip_hash = ${ipHash} AND reason LIKE 'SYSTEM:%'`;
     }
   });
 };

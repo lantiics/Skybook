@@ -1,8 +1,19 @@
-<% if (ctx.elevated) { %> <%- include('../partials/instances/elevated-interface')%> <% } %>
-<%- include('../partials/instances/entry-form')%>
+<% if (ctx.elevated) { %> <%- include('../partials/instances/elevated-interface', {fields: fields})%> <% } %>
+<% if(status.submission_enabled.status||ctx.elevated) {%><%- include('../partials/instances/entry-form')%> <% } else {%><div>Submission is currently unavailable</div> <%}%>
 <!-- -->
 <div>
   <div class="entries" id="entries">
-    <%- include('../partials/instances/post') %>
-  </div>
+
+    <% if (status.is_visible.status || ctx.elevated) { %>
+
+<% if (typeof posts !== 'undefined') { %>
+
+<%- include('../partials/instances/posts', {posts:posts,ctx:ctx})%>
+<% } else { %> <div class="entry">
+  <div>no entries</div>
+</div> <% } %>
+<% } else { %>
+<div>Posts are currently not visible</div>
+<% } %>
+</div>
 </div>

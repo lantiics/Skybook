@@ -1,0 +1,39 @@
+<div>if a field is required and has no replacement, entries without that field filled will be rejected.</div>
+
+<table>
+
+  <tr>
+    <th>Name</th>
+    <th>Required</th>
+    <th>Replacement</th>
+    <th>Filter</th>
+  </tr>
+  <% for (field of fields) {%> <tr data-field-name="<%=field.name%>">
+    <th contenteditable="<%=!['content','author'].includes(field.name)%>" data-field="name"><%=field.name%></th>
+    <th><input type="checkbox" <% if (field.name==='content') { %> disabled <% } %> <% if (field.is_required) {%> checked <%}%> <% if (field.name!=='content') {%> onclick='toggleFieldRequired(this)' <%}%>></th>
+    <th ><input <% if (field.name==='content'||!field.is_required) {%> disabled <%}%> type="text" maxlength="50" value="<%=field.replacement%>" data-field-replacement="<%=field.name%>"></th>
+    <th><input value="<%=field.filter%>" maxlength="1000" data-field-filter="<%=field.name%>"></th>
+  </tr> <% } %>
+  <tr style="width:1px;height:15px;">
+  </tr>
+  <tr style="height:1rem;display:none;" id="newField-row">
+    <th contenteditable="true" id="newfield-name">
+      name
+    </th>
+    <th><input type='checkbox' id="newfield-required"></th>
+    <th><input type="text" maxlength="50" id="newfield-replacement"></th>
+    <th><input type='text' maxlength="1000" id="newfield-filter"></th>
+  </tr>
+
+</table>
+
+<button onclick='document.getElementById("newField-row").removeAttribute("style");this.innerText="submit";this.setAttribute("onclick","createNewField(this)")'>new field</button>
+<!-- <form id="newField" style="display:none">
+  <fieldset class="table-form">
+    <input type="text" name="name" maxlength="50" placeholder="name" required>
+    <span>required</span><input type="checkbox" name="required">
+    <input type="text" name="replacement" maxlength="50" placeholder="replacement">
+    <input type="text" name="filter" maxlength="50" placeholder="filter">
+    <input type="submit">
+  </fieldset>
+</form> -->

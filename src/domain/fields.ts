@@ -8,11 +8,14 @@ const allWritableFields = async (instance: string): Promise<Set<string>> => {
   const dbFields = new Set(["content", "author", "parent"]);
   const [additionalFields] =
     await DB`SELECT * FROM fields WHERE instance = ${instance}`;
-  for (const field of additionalFields as Field[]) {
-    dbFields.add(field.name);
-  }
+  if (additionalFields) {
+    for (const field of additionalFields as Field[]) {
+      dbFields.add(field.name);
+    }
 
-  return dbFields as Set<string>;
+    return dbFields as Set<string>;
+  }
+  return dbFields;
 };
 export const allFieldsAreWritable = async (
   instance: string,
@@ -27,6 +30,26 @@ export const allFieldsAreWritable = async (
 //   for (const [name, content] of Object.entries(fields)) {
 //   }
 // };
+export const getFieldData = async (instance: string): Promise<Field[]> => {
+  const fields: Field[] =
+    await DB`SELECT name, is_required, replacement, filter FROM fields WHERE instance = ${instance} AND is_public`;
+  const defaultFields = [
+    {
+      name: "author",
+      is_required: false,
+      replacement: "anonymous",
+      filter: null,
+    },
+    { name: "content", is_required: true, replacement: null, filter: null },
+  ];
+  const merged = fields.concat(
+    defaultFields.filter(
+      (defaultField) =>
+        !fields.some((field) => field.name === defaultField.name),
+    ),
+  );
+  return merged;
+};
 const fieldNameAccepted = (name: string): boolean => {
   //
   //
@@ -36,13 +59,37 @@ export const setField = async (
   ctx: RequestContext,
   field: Field,
 ): Promise<Field> => {
-  if (!fieldNameAccepted(field.name)) {
+  if (
+    field.name === "content" &&
+    (field.is_required || field.replacement) &&
+    !fieldNameAccepted(field.name)
+  ) {
     throw new UnauthorizedError(
       "Provided field name is reserved by the system",
     );
   }
+  // if (field.filter == "") {
+  //   field.filter = null;
+  // }
+  // if (field.replacement === "") {
+  //   field.replacement = null;
+  // }
+  const record = {
+    instance: ctx.instance,
+    name: field.name,
+    is_required: field.is_required,
+  };
+  if (field.replacement) {
+    record.replacement = field.replacement;
+  }
+  if (field.filter) {
+    record.filter = field.filter;
+  }
+  console.log(field);
   return (
-    await DB`INSERT INTO fields ${DB(field)} WHERE instance = ${ctx.instance} RETURNING *`
+    await DB`INSERT INTO fields ${DB(record)}
+  ON CONFLICT (instance, name) DO UPDATE SET ${DB(record)}
+  RETURNING *`
   )[0];
 };
 export const renameField = async (

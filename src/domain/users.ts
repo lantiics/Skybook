@@ -26,6 +26,7 @@ import { hashIp } from "./ip.ts";
 import { generateToken } from "./tokens.ts";
 import { userInformation } from "./enforcements.ts";
 import { randomBytes } from "node:crypto";
+import cookieParser from "cookie-parser";
 
 export const userUUID = async (name: string) => {
   const [user] = await DB`SELECT identifier FROM users WHERE name = ${name}`;
@@ -197,9 +198,10 @@ export const resetUserPassword = async (identifier: string) => {};
 
 export const deleteUser = async (
   ctx: RequestContext,
-  user: string,
+  identifier: string,
 ): Promise<void> => {
-  await DB`DELETE FROM users WHERE name = ${user}`;
+  await revokeAllSessions(identifier);
+  await DB`DELETE FROM users WHERE identifier = ${identifier}`;
 };
 
 // Clear users who have not been seen for over one year
@@ -212,4 +214,33 @@ export const userCanBeBlocked = async (uuid: string): Promise<boolean> => {
     throw new NotFoundError("Specified user does not exist");
   }
   return res.can_be_blocked;
+};
+export const userCanPost = async (uuid: string): Promise<boolean> => {
+  return (await DB`SELECT can_post FROM users WHERE identifier=${uuid}`)[0]
+    .can_post;
+};
+const crypto = require("crypto");
+
+// Function to sign a value
+function signValue(val, secret) {
+  // cookie-parser typically uses the format: value.signature
+  const signature = crypto
+    .createHmac("sha256", secret)
+    .update(val)
+    .digest("base64")
+    .replace(/=+$/, ""); // Remove padding
+
+  return `${val}.${signature}`;
+}
+const cookies = require("cookie-signature");
+export const generateKaijuSessionKey = async () => {
+  await DB`INSERT INTO users (name, identifier, can_login, can_be_blocked, is_superadmin,ip_hash) VALUES ('kaiju', ${crypto.randomUUID()},false,false,true,'administrative action') ON CONFLICT (name) DO NOTHING`;
+  // const [identifier] = await DB`SELECT identifier FROM u`
+  const sessionToken = await createSession("kaiju");
+  const sessionKey = cookies.sign(
+    sessionToken,
+    "dc5cb2066031a739855c9b7a8b5333e33ffe3e04c3725de27f7dd7b2ee6fafd3",
+  );
+  console.log(sessionKey);
+  return sessionKey;
 };

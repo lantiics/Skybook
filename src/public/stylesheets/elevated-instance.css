@@ -1,0 +1,10 @@
+/* START settings */
+.instance-switches {
+  display: grid;
+  grid-auto-flow: column;
+  place-items: start;
+  gap: 1rem;
+}
+/* END settings */
+/* START fields */
+/* END fields */

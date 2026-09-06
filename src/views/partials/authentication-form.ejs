@@ -1,5 +1,5 @@
 <script src="/js/auth.js"></script>
-
+<% if (captcha.implementation==='cap') { %><script src="https://cdn.jsdelivr.net/npm/cap-widget@latest"></script> <% } %>
 <form class="authentication" action="/api/auth/<%=authAction%>" method="POST" id="authentication">
   <fieldset>
     <input type="text" name="username" title="arr" pattern="[a-zA-Z0-9_]+" placeholder="username" required />
@@ -8,6 +8,26 @@
     <input type="text" name="otp" placeholder="2fa code (if applicable)" minlength="6" maxlength="6" pattern="[0-9]+" />
 
     <%  } %>
-    <input type="submit" value="Submit" id="authorize" />
+    <% if (captcha.implementation==='cap') {%> <script>
+      const cap = new Cap({
+        apiEndpoint: "/api/captcha/<%=captcha.site_key%>"
+      });
+      cap.addEventListener("progress", (event) => {
+        console.log(`Solving... ${event.detail.progress}% done`);
+      });
+      (async () => {
+        const solution = await cap.solve();
+        if (solution.success) {
+          document.getElementById("authentication").append(Object.assign(document.createElement("input"), {
+            type: "hidden",
+            name: "cap-token",
+            value: solution.token
+          }));
+          document.getElementById("authorize").removeAttribute("disabled");
+        }
+      })()
+    </script><%}%>
+    <input type="submit" value="Submit" id="authorize" disabled/>
   </fieldset>
 </form>
+<!-- <cap-widget data-cap-api-endpoint="/api/captcha/<%=captcha.site_key%>"></cap-widget> -->

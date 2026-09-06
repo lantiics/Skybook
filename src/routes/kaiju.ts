@@ -9,6 +9,15 @@ import {
   toggleInstanceFlagging,
   toggleInstanceReplying,
   toggleInstanceSubmission,
+  toggleInstanceTorBlacklist,
+  toggleInstanceVPNBlacklist,
+  toggleInstanceProxyBlacklist,
+  toggleInstanceQueueOnFiltered,
+  updateInstanceSuppliedFilter,
+  disableInstanceDefaultFilter,
+  enableInstanceDefaultFilter,
+  exportInstance,
+  importInstance,
 } from "../domain/instances.ts";
 import {
   getPosts,
@@ -26,6 +35,7 @@ import {
   lockPostMethods,
   blockPostCreator,
   unblockPostCreator,
+  replyToPost,
 } from "../domain/posts.ts";
 import {
   getFieldFilters,
@@ -33,6 +43,10 @@ import {
   setField,
   renameField,
 } from "../domain/fields.ts";
+import { DB } from "../db.ts";
+import { postgres } from "bun";
+import multer from "multer";
+import { assertCaptchaTokenValid } from "../domain/captcha.ts";
 
 //#region HELPERS
 
@@ -91,6 +105,10 @@ router.post(
   alterationLimiter,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
+      await assertCaptchaTokenValid(
+        req.body[config.captcha.token_property_name],
+      );
+      delete req.body[config.captcha.token_property_name];
       console.log(req.body, "aa");
       const createdEntry = await createPost(req.ctx, req.body);
       if (createdEntry.token) {
@@ -126,6 +144,7 @@ router.patch(
     try {
       const identifier = req.params.identifier as string;
       const entry = await editPost(req.ctx, identifier, req.body);
+
       return res.status(200).send(entry);
     } catch (e) {
       return res.sendStatus(errorStatus(e, req.ctx.elevated));
@@ -142,6 +161,7 @@ router.post(
       const entry = await flagPost(req.ctx, req.params.identifier as string);
       return res.status(200).send(entry);
     } catch (e) {
+      if (e instanceof Bun.SQL.PostgresError) return res.sendStatus(409);
       return res.sendStatus(errorStatus(e, req.ctx.elevated));
     }
   },
@@ -149,22 +169,40 @@ router.post(
 //#endregion PUBLIC METHODS
 
 //#region ELEVATED
+router.put(
+  `/entry/:identifier/reply`,
+  alterationLimiter,
+  async (req: Request, res: Response) => {
+    if (!req.ctx.elevated) return res.sendStatus(403);
+    try {
+      await replyToPost(
+        req.ctx,
+        req.params.identifier as string,
+        req.body.content,
+      );
+      return res.sendStatus(201);
+    } catch (e) {
+      return res.sendStatus(errorStatus(e, req.ctx.elevated));
+    }
+  },
+);
 router.get(
   "/export",
   alterationLimiter,
   async (req: Request, res: Response, next: NextFunction) => {
     if (!req.ctx.elevated) return res.sendStatus(403);
     try {
-      const exportedInstanceData = "";
-      return res.status(200).send("TODO");
+      const exportedData = await exportInstance(req.ctx);
+      return res.status(200).send(exportedData);
     } catch (e) {
       return res.sendStatus(errorStatus(e, req.ctx.elevated));
     }
   },
 );
-router.put(
+router.post(
   "/import",
   alterationLimiter,
+  multer({ storage: multer.memoryStorage() }).single("file"),
   async (req: Request, res: Response, next: NextFunction) => {
     if (!req.ctx.elevated) return res.sendStatus(403);
     try {
@@ -172,13 +210,50 @@ router.put(
       //
       //
       //
-      // const importResult = dropbox.import(req.body);
+
+      const importResult = await importInstance(
+        req.ctx,
+        JSON.parse(req.file!.buffer.toString()),
+      );
       return res.sendStatus(201);
     } catch (e) {
       return res.sendStatus(errorStatus(e, req.ctx.elevated));
     }
   },
 );
+//#region BLOCKLISTS
+router.patch(
+  "/proxy",
+  alterationLimiter,
+  async (req: Request, res: Response) => {
+    if (!req.ctx.elevated) return res.sendStatus(403);
+    try {
+      await toggleInstanceProxyBlacklist(req.ctx.instance);
+      return res.sendStatus(200);
+    } catch (e) {
+      return res.sendStatus(errorStatus(e, req.ctx.elevated));
+    }
+  },
+);
+router.patch("/vpn", alterationLimiter, async (req: Request, res: Response) => {
+  if (!req.ctx.elevated) return res.sendStatus(403);
+  try {
+    await toggleInstanceVPNBlacklist(req.ctx.instance);
+    return res.sendStatus(200);
+  } catch (e) {
+    return res.sendStatus(errorStatus(e, req.ctx.elevated));
+  }
+});
+router.patch("/tor", alterationLimiter, async (req: Request, res: Response) => {
+  if (!req.ctx.elevated) return res.sendStatus(403);
+  try {
+    await toggleInstanceTorBlacklist(req.ctx.instance);
+    return res.sendStatus(200);
+  } catch (e) {
+    return res.sendStatus(errorStatus(e, req.ctx.elevated));
+  }
+});
+//#endregion
 //#region INSTANCE METHODS
 router.patch(
   "/visibility",
@@ -245,21 +320,68 @@ router.patch(
     }
   },
 );
-router.get(
-  // return supplied regex filters
-  "/filters",
-  fetchLimiter,
-  async (req: Request, res: Response, next: NextFunction) => {
+router.patch(
+  "/queue-filtered",
+  alterationLimiter,
+  async (req: Request, res: Response) => {
     if (!req.ctx.elevated) return res.sendStatus(403);
     try {
-      const filters = await getFieldFilters(req.ctx);
-
-      return res.send(filters);
+      await toggleInstanceQueueOnFiltered(req.ctx.instance);
+      return res.sendStatus(200);
     } catch (e) {
       return res.sendStatus(errorStatus(e, req.ctx.elevated));
     }
   },
 );
+// Update the instance's supplied filter.
+// Instance owners can supply their own filters which apply to every field.
+router.patch(
+  "/filter",
+  alterationLimiter,
+  async (req: Request, res: Response) => {
+    if (!req.ctx.elevated) return res.sendStatus(403);
+    try {
+      await updateInstanceSuppliedFilter(req.ctx.instance, req.body.filter);
+      return res.sendStatus(200);
+    } catch (e) {
+      return res.sendStatus(errorStatus(e, req.ctx.elevated));
+    }
+  },
+);
+// Implement default, Kaiju-provided filters
+router.patch(
+  "/filter/:filter",
+  alterationLimiter,
+  async (req: Request, res: Response) => {
+    if (!req.ctx.elevated) return res.sendStatus(403);
+    try {
+      await enableInstanceDefaultFilter(
+        req.ctx.instance,
+        req.params.filter as string,
+      );
+      return res.sendStatus(201);
+    } catch (e) {
+      return res.sendStatus(errorStatus(e, req.ctx.elevated));
+    }
+  },
+);
+router.delete(
+  "/filter/:filter",
+  alterationLimiter,
+  async (req: Request, res: Response) => {
+    if (!req.ctx.elevated) return res.sendStatus(403);
+    try {
+      await disableInstanceDefaultFilter(
+        req.ctx.instance,
+        req.params.filter as string,
+      );
+      return res.sendStatus(204);
+    } catch (e) {
+      return res.sendStatus(errorStatus(e, req.ctx.elevated));
+    }
+  },
+);
+
 //#endregion INSTANCE METHODS
 //#region FIELDS
 router.patch(
@@ -305,7 +427,9 @@ router
     async (req: Request, res: Response, next: NextFunction) => {
       if (!req.ctx.elevated) return res.sendStatus(403);
       try {
+        req.body.name = req.params.field;
         const field = await setField(req.ctx, req.body);
+        console.log(field, "mhm");
         return res.status(201).send(field);
       } catch (e) {
         return res.sendStatus(errorStatus(e, req.ctx.elevated));
@@ -331,15 +455,20 @@ router.patch(
   async (req: Request, res: Response) => {
     if (!req.ctx.elevated) return res.sendStatus(403);
     try {
-      await blockPostCreator(req.ctx, req.params.identifier as string);
+      console.log(req.body, "reason");
+      await blockPostCreator(
+        req.ctx,
+        req.params.identifier as string,
+        req.body !== "" ? req.body : undefined,
+      );
       return res.sendStatus(201);
     } catch (e) {
       return res.sendStatus(errorStatus(e, req.ctx.elevated));
     }
   },
 );
-router.patch(
-  "/entry/:identifier/unblock",
+router.delete(
+  "/entry/:identifier/block",
   alterationLimiter,
   async (req: Request, res: Response) => {
     if (!req.ctx.elevated) return res.sendStatus(403);

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <%-include('./partials/head',{ctx:undefined})%>
+  <style>
+    .error-container {
+      margin: auto auto;
+      background-color: var(--primary-container);
+      padding: 4px;
+      min-width: 12rem;
+      text-align: center;
+
+    }
+
+    body {
+      height: 100vh;
+      display: grid;
+
+    }
+  </style>
+</head>
+
+<body>
+  <div class="error-container">
+    <h1><%=error%></h1>
+    <h3><%=message%></h3>
+  </div>
+</body>
+
+</html>

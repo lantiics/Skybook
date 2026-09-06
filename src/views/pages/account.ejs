@@ -4,19 +4,21 @@
   <div>
     <h2>change password</h2>
     <form class="authentication" action="/api/auth/password" method="post" id="authentication">
-      <input type="text" name="username" title="arr" pattern="[a-zA-Z0-9_]+" placeholder="username" required />
-      <input type="password" name="oldPassword" placeholder="current password" minlength="8" required />
-      <input type="password" name="newPassword" placeholder="new password" minlength="8" id="new-password" required />
-      <input type="password" placeholder="confirm new password" minlength=" 8" required /> <input type="text" name="otp" placeholder="2fa code (if applicable)" minlength="6" maxlength="6" pattern="[0-9]+" />
+      <fieldset>
+        <input type="text" name="username" title="arr" pattern="[a-zA-Z0-9_]+" placeholder="username" required />
+        <input type="password" name="oldPassword" placeholder="current password" minlength="8" required />
+        <input type="password" name="newPassword" placeholder="new password" minlength="8" id="new-password" required />
+        <input type="password" placeholder="confirm new password" minlength=" 8" required /> <input type="text" name="otp" placeholder="2fa code (if applicable)" minlength="6" maxlength="6" pattern="[0-9]+" />
 
 
-      <input type="submit" id="authorize" />
+        <input type="submit" id="authorize" />
+      </fieldset>
     </form>
 
   </div>
 
 
   <div>
-    <button>delete account</button>
+    <button class="danger" onclick="fetch('/api/account',{method:'DELETE'})">delete account</button>
   </div>
 </div>
