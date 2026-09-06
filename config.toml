@@ -1,5 +1,34 @@
+[kaiju]
+version = "0.0 (PRE-RELEASE)"
+proxies_between = 1
+environment = "development"
 [server]
-captcha_implementation = "cap" # cap (trycap.dev) | cloudflare
+
+
+[captcha]
+implementation = "cap"                                       # cap (trycap.dev) | cloudflare
+token_property_name = "cap-token"
+site_key = "89a2b7836c"
+secret_key = "sk-ToUHcl2gqvIdZqM6JFi7VEct01osu8pPZwOUUUP0kY"
+challenge_url = "http://localhost:9000/"
+verification_url = "http://localhost:9000/siteverify"
+
+[users]
+indefinite_locking_threshold = 3
+
+[filter]
+# Enforce a default filter on all instances
+# By default all filters specified here are false, 
+# which allows instance owners to toggle them manually.
+# If a new filter is added, it is to be added here and in src/config.ts.
+
+derogatory = false
+
+
+[fields]
+author_max_length = 50
+typical_max_length = 500
+
 [rate_limits]
 auth_window_ms = 60000             # 1 minute
 auth_limit = 5
@@ -22,10 +51,8 @@ expiry_hours = 24
 expiration_sweep_interval_minutes = 30
 
 [ip_blocking]
-global_block_threshold = 10
-proxy_addresses_blocked = false
-vpn_addresses_blocked = false
-tor_addresses_blocked = false
-
-[users]
-indefinite_locking_threshold = 3
+automated_enforcements_enabled = false
+global_block_threshold = 15
+proxy_addresses_blocked = true         #
+vpn_addresses_blocked = true           #
+tor_addresses_blocked = true           #

@@ -1,0 +1,18 @@
+<div class="instance-switches">
+  <div class="instance-switch-container">
+    <span>Visible</span>
+    <input type="checkbox" class="instance-switch" name="visibility" id="instanceVisibility" data-action="visibility" <% if (status.is_visible.status) {%>checked <% } %> onclick="toggleStatus(this)">
+  </div>
+  <div class="instance-switch-container">
+    <span>Submission</span>
+    <input type="checkbox" class="instance-switch" name="submission" id="instanceSubmission" data-action="submission" <% if (status.submission_enabled.status) {%>checked <% } %> onclick="toggleStatus(this)">
+  </div>
+  <div class="instance-switch-container">
+    <span>Approval</span>
+    <input type="checkbox" class="instance-switch" name="approval" id="instanceApproval" data-action="approval" <% if (status.approval_required.status) {%>checked <% } %> onclick="toggleStatus(this)">
+  </div>
+  <div class="instance-switch-container">
+    <span>Queue filtered posts</span>
+    <input type="checkbox" class="instance-switch" name="queueFiltered" id="instanceQueueFiltered" data-action="queue-filtered" <% if (status.queue_on_filtered.status) {%>checked <% } %> onclick="toggleStatus(this)">
+  </div>
+</div>

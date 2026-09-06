@@ -2,6 +2,23 @@ import { NextFunction, Request } from "express";
 import { authenticateUser, userIsSuperAdmin } from "../domain/users";
 import { NotFoundError, UnauthorizedError } from "../errors";
 import { instanceExists } from "../domain/instances";
+import { config } from "../config";
+import { ipSource } from "../domain/ip";
+const assertIpIsBlocked = async (ip: string) => {
+  const source = await ipSource(ip);
+  if (config.ip_blocking.proxy_addresses_blocked && source === "proxy")
+    throw new UnauthorizedError(
+      "This instance prevents access from proxy addresses",
+    );
+  if (config.ip_blocking.vpn_addresses_blocked && source === "vpn")
+    throw new UnauthorizedError(
+      "This instance prevents access from VPN addresses",
+    );
+  if (config.ip_blocking.tor_addresses_blocked && source === "tor")
+    throw new UnauthorizedError(
+      "This instance prevents access from Tor addresses",
+    );
+};
 
 export const authenticate = async (
   req: Request,
@@ -9,6 +26,13 @@ export const authenticate = async (
   next: NextFunction,
 ) => {
   console.time("Authenticated");
+  if (
+    config.ip_blocking.proxy_addresses_blocked ||
+    config.ip_blocking.vpn_addresses_blocked ||
+    config.ip_blocking.tor_addresses_blocked
+  ) {
+    await assertIpIsBlocked(req.ip as string);
+  }
   const token = req.headers?.authorization?.split(" ")[1];
   let user;
   if (req.signedCookies.session) {
@@ -39,16 +63,6 @@ export const authenticate = async (
   if (!elevated && user && user.name === req.ctx?.instance) {
     elevated = true;
   }
-  // req.ctx = {
-  //   instance:
-  //     (req.params.instance as string) ?? (req.query.instance as string) ?? null,
-  //   elevated: false,
-  //   superAdmin: false,
-  //   identifier: (req.params?.identifier as string | undefined) ?? undefined,
-  //   token: undefined,
-  //   authenticated: false,
-  //   ip: req.ip!,
-  // };
 
   req.ctx = {
     ...req.ctx,
@@ -57,7 +71,6 @@ export const authenticate = async (
     identifier: req.params.identifier as string,
   };
 
-  console.log(req.ctx);
   console.timeEnd("Authenticated");
 
   next();

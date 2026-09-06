@@ -3,29 +3,40 @@ import {
   PUBLIC_COLUMN_NAMES,
   PRIVATE_COLUMN_NAMES,
   ADMIN_COLUMN_NAMES,
+  RESERVED_COLUMN_NAMES,
 } from "../defaults.ts";
 import {
   UnauthorizedError,
   FilteredError,
   NotFoundError,
   LockedError,
+  BadRequestError,
 } from "../errors.ts";
 import { RequestContext } from "../types/context.ts";
 import { generateToken, entryTokenValid } from "./tokens.ts";
 import { DB } from "../db.ts";
 import {
   flaggingEnabled,
-  replyingEnabled,
+  // replyingEnabled,
   instanceQueuesFilteredPosts,
   compiledInstanceStatus,
   isVisible,
   instanceHasRequesterBlocked,
   blockUser,
   unblockUser,
+  instanceIpBlocks,
+  instanceSuppliedFilter,
+  instanceDefaultFilters,
 } from "./instances.ts";
-import { Post } from "../types/entities.ts";
-import { blockIpOnInstance, hashIp, unblockIpOnInstance } from "./ip.ts";
-import { userCanBeBlocked } from "./users.ts";
+import { Field, Post } from "../types/entities.ts";
+import {
+  blockIpOnInstance,
+  hashIp,
+  ipSource,
+  unblockIpOnInstance,
+} from "./ip.ts";
+import { userCanBeBlocked, userCanPost } from "./users.ts";
+import { config } from "../config.ts";
 
 const generateIdentifier = (): string => {
   const data = crypto.randomUUID() + crypto.randomUUID();
@@ -34,126 +45,189 @@ const generateIdentifier = (): string => {
   const digest = hasher.digest("hex");
   return digest.slice(0, digest.length / 2);
 };
-const assertEntryCreationPossible = async (
+const fieldIsFiltered = (field: string, filter: RegExp): boolean => {
+  if (filter.test(field)) return true;
+  return false;
+};
+const validatedEntry = async (
   ctx: RequestContext,
   fields: Record<string, any>,
-): Promise<boolean | 2> => {
-  let instanceFields: Record<
-    string,
-    {
-      special: boolean;
-      public: boolean;
-      required?: boolean;
-      replacement?: string;
-      filter?: string;
-    }
-  > = {
-    parent: {
-      special: false,
-      public: true,
-    },
-    author: {
-      special: false,
-      public: true,
-      required: true,
-      replacement: "anonymous",
-    },
-    content: {
-      special: false,
-      public: true,
-      required: true,
-      filter: "arf|meow",
-    },
-  };
-  const customFields =
-    (await DB`SELECT * FROM fields WHERE instance = ${ctx.instance}`)[0] ?? {};
-  if (Object.entries(customFields).length > 0) {
-    instanceFields = { ...instanceFields, ...customFields };
+  isEdit: boolean = false,
+): Promise<Record<string, unknown>> => {
+  console.time("Validated entry");
+  const instanceStatus = await compiledInstanceStatus(ctx.instance);
+  if (!instanceStatus.submission_enabled.status && !ctx.elevated)
+    throw new UnauthorizedError("Submission is disabled");
+
+  const instanceBlocks = await instanceIpBlocks(ctx.instance);
+  const source = await ipSource(ctx.ip);
+  if (instanceBlocks.proxy) {
+    if (source === "vpn") throw new UnauthorizedError("IP blocked");
+  }
+  if (instanceBlocks.vpn) {
+    if (source === "vpn") throw new UnauthorizedError("IP blocked");
+  }
+  if (instanceBlocks.tor) {
+    if (source === "tor") throw new UnauthorizedError("IP blocked");
   }
   if (
-    !ctx.superAdmin &&
-    !ctx.elevated &&
     (await instanceHasRequesterBlocked(
       ctx.instance,
-      ctx.user?.identifier ?? "",
+
       hashIp(ctx.ip),
-    ))
+      ctx.user?.identifier,
+    )) ||
+    (ctx.user?.identifier && !(await userCanPost(ctx.user.identifier)))
   ) {
-    throw new UnauthorizedError("User is blocked by this instance");
+    throw new UnauthorizedError("User blocked");
   }
 
-  if (fields?.extra) {
-    for (const [field, config] of fields.extra) {
-      fields[field] = config;
-    }
-    delete fields.extra;
+  let instanceFields: Record<string, Omit<Field, "instance">> = {
+    parent: {
+      name: "parent",
+      is_special: false,
+      is_public: true,
+      is_required: false,
+      replacement: null,
+      filter: null,
+    },
+    author: {
+      name: "author",
+      is_special: false,
+      is_public: true,
+      is_required: true,
+      replacement: "anonymous",
+      filter: null,
+    },
+    content: {
+      name: "content",
+      is_special: false,
+      is_public: true,
+      is_required: true,
+      replacement: null,
+      filter: null,
+    },
+  };
+  for (const [name, field] of Object.entries(fields)) {
+    if (field === "") delete fields[name];
   }
-  if (fields?.parent) {
-    if (
-      !(
-        await DB`SELECT can_reply FROM posts WHERE identifier = ${fields.parent} AND instance = ${ctx.instance}}`
-      ).values()[0]
-    ) {
-      throw new UnauthorizedError("Cannot reply to this post");
-    }
-  }
-  console.log(fields);
-  for (const [field, content] of Object.entries(fields)) {
-    // console.log(field, content, instanceFields[field]);
-    if (field !== "content") {
-      if (
-        !instanceFields[field].public ||
-        instanceFields[field].special ||
-        (field === "parent" && !replyingEnabled(ctx.instance))
-      ) {
-        throw new UnauthorizedError("Unacceptable fields inputted");
+  const fieldFilter = await instanceSuppliedFilter(ctx.instance);
+  const defaultFilter = await instanceDefaultFilters(ctx.instance);
+  const globalFilter = [...(fieldFilter || []), ...(defaultFilter || [])].join(
+    "|",
+  );
+  console.log({
+    "instance-supplied filter": fieldFilter,
+    "default, kaiju-provided filter the instance has enabled": defaultFilter,
+    "combined, which is what we check against": globalFilter,
+  });
+
+  const cF =
+    await DB`SELECT name, is_special, is_public, is_required, replacement, filter FROM fields WHERE instance = ${ctx.instance}`;
+  const customFields = Object.fromEntries(cF.map((v) => [v.name, v]));
+
+  instanceFields = { ...instanceFields, ...customFields };
+
+  if (
+    !Object.entries(fields).every(([name, _]) =>
+      Object.keys(instanceFields).includes(name),
+    )
+  )
+    throw new BadRequestError("At least one field specified does not exist");
+
+  let entry: Partial<Post> = {
+    is_queued: instanceStatus.approval_required.status,
+  };
+  console.log(globalFilter);
+  if (globalFilter) {
+    const filter = new RegExp(globalFilter);
+    if (Object.values(fields).some((field) => filter.test(field))) {
+      if (instanceStatus.queue_on_filtered.status) {
+        entry.is_queued = true;
+      } else {
+        throw new FilteredError(
+          "At least one field violated the instance's global filter",
+        );
       }
+      console.log(
+        "one or more of these fields were filtered: \n" +
+          JSON.stringify(fields, null, 2),
+      );
     }
-    if (instanceFields[field]?.filter && !ctx.elevated && !ctx.superAdmin) {
-      if (content.match(RegExp(instanceFields[field].filter))) {
-        if (!(await instanceQueuesFilteredPosts(ctx.instance))) {
-          throw new FilteredError("Entry contained filtered values");
+  }
+
+  // throwing if required fields cannot be set
+  for (const [_, field] of Object.entries(instanceFields)) {
+    if (field.is_required && !fields[field.name]) {
+      if (!isEdit) {
+        if (field.replacement === "") {
+          throw new BadRequestError(
+            "Required field has no replacement and is not specified",
+          );
+        }
+        fields[field.name] = field.replacement;
+      }
+    } else if (field.is_required && !fields[field.name] && isEdit) {
+      if (!field.replacement)
+        throw new BadRequestError(
+          "Required field is not specified and has no default",
+        );
+      fields[field.name] = field.replacement;
+    }
+    if (field["filter"] && fields[field.name]) {
+      if (fieldIsFiltered(fields[field.name], new RegExp(field["filter"]))) {
+        if (instanceStatus.queue_on_filtered.status) {
+          entry.is_queued = true;
         } else {
-          return 2;
+          throw new FilteredError("At least one field was filtered");
         }
       }
     }
   }
-  return true;
+  let extra = [];
+  for (const [field, content] of Object.entries(fields)) {
+    if (field === "author" && content.length > config.fields.author_max_length)
+      throw new FilteredError("Field length is above limit");
+    else if (content.length > config.fields.typical_max_length)
+      throw new FilteredError("Field length is above limit");
+    if (!["author", "parent", "content"].includes(field)) {
+      delete fields[field];
+      extra.push([field, content]);
+    }
+  }
+  fields.extra = extra;
+  entry = { ...entry, ...fields };
+  console.timeEnd("Validated entry");
+  return entry;
 };
-
+export const replyToPost = async (
+  ctx: RequestContext,
+  identifier: string,
+  message: string,
+) => {
+  await DB`UPDATE posts SET reply = ${message} WHERE identifier = ${identifier} AND instance = ${ctx.instance}`;
+};
 export const createPost = async (
   ctx: RequestContext,
   fields: Record<string, string>,
 ) => {
-  const foo = await assertEntryCreationPossible(ctx, fields);
+  let entry = await validatedEntry(ctx, fields);
 
-  let isQueued: boolean = false;
-  console.log(foo, "queue status");
-  if (foo === 2) {
-    isQueued = true;
-  }
   const _token = generateToken();
   const identifier = crypto.randomUUID();
 
   fields.identifier = identifier;
-  const entry: any = {
+  entry = {
+    ...entry,
     identifier: identifier,
     instance: ctx.instance,
-    is_queued: isQueued,
-    author: fields.author !== "" ? fields.author : "anonymous",
-    content: fields.content,
     ip_hash: hashIp(ctx.ip as string),
   };
-  // / @ts-expect-error
-  if (fields.parent) entry.parent = fields.parent;
-  // /@ts-expect-error
-  if (fields.extra) entry.extra = fields.extra;
-  console.log(ctx);
+
   if (ctx.user?.name) {
     entry.authenticated_user_identifier = ctx.user.identifier;
+    entry.can_flag = false; // //
   }
-  console.log(entry);
 
   const columns = ctx.superAdmin
     ? [
@@ -175,7 +249,7 @@ export const createPost = async (
 `;
     return row;
   });
-  return { row, token: _token, wasQueued: isQueued };
+  return { row, token: _token, wasQueued: entry.is_queued };
 };
 
 export const editPost = async (
@@ -195,8 +269,13 @@ export const editPost = async (
       );
     }
   }
-
-  assertEntryCreationPossible(ctx, fields);
+  Object.keys(fields).forEach((key) => {
+    if (!["content", "parent", "author"].includes(key)) {
+      fields.extra = [[key, fields[key]]];
+      delete fields[key];
+    }
+  });
+  await validatedEntry(ctx, fields, true);
   const [currentMetadata] =
     await DB`SELECT authenticated_user_identifier FROM posts WHERE identifier = ${identifier}`;
   const columns = ctx.superAdmin
@@ -234,14 +313,24 @@ export const deletePost = async (ctx: RequestContext, identifier: string) => {
 export const blockPostCreator = async (
   ctx: RequestContext,
   identifier: string,
+  reason?: string,
 ) => {
   if (!(await postCanBeBlocked(ctx, identifier)))
     throw new UnauthorizedError("Creator of post is unable to be blocked");
   const [postData] =
     await DB`SELECT ip_hash,authenticated_user_identifier FROM posts WHERE identifier = ${identifier} AND instance = ${ctx.instance}`;
-
-  await blockUser(ctx.instance, postData.authenticated_user_identifier);
-  await blockIpOnInstance(ctx.instance, postData.ip_hash);
+  await DB.begin(async (tx) => {
+    await tx`INSERT INTO instance_blocks (instance, ip_hash, user_identifier, reason) VALUES (${ctx.instance},${postData.ip_hash},${postData.user_identifier},${reason})`;
+    // await tx``;
+  });
+  // if (postData.authenticated_user_identifier) {
+  //   await blockUser(
+  //     ctx.instance,
+  //     postData.authenticated_user_identifier,
+  //     reason,
+  //   );
+  // }
+  // await blockIpOnInstance(ctx.instance, postData.ip_hash, reason);
 };
 export const unblockPostCreator = async (
   ctx: RequestContext,
@@ -249,8 +338,7 @@ export const unblockPostCreator = async (
 ) => {
   const [postData] =
     await DB`SELECT ip_hash,authenticated_user_identifier FROM posts WHERE identifier = ${identifier} AND instance = ${ctx.instance}`;
-  await unblockUser(ctx.instance, postData.authenticated_user_identifier);
-  await unblockIpOnInstance(ctx.instance, postData.ip_hash);
+  await DB`DELETE FROM instance_blocks WHERE instance = ${ctx.instance} AND (user_identifier = ${postData.identifier} OR ip_hash = ${postData.ip_hash})`;
 };
 export const _getPostStatus = async (
   instance: string,
@@ -259,7 +347,6 @@ export const _getPostStatus = async (
 ) => {
   const [status] =
     await DB`SELECT ${DB(property)} FROM posts WHERE identifier = ${identifier} AND instance = ${instance}`;
-  console.log(status);
   return status[property];
 };
 export const _updatePost = async (
@@ -284,6 +371,15 @@ export const _updatePost = async (
     await DB`UPDATE posts SET ${DB.unsafe(property)} WHERE identifier = ${identifier} AND instance = ${ctx.instance} returning ${DB.unsafe(columns)}`
   )[0];
 };
+export const postFlaggedByRequestor = async (
+  ctx: RequestContext,
+  identifier: string,
+) => {
+  return await DB`SELECT EXISTS (SELECT 1 FROM post_flags WHERE instance = ${ctx.instance} AND identifier = ${identifier} AND
+   (
+    ${ctx.user?.identifier ? `user_identifier = ${ctx.user.identifier} OR ip_hash = ${hashIp(ctx.ip)}` : `ip_hash = ${hashIp(ctx.ip)}`} 
+   ))`;
+};
 export const flagPost = async (ctx: RequestContext, identifier: string) => {
   if (
     (await flaggingEnabled(ctx.instance)).status &&
@@ -291,7 +387,10 @@ export const flagPost = async (ctx: RequestContext, identifier: string) => {
     !(await postIsQueued(ctx.instance, identifier)) &&
     (await postFlaggingEnabled(ctx.instance, identifier))
   ) {
-    return await _updatePost(ctx, identifier, "flag_count = flag_count + 1");
+    return await DB.begin(async (tx) => {
+      await tx`INSERT INTO post_flags (instance, identifier, user_identifier, ip_hash) VALUES (${ctx.instance}, ${identifier}, ${ctx.user?.identifier}, ${hashIp(ctx.ip)});`;
+      await tx`UPDATE posts SET flag_count = flag_count + 1 WHERE instance = ${ctx.instance} AND identifier = ${identifier}`;
+    });
   }
   throw new UnauthorizedError(
     "Flagging is disabled on either the specified post or instance",
@@ -326,6 +425,11 @@ export const postCanBeBlocked = async (
   ) {
     if (!(await userCanBeBlocked(post.authenticated_user_identifier)))
       return false;
+  } else if (
+    post.authenticated_user_identifier &&
+    post.authenticated_user_identifier === ctx.user?.identifier
+  ) {
+    return false;
   }
 
   return post.can_block;
@@ -348,7 +452,7 @@ export const togglePostHighlight = async (
   );
 };
 export const approvePost = async (ctx: RequestContext, identifier: string) => {
-  return await _updatePost(ctx, identifier, "approved = 1");
+  return await _updatePost(ctx, identifier, "is_queued = false");
 };
 export const togglePostFlagging = async (
   ctx: RequestContext,
@@ -360,7 +464,10 @@ export const clearPostFlags = async (
   ctx: RequestContext,
   identifier: string,
 ) => {
-  return await _updatePost(ctx, identifier, "flag_count = 0");
+  return await DB.begin(async (tx) => {
+    await tx`DELETE FROM post_flags WHERE instance = ${ctx.instance} AND identifier = ${identifier}`;
+    await tx`UPDATE posts SET flag_count = 0 WHERE instance = ${ctx.instance} AND identifier = ${identifier}`;
+  });
 };
 
 export const togglePostVisibility = async (
@@ -388,37 +495,89 @@ export const getPosts = async (
   page: number,
   perPage: number = 15,
 ) => {
-  if (!(await isVisible(ctx.instance)).status && !ctx.elevated) {
-    throw new UnauthorizedError("");
+  if (!ctx.elevated && !(await isVisible(ctx.instance)).status) {
+    throw new UnauthorizedError("This instance is not visible");
   }
 
-  // in Posts.get()
-  console.log(ctx.elevated, "elevation");
   const additionalRequirements = ctx.elevated
-    ? DB``
+    ? DB.unsafe("")
     : DB`AND is_visible AND NOT is_queued`;
   const order = ctx.elevated
-    ? DB`flag_count DESC, is_queued DESC,seq DESC`
-    : DB`is_pinned DESC, seq DESC`;
-
-  const entries =
-    await DB`SELECT ${!ctx.superAdmin ? (!ctx.elevated ? DB.unsafe([...PUBLIC_COLUMN_NAMES].join(",")) : DB.unsafe([...PRIVATE_COLUMN_NAMES].join(","))) : DB`*`} FROM posts WHERE parent IS NULL AND instance = ${ctx.instance}  ${additionalRequirements} ORDER BY ${order} LIMIT ${perPage} OFFSET ${page * perPage} `;
-  console.log(ctx, "context");
-  const postIdentifiers = entries
-    .filter((post: Post) => post.identifier)
-    .map((post: Post) => post.identifier);
-
-  const postReplies =
-    await DB`SELECT ${!ctx?.superAdmin ? (!ctx?.elevated ? DB.unsafe([...PUBLIC_COLUMN_NAMES].join(",")) : DB.unsafe([...PRIVATE_COLUMN_NAMES].join(","))) : "*"} FROM posts WHERE parent IN (${postIdentifiers}) AND instance = ${ctx.instance} `;
-  const pageToReturn = [...entries, ...postReplies];
-  for (const post of pageToReturn) {
-    if (post.authenticated_user_identifier) {
-      post.authenticated_user_name = (
-        await DB`SELECT name FROM users WHERE identifier = ${post.authenticated_user_identifier}`
-      )[0].name;
-    }
+    ? DB.unsafe(
+        "block_count DESC, is_pinned DESC, is_queued DESC, flag_count DESC, seq DESC",
+      )
+    : DB.unsafe("is_pinned DESC, seq DESC");
+  let columnList = ctx.superAdmin
+    ? "*"
+    : (ctx.elevated
+        ? [...PRIVATE_COLUMN_NAMES]
+        : [...PUBLIC_COLUMN_NAMES]
+      ).join(",");
+  if (ctx.elevated) {
+    columnList = columnList.replace("ip_hash", "posts.ip_hash");
+    columnList = columnList.replace("instance", "posts.instance");
+    columnList += ",instance_blocks.reason AS block_reason";
+    columnList += `,(
+    SELECT COUNT(*)
+    FROM instance_blocks ib
+    WHERE ib.instance = posts.instance
+    AND (ib.ip_hash = posts.ip_hash OR ib.user_identifier = posts.authenticated_user_identifier)
+    ) AS block_count`;
   }
-  return pageToReturn;
+  const query = ctx.elevated
+    ? DB`LEFT JOIN instance_blocks
+      ON posts.instance = instance_blocks.instance
+      AND (posts.ip_hash = instance_blocks.ip_hash OR posts.authenticated_user_identifier = instance_blocks.user_identifier)
+    WHERE posts.instance = ${ctx.instance}`
+    : DB`WHERE instance = ${ctx.instance}`;
+  const entries = await DB`SELECT ${DB.unsafe(columnList)} FROM posts
+      ${query}
+    ${additionalRequirements}
+    ORDER BY ${order} LIMIT ${perPage} OFFSET ${page * perPage}`;
+
+  // const pageToReturn = [...entries];
+  // const authorIds = [
+  //   ...new Set(
+  //     pageToReturn.map((p) => p.authenticated_user_identifier).filter(Boolean),
+  //   ),
+  // ];
+  // const authors = authorIds.length
+  //   ? await DB`SELECT identifier, name FROM users WHERE identifier IN ${DB(authorIds)}`
+  //   : [];
+  // const nameById = new Map(
+  //   authors.map((a: Record<string, string>) => [a.identifier, a.name]),
+  // );
+
+  // for (const post of pageToReturn) {
+  //   if (post.authenticated_user_identifier) {
+  //     post.authenticated_user_name = nameById.get(
+  //       post.authenticated_user_identifier,
+  //     );
+  //   }
+  // }
+  // const postsById = new Map();
+
+  // for (const post of pageToReturn) {
+  //   post.replies = [];
+  //   postsById.set(post.identifier, post);
+  // }
+
+  // const rootPosts = [];
+
+  // for (const post of pageToReturn) {
+  //   if (post.parent === null) {
+  //     rootPosts.push(post);
+  //   } else {
+  //     const parent = postsById.get(post.parent);
+  //     post.added = new Date(post.added).toUTCString();
+
+  //     if (parent) {
+  //       parent.replies.push(post);
+  //     }
+  //   }
+  // }
+
+  return entries;
 };
 
 export const countPosts = (ctx: RequestContext) => {

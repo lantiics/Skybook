@@ -1,18 +1,21 @@
+import { config } from "./config.ts";
 require("./startup/inject-secrets.ts");
 import cookieParser from "cookie-parser";
-
+// require("./jobs/update-ip-lists.ts");
 import { authenticate } from "./middleware/authenticate.ts";
 import { resolveInstance } from "./middleware/resolve-instance.ts";
 import express from "express";
 const app = express();
+app.set("trust proxy", config.kaiju.proxies_between);
 
-const port = 3000;
-app.listen(port);
+app.listen(process.env.PORT || 3000);
 var path = require("path");
 const api = express.Router();
+// app.use("/", async (req, res) => console.log(req.ip));
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(express.text());
 var logger = require("morgan");
 app.use(logger("dev"));
 app.use(cookieParser(process.env.COOKIE_SIGNING_SECRET));
@@ -27,9 +30,15 @@ const { users } = require("./routes/users");
 const { account } = require("./routes/account");
 import { pagesRouter } from "./routes/pages";
 import { instanceRouter } from "./routes/pages";
+import { captchaProxy } from "./routes/captcha-proxy";
+
+import { DB } from "./db.ts";
+import { ipSource } from "./domain/ip.ts";
+import { UnauthorizedError } from "./errors.ts";
 
 app.use("/api", api);
-
+api.use("/captcha", captchaProxy);
+api.use("/account", authenticate, account);
 api.use("/auth", users);
 
 api.use("/:instance", resolveInstance, authenticate, router);
@@ -49,7 +58,7 @@ app.use(function (err, req, res, next) {
   res.status(err.status || 500);
   // console.log(err)
 
-  res.send({ "res.locals.error": res.locals.message });
+  res.render("error");
 });
 
 export default app;

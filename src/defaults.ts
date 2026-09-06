@@ -4,13 +4,12 @@ export const PUBLIC_COLUMN_NAMES: Set<keyof Post> = new Set([
   "seq",
   "identifier",
   "authenticated_user_identifier",
-  "parent",
   "author",
   "content",
   "extra",
   "added",
   "can_flag",
-  "can_reply",
+  "reply",
   "is_pinned",
   "is_highlighted",
   "sys_lock",
@@ -43,7 +42,6 @@ export const DEFAULT_INSTANCE_STATUS: Omit<
 > = {
   is_visible: true,
   submission_enabled: true,
-  replying_enabled: true,
   approval_required: false,
   flagging_enabled: true,
 };

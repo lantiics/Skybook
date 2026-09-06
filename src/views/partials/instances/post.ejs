@@ -1,27 +1,34 @@
-<% if (status.is_visible || ctx.elevated) { %>
-
-<% if (typeof posts !== 'undefined') { %>
-<% for (const post of posts) { %>
-<div class="entry" data-identifier="<%=post.identifier%>" data-can-alter="<%=((post.authenticated_user_identifier==(ctx.user ? ctx.user.identifier:'not an identifier'))||ctx.elevated&&!post.sys_lock)%>">
+<div class="entry <% if (post.is_highlighted) {%>highlighted<%}%>" data-identifier="<%=post.identifier%>" data-can-alter="<%=((post.authenticated_user_identifier==(ctx.user ? ctx.user.identifier:'not an identifier'))||ctx.elevated&&!post.sys_lock||ctx.superAdmin)%>">
   <% if (post.is_queued) { %> <div>QUEUED</div> <% } %>
+
   <div class="entry-time" data-field="added-at">
     <%= post.added %>
+    <% if (ctx.elevated && post.flag_count) {%> | flagged <%=post.flag_count%> times <%}%> <% if (ctx.elevated && post.creator_blocked && post.block_reason) {%> | blocked: <%=post.block_reason%> <%}%>
   </div>
   <div>
-    <div class="entry-author <% if (post.authentic) {%> authentic-author <% } %>" data-field="author" contenteditable="<%=((post.authenticated_user_identifier==(ctx.user ? ctx.user.identifier:'not an identifier'))||ctx.elevated&&!post.sys_lock)%>">
-      <%= post.author %>
-    </div>
-
+    <div class="entry-author <% if (post.authentic) {%> authentic-author <% } %>" data-field="author" spellcheck="false" contenteditable="<%=((post.authenticated_user_identifier==(ctx.user ? ctx.user.identifier:'not an identifier'))||ctx.elevated&&!post.sys_lock||ctx.superAdmin)%>">
+    <%= post.author %>
   </div>
-  <div>
-    <div class="entry-content" data-field="content" contenteditable="<%=((post.authenticated_user_identifier==(ctx.user ? ctx.user.identifier:'not an identifier'))||ctx.elevated&&!post.sys_lock)%>">
-      <%= post.content %>
-    </div>
-  </div><%- include('./post-actions', { post: post, ctx: ctx })%>
 </div>
-<% } %> <% } else { %> <div class="entry">
-  <div>no entries</div>
-</div> <% } %>
-<% } else { %>
-<div>Posts are currently not visible</div>
-<% } %>
+<% for (field of post.extra) { if (field[1]){ %> <div>
+  <div style="font-weight: bold;  width: fit-content;position: relative;margin-left:4px;"><%=field[0]%></div>
+  <div data-field="<%=field[0]%>" spellcheck="false" contenteditable="<%=((post.authenticated_user_identifier==(ctx.user ? ctx.user.identifier:'not an identifier'))||ctx.elevated&&!post.sys_lock||ctx.superAdmin)%>"><%=field[1]%></div>
+</div> <%} }%>
+<div>
+  <div class="entry-content" data-field="content" spellcheck="false" contenteditable="<%=((post.authenticated_user_identifier==(ctx.user ? ctx.user.identifier:'not an identifier'))||ctx.elevated&&!post.sys_lock||ctx.superAdmin)%>">
+    <%= post.content %>
+  </div>
+</div>
+
+<%- include('./post-actions', { post: post, ctx: ctx })%>
+
+<% if (post.reply) {%><div>
+  <div class="reply">
+    <div class="reply-author"><%=ctx.instance%> replied</div>
+    <div class="reply-content" data-reply-to="<%=post.identifier%>" contenteditable="<%=ctx.elevated%>"><%=post.reply%>arf</div>
+  </div>
+</div> <%}%>
+</div>
+
+<!--   <% if (post.replies) {%> <div class="replies"> <% for (post of post.replies) {%> <%-include('./post', {post:post, ctx:ctx})%><%}%></div><%}%>
+  -->

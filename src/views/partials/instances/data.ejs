@@ -1,0 +1,8 @@
+<a href="/api/<%=ctx.instance%>/export" download>export</a>
+<div>
+  <span>import</span>
+  <form action="/api/<%=ctx.instance%>/import" method="POST" enctype="multipart/form-data">
+    <input type="file" name="file">
+    <input type="submit">
+  </form>
+</div>

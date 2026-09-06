@@ -1,0 +1,25 @@
+<h2>IP blocking</h2>
+<div class="instance-switches">
+  <div class="instance-switch-container">
+    <span>Proxy addresses</span>
+    <input type="checkbox" class="instance-switch" name="visibility" id="instanceProxyBlocked" data-block="proxy" <% if (blocks.proxy||blocks.global.proxy) {%>checked <% } %> <% if(blocks.global.proxy) {%> disabled <% }%> onclick="blockAddresses(this,'proxy')">
+  </div>
+  <div class="instance-switch-container">
+    <span>VPN addresses</span>
+    <input type="checkbox" class="instance-switch" name="submission" id="instanceVPNBlocked" data-block="vpn" <% if (blocks.vpn||blocks.global.vpn) {%>checked <% } %> <% if(blocks.global.vpn) {%> disabled <% }%> onclick="blockAddresses(this,'vpn')">
+  </div>
+  <div class="instance-switch-container">
+    <span>Tor addresses</span>
+    <input type="checkbox" class="instance-switch" name="approval" id="instanceTorBlocked" data-block="tor" <% if (blocks.tor||blocks.global.tor) {%>checked <% } %> <% if(blocks.global.tor) {%> disabled <% }%> onclick="blockAddresses(this,'tor')">
+  </div>
+</div>
+<h2>Premade filters</h2>
+<span>These apply to all fields</span>
+<div class="instance-switches">
+  <div class="instance-switch-container">
+    <span>Derogatory terms</span>
+    <input type="checkbox" class="instance-switch" name="derogatory" id="instanceDerogatoryBlocked" data-filter="derogatory" <% if (filter.derogatory||filter.global.derogatory) {%>checked <% } %> <% if(filter.global.derogatory) {%> disabled <% }%> onclick="toggleKaijuSuppliedFilter(this)">
+  </div>
+</div>
+<h2>Custom filters</h2>
+<textarea class="custom-textarea" style="resize: both;" id="global-filter-textarea"><%=globalFilter%></textarea>

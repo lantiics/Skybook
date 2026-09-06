@@ -1,4 +1,32 @@
+<script src="/js/elevated-instance.js"></script>
+<link rel="stylesheet" href="/stylesheets/elevated-instance.css">
+
+
 <div>
   <h1>your guestbook</h1>
-  <div class="elevated-interface"></div>
+  <div class="elevated-interface">
+    <div class="tabs-container">
+      <div class="tab-buttons">
+        <button class="tab-link active" data-tab="Tab1" onclick="openTab(this,'Tab1')">settings</button>
+        <button class="tab-link" data-tab="Tab2" onclick="openTab(this,'Tab2')">fields</button>
+        <button class="tab-link" data-tab="Tab3" onclick="openTab(this,'Tab3')">moderation</button>
+        <button class="tab-link" data-tab="Tab4" onclick="openTab(this,'Tab4')">data</button>
+      </div>
+    </div>
+    <div class="tab-content">
+      <div id="Tab1" class="tab-pane active">
+        <%-include('./settings')%>
+      </div>
+    </div>
+    <div class="tab-content">
+      <div id="Tab2" class="tab-pane"><%-include('./fields/field-alteration', {fields:fields}) %>
+      </div>
+    </div>
+    <div class="tab-content">
+      <div id="Tab3" class="tab-pane"><%-include('./moderation')%></div>
+    </div>
+    <div class="tab-content">
+      <div id="Tab4" class="tab-pane"><%-include('./data')%></div>
+    </div>
+  </div>
 </div>

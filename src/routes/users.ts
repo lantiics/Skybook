@@ -4,6 +4,7 @@ import rateLimit from "express-rate-limit";
 import { changeUserPassword, createUser, loginUser } from "../domain/users.ts";
 import { getSessionUser, revokeSession } from "../domain/sessions.ts";
 import { errorStatus, ForbiddenError, UnauthorizedError } from "../errors.ts";
+import { assertCaptchaTokenValid } from "../domain/captcha.ts";
 
 const router = Router();
 export const users = router;
@@ -14,6 +15,7 @@ const authLimiter = rateLimit({
 
 router.post("/signup", authLimiter, async (req: Request, res: Response) => {
   try {
+    await assertCaptchaTokenValid(req.body[config.captcha.token_property_name]);
     if (!req.ip) {
       throw new ForbiddenError("");
     }
@@ -40,6 +42,7 @@ router.post("/login", authLimiter, async (req: Request, res: Response) => {
     return res.sendStatus(401);
   }
   try {
+    await assertCaptchaTokenValid(req.body[config.captcha.token_property_name]);
     console.time("Logged in");
     const sessionKey = await loginUser(
       req.body.username,
@@ -71,6 +74,9 @@ router.post("/logout", async (req: Request, res: Response) => {
 
 router.post("/password", async (req: Request, res: Response) => {
   try {
+    await assertCaptchaTokenValid(
+      req.body[config.server.captcha_token_property_name],
+    );
     const sessionKey = req.signedCookies.session;
     if (!sessionKey) {
       return res.sendStatus(401);

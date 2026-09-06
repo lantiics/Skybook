@@ -10,6 +10,14 @@ document.addEventListener("DOMContentLoaded", () => {
       }).then(async (res) => {
         if (res.ok) {
           location.assign(res.headers.get("goto"));
+        } else {
+          switch (res.status) {
+            case 423:
+              createPopup("Your account has been locked", 10000);
+              break;
+            default:
+              createPopup(errorStatus(res.status.toString()), 3500);
+          }
         }
       });
     });

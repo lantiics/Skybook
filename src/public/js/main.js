@@ -1,3 +1,30 @@
+const errorStatus = (status) => {
+  switch (status) {
+    case "400":
+      status = "Bad Request";
+      break;
+    case "401":
+      status = "Unauthorized";
+      break;
+    case "403":
+      status = "Forbidden";
+      break;
+    case "409":
+      status = "You can only do this action once";
+      break;
+    case "422":
+      status = "At least one field was filtered";
+      break;
+    case "423":
+      status = "Function locked by a system administrator";
+      break;
+    case "429":
+      status = "Rate limited";
+      break;
+  }
+  return status ?? null;
+};
+
 const popups = [];
 
 const createPopup = (text, duration = 1500) => {

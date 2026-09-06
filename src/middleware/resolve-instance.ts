@@ -7,7 +7,7 @@ export const resolveInstance = async (
   next: NextFunction,
 ) => {
   console.time("Resolved instance");
-  let instance =
+  let instance: string | undefined =
     (req.params.instance as string) ??
     (req.query.instance as string) ??
     undefined;
@@ -16,9 +16,9 @@ export const resolveInstance = async (
       instance = undefined;
     }
   }
-  req.ctx = {
-    instance,
-  };
+  if (instance) {
+    req.ctx = { ...req.ctx, instance: instance };
+  }
   console.timeEnd("Resolved instance");
 
   next();

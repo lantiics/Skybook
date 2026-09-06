@@ -27,11 +27,12 @@ CREATE TABLE instances (
   name TEXT PRIMARY KEY REFERENCES users(name) ON DELETE CASCADE,
   is_visible BOOLEAN NOT NULL DEFAULT TRUE, -- -- -- --  -- --
   submission_enabled BOOLEAN NOT NULL DEFAULT TRUE, -- -- --
-  replying_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+  --replying_enabled BOOLEAN NOT NULL DEFAULT FALSE,
   approval_required BOOLEAN NOT NULL DEFAULT FALSE,
   flagging_enabled BOOLEAN NOT NULL DEFAULT TRUE,
   queue_on_filtered BOOLEAN NOT NULL DEFAULT TRUE,
   enforced_lock BOOLEAN NOT NULL DEFAULT FALSE,
+  custom_filter TEXT,
   blocklist_proxy_enabled BOOLEAN NOT NULL DEFAULT FALSE,
   blocklist_vpn_enabled BOOLEAN NOT NULL DEFAULT FALSE,
   blocklist_tor_enabled BOOLEAN NOT NULL DEFAULT FALSE
@@ -44,16 +45,18 @@ CREATE TABLE fields (
   is_public BOOLEAN NOT NULL DEFAULT TRUE,
   is_special BOOLEAN NOT NULL DEFAULT FALSE,
   is_required BOOLEAN NOT NULL DEFAULT FALSE,
+  replacement TEXT,
   filter TEXT,
   PRIMARY KEY (instance, name)
 );
-CREATE TABLE posts(
+CREATE TABLE posts (
   seq BIGSERIAL PRIMARY KEY,
   instance TEXT NOT NULL REFERENCES instances(name) ON DELETE CASCADE,
   ip_hash TEXT NOT NULL,
-  identifier TEXT NOT NULL,
-  authenticated_user_identifier UUID REFERENCES users(identifier) ON DELETE SET NULL (authenticated_user_identifier),
-  parent TEXT,
+  identifier TEXT UNIQUE NOT NULL,
+  authenticated_user_identifier UUID REFERENCES users(identifier) ON DELETE SET NULL,
+  --parent TEXT REFERENCES posts(identifier) ON DELETE CASCADE,
+  reply TEXT,
   author TEXT NOT NULL DEFAULT 'anonymous',
   content TEXT NOT NULL,
   extra JSONB NOT NULL DEFAULT '{}',
@@ -64,12 +67,21 @@ CREATE TABLE posts(
   is_pinned BOOLEAN NOT NULL DEFAULT FALSE,
   is_highlighted BOOLEAN NOT NULL DEFAULT FALSE,
   added TIMESTAMPTZ NOT NULL DEFAULT now(),
-  can_reply BOOLEAN NOT NULL DEFAULT TRUE,
+  --can_reply BOOLEAN NOT NULL DEFAULT TRUE,
   can_block BOOLEAN NOT NULL DEFAULT TRUE,
   sys_lock BOOLEAN NOT NULL DEFAULT FALSE, 
   UNIQUE (instance, identifier)
 );
-CREATE INDEX posts_instance_parent_idx ON posts (instance, parent);
+
+CREATE TABLE post_flags (
+  instance TEXT NOT NULL REFERENCES instances(name) ON DELETE CASCADE,
+  identifier TEXT NOT NULL REFERENCES posts(identifier) ON DELETE CASCADE,
+  user_identifier UUID REFERENCES users(identifier) ON DELETE SET NULL,
+  ip_hash TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE UNIQUE INDEX post_flags_unique_ip ON post_flags (instance, identifier, ip_hash);
+CREATE UNIQUE INDEX post_flags_unique_user ON post_flags (instance, identifier, user_identifier) WHERE user_identifier IS NOT null;
 CREATE TABLE tokens (
   instance TEXT NOT NULL,
   identifier TEXT NOT NULL,
