@@ -71,7 +71,7 @@ instanceRouter.get(
         console.log(req.query.p);
 
         const posts = await getPosts(req.ctx, page);
-        if (!posts[0])
+        if (!posts[0] && page !== 0)
           return res.redirect(
             `/${req.ctx.instance}?p=${Math.floor((await countPosts(req.ctx)) / 15)}`,
           );
