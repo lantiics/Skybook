@@ -62,9 +62,13 @@ const repositionPopups = () => {
   }
 };
 let i = 0;
-// document.addEventListener("DOMContentLoaded", () => {
-//   setInterval(() => {
-//     createPopup(i);
-//     i++;
-//   }, 500);
-// });
+document.addEventListener("DOMContentLoaded", () => {
+  if (location.hash.split("pup:")[1]) {
+    createPopup(atob(location.hash.split("pup:")[1]), 10000); // 10 seconds
+    window.history.replaceState(
+      null,
+      document.title,
+      location.pathname + location.search,
+    );
+  }
+});

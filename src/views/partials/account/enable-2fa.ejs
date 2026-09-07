@@ -1,0 +1,27 @@
+<div class="fs-popup-container">
+  <div class="fs-popup visible">
+    <h1>2FA Initialization</h1>
+    <label for="qrsecret" style="font-weight: bold;">Scan this QR code with any multi-factor authentication app:</label><br />
+    <img id="qrsecret" src="<%=qr%>"><br />
+    <label for="txtsecret" style="font-weight:bold">Or, input this code into an authenticator application:</label>
+    <code id="txtsecret"><%=secret%></code>
+    <br />
+    <label for="codes" style="font-weight: bold;">Save the following codes, they can be used once in place of your OTP:</label>
+    <div id="codes" style="display:grid;grid-template-columns: 1fr 1fr;gap:1rem">
+      <% for (code of codes) { %> <div><%=code%></div> <%}%>
+  </div>
+  <br />
+
+  <p style="font-weight: bold;">Input the resulting code and your password:</p>
+  <form action="/api/account/enable-totp" method="POST">
+    <fieldset>
+      <input type="text" required name="otp" minlength="6" maxlength="6" pattern="[0-9]+">
+      <input type="password" required name="password" minlength="8" placeholder="password">
+      <input type="hidden" name="secret" required value="<%=secret%>">
+      <input type="hidden" name="codes" required value="<%=btoa(JSON.stringify(codes))%>">
+      <input type="submit" name="submit">
+      </fieldset>
+      </form>
+      <p>Be advised you will have to log in again after enabling two-factor authentication</p>
+    </div>
+  </div>

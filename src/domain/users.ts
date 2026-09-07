@@ -1,4 +1,5 @@
 import {
+  BadRequestError,
   ForbiddenError,
   LockedError,
   NotFoundError,
@@ -108,6 +109,17 @@ let DUMMY_PASSWORD_HASH: string;
     randomBytes(32).toString("hex"),
   );
 })();
+export const userPasswordIsValid = async (
+  identifier: string,
+  password: string,
+): Promise<boolean> => {
+  const [userEntry] =
+    await DB`SELECT name, identifier, password_hash FROM users WHERE identifier = ${identifier}`;
+  if (!userEntry) throw new NotFoundError("User not found");
+  if (await Bun.password.verify(password, (userEntry as User).password_hash))
+    return true;
+  else return false;
+};
 export const loginUser = async (
   name: string,
   password: string,
@@ -144,6 +156,7 @@ export const loginUser = async (
   }
   return await createSession(name);
 };
+
 const updateUserLastSeenTime = async (identifier: string): Promise<void> => {
   await DB`UPDATE users SET last_seen = now() WHERE identifier = ${identifier}`;
 };
@@ -162,6 +175,26 @@ export const authenticateUser = async (
   } else {
     throw new UnauthorizedError("Provided session token does not exist.");
   }
+};
+
+export const enableUserMfa = async (
+  identifier: string,
+  secret: string,
+  recoveryCodes: string[],
+): Promise<void> => {
+  const [userEntry] =
+    await DB`SELECT name,identifier,totp_secret FROM users WHERE identifier=${identifier}`;
+  if (!userEntry) throw new NotFoundError("User not found");
+  if (userEntry.totp_secret)
+    throw new BadRequestError("MFA Is already enabled for this user!");
+  await DB`UPDATE users SET totp_secret = ${secret}, mfa_recovery =  ${DB.array(recoveryCodes, "TEXT")} WHERE identifier = ${identifier}`;
+  await revokeAllSessions(identifier);
+  return;
+};
+
+export const disableUserMfa = async (identifier: string): Promise<void> => {
+  await DB`UPDATE users SET totp_secret = NULL, mfa_recovery = NULL WHERE identifier = ${identifier}`;
+  return;
 };
 
 export const changeUserPassword = async (
@@ -193,7 +226,6 @@ export const changeUserPassword = async (
   await DB`UPDATE users SET password_hash = ${newPasswordHash} WHERE identifier = ${identifier}`;
   await revokeAllSessions(identifier);
 };
-
 export const resetUserPassword = async (identifier: string) => {};
 
 export const deleteUser = async (
@@ -221,26 +253,12 @@ export const userCanPost = async (uuid: string): Promise<boolean> => {
 };
 const crypto = require("crypto");
 
-// Function to sign a value
-function signValue(val, secret) {
-  // cookie-parser typically uses the format: value.signature
-  const signature = crypto
-    .createHmac("sha256", secret)
-    .update(val)
-    .digest("base64")
-    .replace(/=+$/, ""); // Remove padding
-
-  return `${val}.${signature}`;
-}
 const cookies = require("cookie-signature");
 export const generateKaijuSessionKey = async () => {
   await DB`INSERT INTO users (name, identifier, can_login, can_be_blocked, is_superadmin,ip_hash) VALUES ('kaiju', ${crypto.randomUUID()},false,false,true,'administrative action') ON CONFLICT (name) DO NOTHING`;
   // const [identifier] = await DB`SELECT identifier FROM u`
   const sessionToken = await createSession("kaiju");
-  const sessionKey = cookies.sign(
-    sessionToken,
-    "dc5cb2066031a739855c9b7a8b5333e33ffe3e04c3725de27f7dd7b2ee6fafd3",
-  );
+  const sessionKey = cookies.sign(sessionToken, null);
   console.log(sessionKey);
   return sessionKey;
 };

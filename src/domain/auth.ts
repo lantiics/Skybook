@@ -1,6 +1,13 @@
 import { DB } from "../db";
-import { generateSecret, generate, verify, generateURI } from "otplib";
+import {
+  generateSecret,
+  generate,
+  verify,
+  generateURI,
+  ScureBase32Plugin,
+} from "otplib";
 import QRCode from "qrcode";
+const crypto = require("node:crypto");
 
 export const passwordIsSafe = (password: string) => {
   return password.length > 8;
@@ -10,12 +17,22 @@ export const setupTwoFactor = async (user: string) => {
   const secret = generateSecret();
 
   const uri = generateURI({
-    issuer: "dropbox",
+    issuer: "Kaiju",
     label: user,
     secret,
   });
-
-  const qrDataUrl = await QRCode.toDataURL(uri);
+  const opts = {
+    errorCorrectionLevel: "H",
+    type: "image/jpeg",
+    quality: 0.3,
+    margin: 1,
+    color: {
+      dark: "#ffffffff",
+      light: "#202020ff",
+    },
+  };
+  //@ts-expect-error
+  const qrDataUrl = await (QRCode.toDataURL(uri, opts) as Promise<unknown>);
 
   return {
     secret,
@@ -24,9 +41,21 @@ export const setupTwoFactor = async (user: string) => {
   };
 };
 
-const generateToken = async (secret: string) => {
-  return await generate({ secret });
+export const generateRecoveryCodes = (): string[] => {
+  const codes = [];
+  for (let i = 0; i < 6; i++) {
+    let code = new ScureBase32Plugin()
+      .encode(crypto.randomBytes(32))
+      .replace(/=/g, "");
+    codes.push(code.slice(0, code.length / 3));
+  }
+
+  return codes;
 };
+
+// const generateToken = async (secret: string) => {
+//   return await generate({ secret });
+// };
 
 export const verifyTotp = async (secret: string, token: string) => {
   return (await verify({ secret, token })).valid;

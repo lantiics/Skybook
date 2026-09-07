@@ -1,5 +1,5 @@
 [kaiju]
-version = "0.0 (PRE-RELEASE)"
+version = "0.0 (TESTING)"
 proxies_between = 1
 environment = "development"
 [server]

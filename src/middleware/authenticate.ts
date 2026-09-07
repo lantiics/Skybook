@@ -48,6 +48,7 @@ export const authenticate = async (
       }
     }
   }
+
   req.ctx = {
     ...req.ctx,
     user: user,

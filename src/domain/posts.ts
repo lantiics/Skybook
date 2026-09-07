@@ -580,7 +580,13 @@ export const getPosts = async (
   return entries;
 };
 
-export const countPosts = (ctx: RequestContext) => {
-  const filter = ctx.elevated ? "" : "WHERE NOT isQueued AND isVisible";
-  return DB`SELECT COUNT(*) FROM posts WHERE instance = ${ctx.instance}  ${filter}`;
+export const countPosts = async (ctx: RequestContext) => {
+  const filter = ctx.elevated ? "" : "AND NOT is_queued AND is_visible";
+  console.log(
+    await DB`SELECT COUNT(*) FROM posts WHERE instance = ${ctx.instance} ${DB.unsafe(filter)}`,
+    "this the countttt",
+  );
+  return (
+    await DB`SELECT COUNT(*) FROM posts WHERE instance = ${ctx.instance}  ${DB.unsafe(filter)}`
+  )[0].count;
 };
