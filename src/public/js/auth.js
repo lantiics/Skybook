@@ -18,6 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
             default:
               createPopup(errorStatus(res.status.toString()), 3500);
           }
+          appendWidget();
         }
       });
     });

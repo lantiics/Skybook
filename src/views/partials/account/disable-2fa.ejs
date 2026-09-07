@@ -1,0 +1,11 @@
+<div class="fs-popup-container">
+  <div class="fs-popup visible">
+    <h2>Confirm your password in order to disable 2fa:</h2>
+    <form action="/api/account/disable-totp" method="POST">
+      <fieldset>
+        <input type="password" required name="password" minlength="8" placeholder="password">
+        <input type="submit" name="submit">
+      </fieldset>
+    </form>
+  </div>
+</div>

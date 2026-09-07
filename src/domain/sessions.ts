@@ -38,6 +38,9 @@ export const getSessionUser = async (
     name: row.user_name,
     identifier: row.user_identifier,
     superAdmin: await userIsSuperAdmin(row.user_identifier),
+    mfaEnabled: (
+      await DB`SELECT EXISTS(SELECT 1 FROM users WHERE identifier = ${row.user_identifier} AND totp_secret IS NOT NULL)`
+    )[0].exists,
   };
 };
 

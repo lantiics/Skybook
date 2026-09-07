@@ -2,32 +2,61 @@
 <% if (captcha.implementation==='cap') { %><script src="https://cdn.jsdelivr.net/npm/cap-widget@latest"></script> <% } %>
 <div>
   <form class="entry-submission" id="submission-form" action="/api/<%=ctx.instance%>" method="POST">
-    <fieldset>
+    <fieldset id="fs">
       <label for="author">your name: </label>
       <input name="author" id="author" placeholder="anonymous">
       <label for="content">message:</label>
       <textarea id="content" name="content" placeholder="say something!" required></textarea>
       <% for (field of fields) { if (!['content','author'].includes(field.name)) {%><input name="<%=field.name%>" placeholder="<%=field.name%>" <% if (field.required) {%> required <% } %>> <% } } %>
       <% if (captcha.implementation==='cap') {%> <script>
-        const cap = new Cap({
-          apiEndpoint: "/api/captcha/<%=captcha.site_key%>"
-        });
-        cap.addEventListener("progress", (event) => {
-          console.log(`Solving... ${event.detail.progress}% done`);
-        });
-        (async () => {
-          const solution = await cap.solve();
-          if (solution.success) {
-            document.getElementById("submission-form").append(Object.assign(document.createElement("input"), {
-              type: "hidden",
-              name: "cap-token",
-              value: solution.token
-            }));
-            document.getElementById("submit-entry").removeAttribute("disabled");
-          }
-        })()
+        const appendWidget = () => {
+          document.querySelectorAll('[data-unsolvedcaptcha="disabled"]').forEach(e => e.disabled = true);
+          document.querySelectorAll("#captcha").forEach(e => e.remove())
+          const capWidget = Object.assign(document.createElement("cap-widget"), {
+            required: true,
+            style: "place-self:center;margin-top:0.5rem",
+            id: "captcha"
+          })
+          capWidget.setAttribute("data-cap-api-endpoint", "/api/captcha/<%=captcha.site_key%>")
+          capWidget.setAttribute("onsolve", `document.querySelectorAll('[data-unsolvedcaptcha="disabled"]').forEach(e=>e.removeAttribute("disabled"));`)
+          document.getElementById("fs").append(capWidget)
+        }
+        const initSolving = () => {
+
+
+
+          (async () => {
+            try {
+              const cap = new Cap({
+                apiEndpoint: "/api/captcha/<%=captcha.site_key%>"
+              });
+
+              const solution = await cap.solve();
+              if (solution.success) {
+                document.getElementById("submission-form").append(Object.assign(document.createElement("input"), {
+                  type: "hidden",
+                  name: "cap-token",
+                  value: solution.token,
+                  id: "captcha"
+                }));
+                document.querySelectorAll('[data-unsolvedcaptcha="disabled"]').forEach(e => e.removeAttribute("disabled"));
+              } else {
+                console.log("failed")
+                appendWidget()
+
+              }
+            } catch (e) {
+              appendWidget()
+            }
+          })()
+        }
+        const handler = function(e) {
+          initSolving();
+          this.removeEventListener('keydown', handler)
+        }
+        document.getElementById("content").addEventListener("keydown", handler)
       </script><%}%>
-      <input type="submit" value="Submit" id="submit-entry" disabled/>
+      <input type="submit" value="Submit" id="submit-entry" data-unsolvedcaptcha="disabled" disabled/>
     </fieldset>
   </form>
 </div>

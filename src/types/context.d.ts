@@ -8,6 +8,7 @@ export interface RequestContext {
   readonly user?: {
     name: string;
     identifier: string;
+    mfaEnabled: boolean;
     superAdmin: boolean;
   };
   readonly ip: string;

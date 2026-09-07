@@ -1,0 +1,7 @@
+<button onclick="loadMod()"><%=ctx.user.mfaEnabled?"disable 2fa":"enable 2fa"%></button>
+
+<script>
+  const loadMod = async () => {
+    document.body.insertAdjacentHTML('beforebegin', await (await fetch('<%= ctx.user.mfaEnabled?"/partials/disable-2fa":"/partials/enable-2fa" %>')).text())
+  }
+</script>

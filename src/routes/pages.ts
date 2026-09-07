@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response, Router } from "express";
 import { renderWithLayout } from "../views/utils";
 import ejs from "ejs";
-import { getPosts } from "../domain/posts";
+import { countPosts, getPosts } from "../domain/posts";
 import {
   compiledInstanceStatus,
   instanceEnabledDefaultFilters,
@@ -11,6 +11,7 @@ import {
 } from "../domain/instances";
 import { getFieldData } from "../domain/fields";
 import { config } from "../config";
+import { partials } from "./partials.ts";
 const router = Router();
 
 router.get("/", async (req: Request, res: Response) => {
@@ -70,6 +71,10 @@ instanceRouter.get(
         console.log(req.query.p);
 
         const posts = await getPosts(req.ctx, page);
+        if (!posts[0])
+          return res.redirect(
+            `/${req.ctx.instance}?p=${Math.floor((await countPosts(req.ctx)) / 15)}`,
+          );
         for (const post of posts) {
           post.added = new Date(post.added).toUTCString();
           if (
@@ -133,5 +138,7 @@ instanceRouter.get("/elevated", async (req: Request, res: Response) => {
     return res.sendStatus(500);
   }
 });
+
+router.use("/partials", partials);
 
 export const pagesRouter = router;

@@ -1,24 +1,32 @@
 <h1>hello, <%=ctx.user.name %></h1>
-<div style="display: flex;flex-direction: column;">
+<div style="display: flex;flex-direction: column;place-items: center;gap: 1rem;text-align:center;">
 
+  <h2>Account settings</h2>
   <div>
-    <h2>change password</h2>
-    <form class="authentication" action="/api/auth/password" method="post" id="authentication">
-      <fieldset>
-        <input type="text" name="username" title="arr" pattern="[a-zA-Z0-9_]+" placeholder="username" required />
-        <input type="password" name="oldPassword" placeholder="current password" minlength="8" required />
-        <input type="password" name="newPassword" placeholder="new password" minlength="8" id="new-password" required />
-        <input type="password" placeholder="confirm new password" minlength=" 8" required /> <input type="text" name="otp" placeholder="2fa code (if applicable)" minlength="6" maxlength="6" pattern="[0-9]+" />
-
-
-        <input type="submit" id="authorize" />
-      </fieldset>
-    </form>
-
+    <h3>2fa</h3>
+    <%-include('../partials/account/2fa')%>
+  </div>
+  <div>
+    <h3>change password</h3>
+    <%-include('../partials/account/change-password')%>
   </div>
 
 
-  <div>
-    <button class="danger" onclick="fetch('/api/account',{method:'DELETE'})">delete account</button>
+  <div style="margin-block: 1.5rem;margin-top: 3rem;">
+    <script>
+      const tryDeleteAccount = async (btn) => {
+
+      }
+    </script>
+    <button class="danger" id="deleteAccountBtn" onclick="tryDeleteAccount(this)" disabled>delete account</button>
   </div>
+
 </div>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    setTimeout(() => {
+      document.getElementById("deleteAccountBtn").removeAttribute("disabled");
+    }, 2000);
+
+  })
+</script>
