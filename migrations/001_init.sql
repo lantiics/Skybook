@@ -1,12 +1,11 @@
 CREATE TABLE users (
-  name TEXT PRIMARY KEY, --CHECK (
+  identifier UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
+  name TEXT UNIQUE NOT NULL, --CHECK (
     --NOT EXISTS (
    --   SELECT 1 FROM reserved_usernames r
     --  WHERE r.value = users.name
    -- )
  -- )
- 
-  identifier UUID NOT NULL DEFAULT gen_random_uuid(),
   ip_hash TEXT NOT NULL,
   password_hash TEXT NOT NULL,
   totp_secret TEXT,
@@ -23,9 +22,10 @@ CREATE TABLE users (
   can_be_blocked BOOLEAN NOT NULL DEFAULT TRUE, -- Should only be needed if superadmin
   UNIQUE(identifier)
 );
+CREATE UNIQUE INDEX idx_username ON users (name);
 
 CREATE TABLE instances (
-  name TEXT PRIMARY KEY REFERENCES users(name) ON DELETE CASCADE,
+  name TEXT PRIMARY KEY REFERENCES users(name) ON DELETE CASCADE ON UPDATE CASCADE,
   is_visible BOOLEAN NOT NULL DEFAULT TRUE, -- -- -- --  -- --
   submission_enabled BOOLEAN NOT NULL DEFAULT TRUE, -- -- --
   --replying_enabled BOOLEAN NOT NULL DEFAULT FALSE,
@@ -41,7 +41,7 @@ CREATE TABLE instances (
 
 
 CREATE TABLE fields (
-  instance TEXT NOT NULL REFERENCES instances(name) ON DELETE CASCADE,
+  instance TEXT NOT NULL REFERENCES instances(name) ON DELETE CASCADE ON UPDATE CASCADE,
   name TEXT NOT NULL,
   is_public BOOLEAN NOT NULL DEFAULT TRUE,
   is_special BOOLEAN NOT NULL DEFAULT FALSE,
@@ -52,7 +52,7 @@ CREATE TABLE fields (
 );
 CREATE TABLE posts (
   seq BIGSERIAL PRIMARY KEY,
-  instance TEXT NOT NULL REFERENCES instances(name) ON DELETE CASCADE,
+  instance TEXT NOT NULL REFERENCES instances(name) ON DELETE CASCADE ON UPDATE CASCADE,
   ip_hash TEXT NOT NULL,
   identifier TEXT UNIQUE NOT NULL,
   authenticated_user_identifier UUID REFERENCES users(identifier) ON DELETE SET NULL,

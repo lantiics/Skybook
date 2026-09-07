@@ -331,6 +331,7 @@ const submitEntry = async (identifier, fields) => {
   });
   if (!res.ok) {
     createPopup("Failed to submit entry");
+    appendWidget();
   } else {
     const identifier = (await res.json()).identifier;
     const token = res.headers.get("token");
@@ -391,6 +392,7 @@ document.addEventListener("DOMContentLoaded", () => {
             );
         })
         .catch((e) => {
+          appendWidget();
           createPopup(
             "Unable to submit entry: " + errorStatus(e.message.toString()),
             3000,
