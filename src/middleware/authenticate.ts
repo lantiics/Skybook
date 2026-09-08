@@ -1,23 +1,30 @@
-import { NextFunction, Request } from "express";
-import { authenticateUser, userIsSuperAdmin } from "../domain/users";
+import { NextFunction, Request, Response } from "express";
+import { authenticateUser } from "../domain/users";
 import { NotFoundError, UnauthorizedError } from "../errors";
 import { instanceExists } from "../domain/instances";
 import { config } from "../config";
 import { ipSource } from "../domain/ip";
-const assertIpIsBlocked = async (ip: string) => {
-  const source = await ipSource(ip);
-  if (config.ip_blocking.proxy_addresses_blocked && source === "proxy")
-    throw new UnauthorizedError(
-      "This instance prevents access from proxy addresses",
-    );
-  if (config.ip_blocking.vpn_addresses_blocked && source === "vpn")
-    throw new UnauthorizedError(
-      "This instance prevents access from VPN addresses",
-    );
-  if (config.ip_blocking.tor_addresses_blocked && source === "tor")
-    throw new UnauthorizedError(
-      "This instance prevents access from Tor addresses",
-    );
+const assertIpIsBlocked = async (ip: string): Promise<void> => {
+  if (
+    config.ip_blocking.proxy_addresses_blocked ||
+    config.ip_blocking.vpn_addresses_blocked ||
+    config.ip_blocking.tor_addresses_blocked
+  ) {
+    const source = await ipSource(ip);
+
+    if (config.ip_blocking.proxy_addresses_blocked && source === "proxy")
+      throw new UnauthorizedError(
+        "This instance prevents access from proxy addresses",
+      );
+    if (config.ip_blocking.vpn_addresses_blocked && source === "vpn")
+      throw new UnauthorizedError(
+        "This instance prevents access from VPN addresses",
+      );
+    if (config.ip_blocking.tor_addresses_blocked && source === "tor")
+      throw new UnauthorizedError(
+        "This instance prevents access from Tor addresses",
+      );
+  }
 };
 
 export const authenticate = async (
@@ -52,15 +59,15 @@ export const authenticate = async (
   req.ctx = {
     ...req.ctx,
     user: user,
-    superAdmin: user?.superAdmin ?? false,
+    superAdmin: req.headers["x-superadmin-key"] === process.env.SUPERADMIN_KEY,
     authenticated: !!user,
     ip: req.ip!,
   };
+  res.locals.skybook = config.skybook;
 
   if (!req.ctx?.instance) {
-    return next();
   }
-  let elevated = user?.superAdmin ?? false;
+  let elevated = req.ctx.superAdmin ?? false;
   if (!elevated && user && user.name === req.ctx?.instance) {
     elevated = true;
   }

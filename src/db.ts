@@ -1,6 +1,10 @@
 import Bun, { sql, SQL } from "bun";
-export const DB = new SQL({
-  url: process.env.DATABASE_URL,
+export const READER = new SQL({
+  url: process.env.READ_DB_URL,
+});
+
+export const WRITER = new SQL({
+  url: process.env.WRITE_DB_URL,
 });
 
 const isSafeSQLString = (str: string) => {

@@ -1,4 +1,4 @@
-import { DB } from "../db.ts";
+import { READER, WRITER } from "../db.ts";
 import { RequestContext } from "../types/context.ts";
 import { Field } from "../types/entities.ts";
 import { RESERVED_COLUMN_NAMES } from "../defaults.ts";
@@ -7,7 +7,7 @@ const allWritableFields = async (instance: string): Promise<Set<string>> => {
   console.log("meoww");
   const dbFields = new Set(["content", "author", "parent"]);
   const [additionalFields] =
-    await DB`SELECT * FROM fields WHERE instance = ${instance}`;
+    await READER`SELECT * FROM fields WHERE instance = ${instance}`;
   if (additionalFields) {
     for (const field of additionalFields as Field[]) {
       dbFields.add(field.name);
@@ -32,7 +32,7 @@ export const allFieldsAreWritable = async (
 // };
 export const getFieldData = async (instance: string): Promise<Field[]> => {
   const fields: Field[] =
-    await DB`SELECT name, is_required, replacement, filter FROM fields WHERE instance = ${instance} AND is_public`;
+    await READER`SELECT name, is_required, replacement, filter FROM fields WHERE instance = ${instance} AND is_public`;
   const defaultFields = [
     {
       name: "author",
@@ -43,6 +43,7 @@ export const getFieldData = async (instance: string): Promise<Field[]> => {
     { name: "content", is_required: true, replacement: null, filter: null },
   ];
   const merged = fields.concat(
+    //@ts-expect-error
     defaultFields.filter(
       (defaultField) =>
         !fields.some((field) => field.name === defaultField.name),
@@ -80,15 +81,17 @@ export const setField = async (
     is_required: field.is_required,
   };
   if (field.replacement) {
+    //@ts-expect-error
     record.replacement = field.replacement;
   }
   if (field.filter) {
+    //@ts-expect-error
     record.filter = field.filter;
   }
   console.log(field);
   return (
-    await DB`INSERT INTO fields ${DB(record)}
-  ON CONFLICT (instance, name) DO UPDATE SET ${DB(record)}
+    await WRITER`INSERT INTO fields ${WRITER(record)}
+  ON CONFLICT (instance, name) DO UPDATE SET ${WRITER(record)}
   RETURNING *`
   )[0];
 };
@@ -102,7 +105,7 @@ export const renameField = async (
       "Provided field name is reserved by the system",
     );
   }
-  return await DB.begin(async (tx) => {
+  return await WRITER.begin(async (tx) => {
     const [field] =
       await tx`UPDATE fields SET name = ${newName} WHERE name = ${oldName} AND instance = ${ctx.instance}`;
     await tx`UPDATE posts SET extra = extra - ${oldName} || jsonb_build_object(${newName}, extra -> ${oldName}) WHERE extra ? ${oldName} AND instance = ${ctx.instance}`;
@@ -117,7 +120,7 @@ const deleteField = async (
   if (RESERVED_COLUMN_NAMES.has(name as any)) {
     throw new ReservedError("Cannot delete a system reserved field");
   }
-  await DB.begin(async (tx) => {
+  await WRITER.begin(async (tx) => {
     await tx`DELETE FROM fields WHERE name = ${name} AND instance = ${ctx.instance};`;
     await tx`UPDATE posts SET extra = extra - ${name} WHERE instance = ${ctx.instance}`;
   });
@@ -131,7 +134,7 @@ export const setFieldFilter = (
   if (!RegExp(filter)) {
     throw new SyntaxError("Provided regex is invalid");
   }
-  DB`UPDATE FIELDS SET filter = ${filter} WHERE name = ${field} AND instance = ${
+  WRITER`UPDATE FIELDS SET filter = ${filter} WHERE name = ${field} AND instance = ${
     ctx.instance
   }`;
 
@@ -139,7 +142,7 @@ export const setFieldFilter = (
 };
 
 export const getFieldFilters = (ctx: RequestContext) => {
-  return DB`SELECT name, filter FROM fields WHERE instance = ${ctx.instance}`;
+  return READER`SELECT name, filter FROM fields WHERE instance = ${ctx.instance}`;
 };
 
 //

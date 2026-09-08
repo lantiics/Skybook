@@ -1,7 +1,7 @@
 import { RequestContext } from "../types/context.ts";
 import { Field, Post } from "../types/entities.ts";
-import { DB } from "../db.ts";
-import { LockedError } from "../errors.ts";
+import { READER, WRITER } from "../db.ts";
+import { BadRequestError, LockedError } from "../errors.ts";
 import { PUBLIC_COLUMN_NAMES, PRIVATE_COLUMN_NAMES } from "../defaults.ts";
 import { setField, allFieldsAreWritable } from "./fields.ts";
 import { sql } from "bun";
@@ -21,11 +21,11 @@ interface Status {
 
 export const instanceExists = async (instance: string) => {
   const [instanceExists] =
-    await DB`SELECT EXISTS(SELECT 1 FROM instances WHERE name = ${instance})`;
+    await READER`SELECT EXISTS(SELECT 1 FROM instances WHERE name = ${instance})`;
   return instanceExists.exists;
 };
 const _getInstanceOverride = async (instance: string, name: string) => {
-  const [override] = await DB`
+  const [override] = await READER`
   SELECT value FROM overrides
   WHERE name = ${name} AND instance = ${instance}
   ORDER BY instance NULLS LAST
@@ -48,6 +48,7 @@ export const _getSpecifiedInstanceStatus = async (
       "flagging_enabled",
       "queue_on_filtered",
       "custom_filter",
+      "queue_flags_threshold",
     ].includes(name)
   ) {
     throw new Error("Requested status is not permitted");
@@ -56,7 +57,7 @@ export const _getSpecifiedInstanceStatus = async (
   let localStatus;
   if (override === undefined) {
     localStatus = (
-      await DB`SELECT ${DB(name)} FROM instances WHERE name = ${instance}`
+      await READER`SELECT ${READER(name)} FROM instances WHERE name = ${instance}`
     )[0][name];
   }
   const status: Status = {
@@ -115,11 +116,21 @@ export const instanceQueuesFilteredPosts = async (
   return status;
 };
 
+export const InstanceQueueFlaggedThreshold = async (
+  instance: string,
+): Promise<Status> => {
+  const status = await _getSpecifiedInstanceStatus(
+    instance,
+    "queue_flags_threshold",
+  );
+  return status;
+};
+
 export const instanceSuppliedFilter = async (
   instance: string,
 ): Promise<string> => {
   return (
-    await DB`SELECT custom_filter FROM instances WHERE name = ${instance}`
+    await READER`SELECT custom_filter FROM instances WHERE name = ${instance}`
   )[0].custom_filter;
 };
 
@@ -155,7 +166,7 @@ export const instanceIpBlocks = async (
   instance: string,
 ): Promise<Record<"proxy" | "vpn" | "tor", boolean>> => {
   return (
-    await DB`SELECT blocklist_proxy_enabled AS proxy,blocklist_vpn_enabled AS vpn,blocklist_tor_enabled AS tor FROM instances WHERE name = ${instance}`
+    await READER`SELECT blocklist_proxy_enabled AS proxy,blocklist_vpn_enabled AS vpn,blocklist_tor_enabled AS tor FROM instances WHERE name = ${instance}`
   )[0];
 };
 
@@ -169,6 +180,7 @@ export const compiledInstanceStatus = async (
     approval_required: await approvalRequired(instance),
     flagging_enabled: await flaggingEnabled(instance),
     queue_on_filtered: await instanceQueuesFilteredPosts(instance),
+    queue_flags_threshold: await InstanceQueueFlaggedThreshold(instance),
   };
 
   return status;
@@ -179,7 +191,7 @@ export const blockUser = async (
   uuid: string,
   reason?: string,
 ): Promise<void> => {
-  await DB.begin(async (tx) => {
+  await WRITER.begin(async (tx) => {
     await tx`INSERT INTO instance_user_blocks (instance, user_identifier, reason) VALUES (${instance},${uuid},${reason})`;
     await tx`UPDATE posts AS t1 
     SET creator_user_blocked_reason = t2.reason
@@ -192,7 +204,7 @@ export const unblockUser = async (
   instance: string,
   uuid: string,
 ): Promise<void> => {
-  await DB`DELETE FROM instance_user_blocks WHERE user_identifier = ${uuid} AND instance = ${instance};`;
+  await WRITER`DELETE FROM instance_user_blocks WHERE user_identifier = ${uuid} AND instance = ${instance};`;
 };
 
 export const instanceHasRequesterBlocked = async (
@@ -203,13 +215,14 @@ export const instanceHasRequesterBlocked = async (
 ) => {
   if (
     (
-      await DB`SELECT EXISTS(SELECT 1 FROM instance_blocks WHERE instance = ${instance} AND ${uuid !== "" ? DB`(user_identifier = ${uuid} OR ip_hash = ${ipHash})` : DB`ip_hash = ${ipHash}`}) OR EXISTS (SELECT 1 FROM global_ip_blocks WHERE ip_hash=${ipHash})`
+      await READER`SELECT EXISTS(SELECT 1 FROM instance_blocks WHERE instance = ${instance} AND ${uuid !== "" ? READER`(user_identifier = ${uuid} OR ip_hash = ${ipHash})` : READER`ip_hash = ${ipHash}`}) OR EXISTS (SELECT 1 FROM global_ip_blocks WHERE ip_hash=${ipHash})`
     )[0]["?column?"]
   )
     return true;
   return false;
 };
 
+//#region TOGGLES
 const _toggleSpecifiedInstanceStatus = async (
   instance: string,
   name: string,
@@ -241,7 +254,7 @@ const _toggleSpecifiedInstanceStatus = async (
   }
 
   const status =
-    await DB`UPDATE instances SET ${DB(name)} = NOT ${DB(name)} WHERE name = ${instance} RETURNING ${DB(name)}`;
+    await WRITER`UPDATE instances SET ${WRITER(name)} = NOT ${WRITER(name)} WHERE name = ${instance} RETURNING ${WRITER(name)}`;
   return status;
 };
 
@@ -269,7 +282,16 @@ export const updateInstanceSuppliedFilter = async (
   instance: string,
   filter: string,
 ) => {
-  return await DB`UPDATE instances SET custom_filter = ${filter} WHERE name = ${instance}`;
+  return await WRITER`UPDATE instances SET custom_filter = ${filter} WHERE name = ${instance}`;
+};
+
+export const updateInstanceQueueFlaggedThreshold = async (
+  instance: string,
+  threshold: number,
+): Promise<void> => {
+  if (Math.sign(threshold) === -1)
+    throw new BadRequestError("Threshold must be positive");
+  await WRITER`UPDATE instances SET queue_flags_threshold = ${threshold} WHERE name = ${instance}`;
 };
 
 // ip address blocking
@@ -291,26 +313,27 @@ export const toggleInstanceTorBlacklist = async (instance: string) => {
     "blocklist_tor_enabled",
   );
 };
-// Implement default, Kaiju-provided filters for instances
+// Implement default, Skybook-provided filters for instances
 export const enableInstanceDefaultFilter = async (
   instance: string,
   filter: string,
 ) => {
-  await DB`INSERT INTO instance_filters (instance, filter) VALUES (${instance},${filter})
+  await WRITER`INSERT INTO instance_filters (instance, filter) VALUES (${instance},${filter})
   ON CONFLICT (instance, filter) DO NOTHING`;
 };
 export const disableInstanceDefaultFilter = async (
   instance: string,
   filter: string,
 ) => {
-  await DB`DELETE FROM instance_filters WHERE instance = ${instance} AND filter = ${filter}`;
+  await WRITER`DELETE FROM instance_filters WHERE instance = ${instance} AND filter = ${filter}`;
 };
+//#endergion TOGGLES
 
 // booleans
 export const instanceEnabledDefaultFilters = async (instance: string) => {
   let filters: Record<string, boolean> = {};
   const [filterQuery] =
-    await DB`SELECT filter FROM instance_filters WHERE instance = ${instance}`;
+    await READER`SELECT filter FROM instance_filters WHERE instance = ${instance}`;
   for (const filter of Object.values(filterQuery ?? {})) {
     filters[filter as string] = true;
   }
@@ -319,7 +342,7 @@ export const instanceEnabledDefaultFilters = async (instance: string) => {
 };
 // Filter lists
 export const instanceDefaultFilters = async (instance: string) => {
-  const [filtersQuery] = await DB`SELECT filter FROM filters t1
+  const [filtersQuery] = await READER`SELECT filter FROM filters t1
   WHERE t1.identifier IN (
   SELECT t2.filter
   FROM instance_filters t2
@@ -333,8 +356,8 @@ export const instanceDefaultFilters = async (instance: string) => {
 export const exportInstance = async (ctx: RequestContext) => {
   return {
     entries:
-      await DB`SELECT ${DB.unsafe(EXPORTABLE_COLUMN_NAMES.join(","))} FROM posts WHERE instance = ${ctx.instance}`,
-    fields: await DB`SELECT * FROM fields WHERE instance = ${ctx.instance}`,
+      await READER`SELECT ${READER.unsafe(EXPORTABLE_COLUMN_NAMES.join(","))} FROM posts WHERE instance = ${ctx.instance}`,
+    fields: await READER`SELECT * FROM fields WHERE instance = ${ctx.instance}`,
   };
 };
 export const importInstance = async (
@@ -363,7 +386,8 @@ export const importInstance = async (
         added: entry.added,
         identifier: crypto.randomUUID(),
       };
-      const row = await DB`INSERT INTO posts ${DB(clearedEntry)} RETURNING *`;
+      const row =
+        await WRITER`INSERT INTO posts ${WRITER(clearedEntry)} RETURNING *`;
     } else {
       console.error("naw");
     }

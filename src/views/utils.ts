@@ -13,10 +13,10 @@ export const renderWithLayout = (
       return res.sendStatus(500);
     }
     res.render("layout", {
-      title: locals.title ?? "Kaiju",
+      title: locals.title ?? "Skybook",
       body: innerHtml,
       ctx: req.ctx,
-      kaiju: config.kaiju,
+      skybook: config.skybook,
     });
   });
 };

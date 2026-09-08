@@ -18,5 +18,9 @@ router.get("/disable-2fa", async (req: Request, res: Response) => {
   return res.render("partials/account/disable-2fa");
 });
 
+router.get("/delete-account", async (req: Request, res: Response) => {
+  res.locals.ctx = req.ctx;
+  return res.render("partials/account/delete-account");
+});
 // const partials = router
 export const partials = router;

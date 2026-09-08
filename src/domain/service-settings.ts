@@ -1,12 +1,12 @@
-import { DB } from "../db.ts";
+import { READER, WRITER } from "../db.ts";
 
 const _getSpecifiedServiceStatus = async (status: string): Promise<boolean> => {
   const [res] =
-    await DB`SELECT value FROM service_settings WHERE name = ${status};`;
+    await READER`SELECT value FROM service_settings WHERE name = ${status};`;
   return res.value;
 };
 const _toggleSpecifiedServiceStatus = async (status: string): Promise<void> => {
-  await DB`UPDATE service_settings SET value = NOT value WHERE name = ${status}`;
+  await WRITER`UPDATE service_settings SET value = NOT value WHERE name = ${status}`;
 };
 
 export const signupEnabled = async (): Promise<boolean> => {
@@ -46,9 +46,9 @@ export const toggleAccountDeletion = async (): Promise<void> => {
 // It is not desirable to disable TOTP support after it has been enabled.
 const TOTPEnabled = async (): Promise<boolean> => {
   return (
-    await DB`SELECT EXISTS(SELECT 1 FROM service_status WHERE name = 'totp_enabled' AND value = true)`
+    await READER`SELECT EXISTS(SELECT 1 FROM service_status WHERE name = 'totp_enabled' AND value = true)`
   )[0].exists;
 };
 const toggleTOTPEnabled = async (): Promise<void> => {
-  await DB`UPDATE service_settings SET value = NOT value WHERE name = 'totp_enabled'`;
+  await WRITER`UPDATE service_settings SET value = NOT value WHERE name = 'totp_enabled'`;
 };

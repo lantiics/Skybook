@@ -9,7 +9,7 @@ export interface RequestContext {
     name: string;
     identifier: string;
     mfaEnabled: boolean;
-    superAdmin: boolean;
   };
+  readonly superadmin?: boolean;
   readonly ip: string;
 }

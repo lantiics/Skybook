@@ -15,10 +15,10 @@
   <div style="margin-block: 1.5rem;margin-top: 3rem;">
     <script>
       const tryDeleteAccount = async (btn) => {
-
+        document.body.insertAdjacentHTML("beforebegin", await (await fetch(`/partials/delete-account`)).text())
       }
     </script>
-    <button class="danger" id="deleteAccountBtn" onclick="tryDeleteAccount(this)" disabled>delete account</button>
+    <button class="danger" id="deleteAccountBtn" onclick="tryDeleteAccount(this)">delete account</button>
   </div>
 
 </div>
@@ -29,4 +29,7 @@
     }, 2000);
 
   })
+  const deleteFSPopup = () => {
+    document.querySelector(".fs-popup-container").remove()
+  }
 </script>

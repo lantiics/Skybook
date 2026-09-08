@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
 import { config } from "../config.ts";
-import rateLimit from "express-rate-limit";
+import { limiter } from "../domain/rate-limit.ts";
 import {
   changeUserPassword,
   createUser,
@@ -17,10 +17,11 @@ import {
 } from "../errors.ts";
 import { assertCaptchaTokenValid } from "../domain/captcha.ts";
 import { verifyTotp } from "../domain/auth.ts";
+import { invitationIsValid } from "../domain/invitations.ts";
 
 const router = Router();
 export const users = router;
-const authLimiter = rateLimit({
+const authLimiter = limiter({
   windowMs: config.rate_limits.auth_window_ms,
   limit: 333, //config.rate_limits.auth_limit,
 });
@@ -30,6 +31,12 @@ router.post("/signup", authLimiter, async (req: Request, res: Response) => {
     await assertCaptchaTokenValid(req.body[config.captcha.token_property_name]);
     if (!req.ip) {
       throw new ForbiddenError("");
+    }
+    if (config.skybook.invitation_required) {
+      if (!req.body.invitation)
+        throw new UnauthorizedError("No invitation provided");
+      if (!(await invitationIsValid(req.body.invitation)))
+        throw new UnauthorizedError("Provided invitation token is invalid");
     }
     console.log(req);
     const sessionKey = await createUser(
@@ -42,6 +49,7 @@ router.post("/signup", authLimiter, async (req: Request, res: Response) => {
       httpOnly: true,
       secure: config.is_production,
       sameSite: "strict",
+      domain: config.skybook.domain,
     });
     return res.status(201).setHeader("goto", `/${req.body.username}`).send();
   } catch (e) {
@@ -67,11 +75,20 @@ router.post("/login", authLimiter, async (req: Request, res: Response) => {
       httpOnly: true,
       secure: config.is_production,
       sameSite: "strict",
+      domain: config.skybook.domain,
     });
     console.timeEnd("Logged in");
-    return res.status(200).setHeader("goto", `/${req.body.username}`).send();
+    return res
+      .status(200)
+      .setHeader(
+        "goto",
+        config.skybook.subdomain_vanity
+          ? `http://${req.body.username}.${config.skybook.domain}`
+          : `/${req.body.username}`,
+      )
+      .send();
   } catch (e) {
-    console.error(e);
+    console.error(e, "error!");
     return res.sendStatus(errorStatus(e, false));
   }
 });
@@ -79,10 +96,13 @@ router.post("/login", authLimiter, async (req: Request, res: Response) => {
 router.post("/logout", async (req: Request, res: Response) => {
   const sessionKey = req.signedCookies.session;
   if (!sessionKey) {
-    return res.sendStatus(200);
+    return res.sendStatus(400);
   }
+  console.log(sessionKey);
   await revokeSession(sessionKey);
-  res.clearCookie("session");
+  res.clearCookie("session", {
+    domain: config.skybook.domain,
+  });
   return res.sendStatus(200);
 });
 

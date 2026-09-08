@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { config } from "../config.ts";
-import rateLimit from "express-rate-limit";
+import { limiter } from "../domain/rate-limit.ts";
 import { errorStatus, NotFoundError, UnauthorizedError } from "../errors.ts";
 import {
   compiledInstanceStatus,
@@ -18,6 +18,7 @@ import {
   enableInstanceDefaultFilter,
   exportInstance,
   importInstance,
+  updateInstanceQueueFlaggedThreshold,
 } from "../domain/instances.ts";
 import {
   getPosts,
@@ -43,25 +44,20 @@ import {
   setField,
   renameField,
 } from "../domain/fields.ts";
-import { DB } from "../db.ts";
-import { postgres } from "bun";
 import multer from "multer";
 import { assertCaptchaTokenValid } from "../domain/captcha.ts";
 
 //#region HELPERS
 
-const alterationLimiter = rateLimit({
+const alterationLimiter = limiter({
   windowMs: config.rate_limits.alteration_window_ms,
-  limit: (req: Request) =>
-    !req.ctx.elevated
-      ? config.rate_limits.alteration_limit_anonymous
-      : config.rate_limits.alteration_limit_elevated,
+  limit: config.rate_limits.alteration_limit_anonymous,
 });
-const fetchLimiter = rateLimit({
+const fetchLimiter = limiter({
   windowMs: config.rate_limits.fetch_window_ms,
   limit: config.rate_limits.fetch_limit,
 });
-const creationLimiter = rateLimit({
+const creationLimiter = limiter({
   windowMs: config.rate_limits.entry_creation_window_ms,
   limit: 1,
 });
@@ -333,6 +329,22 @@ router.patch(
     }
   },
 );
+router.patch(
+  "/queue-threshold",
+  alterationLimiter,
+  async (req: Request, res: Response) => {
+    if (!req.ctx.elevated) return res.sendStatus(403);
+    try {
+      await updateInstanceQueueFlaggedThreshold(
+        req.ctx.instance,
+        req.body.threshold,
+      );
+      return res.sendStatus(200);
+    } catch (e) {
+      return res.sendStatus(errorStatus(e, req.ctx.elevated));
+    }
+  },
+);
 // Update the instance's supplied filter.
 // Instance owners can supply their own filters which apply to every field.
 router.patch(
@@ -348,7 +360,7 @@ router.patch(
     }
   },
 );
-// Implement default, Kaiju-provided filters
+// Implement default, Skybook-provided filters
 router.patch(
   "/filter/:filter",
   alterationLimiter,

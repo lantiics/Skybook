@@ -18,13 +18,26 @@ const router = require("express").Router();
 //
 //
 //
-router.delete("/", async (req: Request, res: Response) => {
+router.post("/delete", async (req: Request, res: Response) => {
   try {
-    await deleteUser(req.ctx, req.ctx.user?.identifier as string);
-    return res.sendStatus(204);
+    const { password } = req.body;
+    if (!password)
+      throw new BadRequestError("Required credentials not specified");
+    if (!(await userPasswordIsValid(req.ctx.user!.identifier, password)))
+      throw new UnauthorizedError("Provided password is incorrect");
+    await deleteUser(req.ctx, req.ctx.user!.identifier);
+    return res.sendStatus(202);
   } catch (e) {
-    console.error(e);
-    return errorStatus(e, req.ctx.elevated);
+    if (e instanceof UnauthorizedError)
+      return res
+        .status(401)
+        .redirect(
+          "/account#pup:" +
+            btoa(
+              "Failed to delete account: Provided credentials are incorrect",
+            ),
+        );
+    return res.sendStatus(errorStatus(e, req.ctx.elevated));
   }
 });
 

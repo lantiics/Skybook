@@ -32,16 +32,18 @@ CREATE TABLE global_ip_blocks (
 );
 
 CREATE TABLE user_enforcements (
-    identifier UUID PRIMARY KEY REFERENCES users(identifier) ON DELETE CASCADE,
-    status TEXT NOT NULL CHECK (status IN ('active','posting_blocked','locked')),
-    locked_at TIMESTAMPTZ,
+    id UUID PRIMARY KEY,
+    user UUID NOT NULL REFERENCES users(identifier) ON DELETE CASCADE,
+    type TEXT NOT NULL,
+    details TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL,
     expires_at TIMESTAMPTZ,
-    enforcements JSONB NOT NULL DEFAULT '{}',
-    block_count INTEGER NOT NULL DEFAULT 0
 );
+CREATE INDEX idx_user_enforcements_user_expires_at ON user_enforcements (user, expires_at) WHERE expires_at IS NOT NULL;
+
 CREATE TABLE blocklist_ranges (
   source TEXT NOT NULL,
   range CIDR NOT NULL,
   added TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-CREATE INDEX idx_blocklist_range ON blocklist_ranges USING gist (range inet_ops);
+CREATE INDEX idx_blocklist_ranges ON blocklist_ranges USING gist (range inet_ops);

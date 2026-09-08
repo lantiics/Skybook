@@ -4,6 +4,7 @@ export const PUBLIC_COLUMN_NAMES: Set<keyof Post> = new Set([
   "seq",
   "identifier",
   "authenticated_user_identifier",
+
   "author",
   "content",
   "extra",
@@ -14,12 +15,14 @@ export const PUBLIC_COLUMN_NAMES: Set<keyof Post> = new Set([
   "is_highlighted",
   "sys_lock",
   "ip_hash",
+  "is_visible",
+  "is_queued",
 ]);
 export const PRIVATE_COLUMN_NAMES: Set<keyof Post> = new Set([
   ...PUBLIC_COLUMN_NAMES,
+  "last_edited_by",
   "instance",
-  "is_visible",
-  "is_queued",
+
   "flag_count",
 ]);
 export const ADMIN_COLUMN_NAMES: Set<keyof Post> = new Set([]);

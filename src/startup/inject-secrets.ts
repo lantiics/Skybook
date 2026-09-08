@@ -16,7 +16,12 @@ if (!process.env.IP_HASH_SECRET) {
   process.env.IP_HASH_SECRET = secret;
 }
 
-if (!process.env.DATABASE_URL)
+if (!process.env.WRITE_DB_URL)
   throw new Error(
-    "DATABASE_URL not present in environment variables; Is this being ran from the right directory?",
+    "WRITE_DB_URL not present in environment variables; Is this being ran from the right directory?",
+  );
+
+if (!process.env.READ_DB_URL)
+  throw new Error(
+    "WRITE_DB_URL not present in environment variables; Is this being ran from the right directory?",
   );

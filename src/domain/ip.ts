@@ -1,6 +1,7 @@
-import { DB } from "../db";
+import { READER, WRITER } from "../db.ts";
 import { createHmac } from "crypto";
 import { config } from "../config";
+import { tryGlobalBlock } from "./enforcements.ts";
 export const hashIp = (ip: string): string => {
   return createHmac("sha256", process.env.IP_HASH_SECRET!)
     .update(ip)
@@ -8,21 +9,21 @@ export const hashIp = (ip: string): string => {
 };
 export const ipSource = async (ip: string) => {
   const [m] =
-    await DB`SELECT source FROM blocklist_ranges WHERE ${ip}::inet <<= range LIMIT 1`;
+    await READER`SELECT source FROM blocklist_ranges WHERE ${ip}::inet <<= range LIMIT 1`;
 
   return m?.source;
 };
 const ipIsBlockedOnInstance = async (ip: string, instance: string) => {
   const ipHash = hashIp(ip);
   const [block] =
-    await DB`SELECT EXISTS(SELECT 1 FROM instance_blocks WHERE ip_hash = ${ipHash} AND instance = ${instance})`;
+    await READER`SELECT EXISTS(SELECT 1 FROM instance_blocks WHERE ip_hash = ${ipHash} AND instance = ${instance})`;
   return block.exists;
 };
 
 export const ipIsBlockedGlobally = async (ip: string) => {
   const ipHash = hashIp(ip);
   const [block] =
-    await DB`SELECT EXISTS(SELECT 1 FROM global_ip_blocks WHERE ip_hash IS ${ipHash})`;
+    await READER`SELECT EXISTS(SELECT 1 FROM global_ip_blocks WHERE ip_hash IS ${ipHash})`;
   return block.exists;
 };
 
@@ -46,26 +47,12 @@ export const globalIpBlockInformation = async (ip: string) => {
   const ipHash = hashIp(ip);
 };
 
-const tryGlobalBlock = async (
-  ipHash: string,
-  blockCount: number,
-): Promise<void> => {
-  if (
-    !config.ip_blocking.automated_enforcements_enabled ||
-    blockCount < config.ip_blocking.global_block_threshold
-  )
-    return;
-  await DB`
-    INSERT INTO global_ip_blocks (ip_hash, reason) VALUES (${ipHash}, ${DB`SYSTEM: Exceeded per-instance block threshold of ${config.ip_blocking.global_block_threshold}`}')
-    ON CONFLICT (ip_hash) DO NOTHING`;
-};
-
 export const blockIpOnInstance = async (
   instance: string,
   ipHash: string,
   reason?: string,
 ) => {
-  const isNewBlock = await DB.begin(async (tx) => {
+  const isNewBlock = await WRITER.begin(async (tx) => {
     const [row] = await tx`
     INSERT INTO instance_blocks (instance, ip_hash, reason) VALUES (${instance},${ipHash},${reason}) 
     ON CONFLICT (instance, ip_hash) DO NOTHING
@@ -80,7 +67,7 @@ export const blockIpOnInstance = async (
   });
   if (!isNewBlock) return;
   const blockCount = (
-    await DB`
+    await WRITER`
   INSERT INTO ip_block_stats (ip_hash) VALUES (${ipHash})
   ON CONFLICT (ip_hash) DO UPDATE
     SET block_count = ip_block_stats.block_count + 1, last_blocked_at = now()
@@ -93,7 +80,7 @@ export const unblockIpOnInstance = async (
   instance: string,
   ipHash: string,
 ): Promise<void> => {
-  await DB.begin(async (tx) => {
+  await WRITER.begin(async (tx) => {
     const [wasBlocked] = await tx`
     DELETE FROM instance_blocks WHERE instance = ${instance} AND ip_hash = ${ipHash}
     RETURNING ip_hash`;

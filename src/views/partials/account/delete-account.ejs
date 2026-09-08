@@ -1,0 +1,14 @@
+<div class="fs-popup-container">
+  <div class="fs-popup visible">
+    <h2>Are you sure you want to delete your account?</h2>
+    <p>Proceeding will schedule your account for deletion in 7 days. Your instance will be unavailable during this process, and you can log in at any time to cancel the deletion process.</p>
+    <form action="/api/account/delete" method="POST">
+      <fieldset>
+        <input type="password" required name="password" minlength="8" placeholder="password">
+        <div style="display:grid;grid-auto-flow: column;justify-content: space-between;width:15rem;margin-block: 2rem;"> <button onclick="deleteFSPopup()">Cancel</button>
+          <input type="submit" name="submit" class="danger" value="Delete account">
+        </div>
+      </fieldset>
+    </form>
+  </div>
+</div>

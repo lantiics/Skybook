@@ -18,14 +18,17 @@ CREATE TABLE users (
   can_create_invitations BOOLEAN NOT NULL DEFAULT TRUE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   last_seen TIMESTAMPTZ NOT NULL DEFAULT now(),
-  is_superadmin BOOLEAN NOT NULL DEFAULT FALSE,
-  can_be_blocked BOOLEAN NOT NULL DEFAULT TRUE, -- Should only be needed if superadmin
+  pending_deletion BOOLEAN NOT NULL DEFAULT FALSE,
+  delete_at TIMESTAMPTZ,
+  can_be_blocked BOOLEAN NOT NULL DEFAULT TRUE,
   UNIQUE(identifier)
 );
 CREATE UNIQUE INDEX idx_username ON users (name);
+CREATE INDEX idx_users_pending_deletion ON users (delete_at) WHERE pending_deletion IS TRUE;
 
 CREATE TABLE instances (
   name TEXT PRIMARY KEY REFERENCES users(name) ON DELETE CASCADE ON UPDATE CASCADE,
+  user_identifier TEXT UNIQUE NOT NULL REFERENCES users(identifier) ON DELETE CASCADE ON UPDATE CASCADE,
   is_visible BOOLEAN NOT NULL DEFAULT TRUE, -- -- -- --  -- --
   submission_enabled BOOLEAN NOT NULL DEFAULT TRUE, -- -- --
   --replying_enabled BOOLEAN NOT NULL DEFAULT FALSE,
@@ -34,6 +37,7 @@ CREATE TABLE instances (
   queue_on_filtered BOOLEAN NOT NULL DEFAULT TRUE,
   enforced_lock BOOLEAN NOT NULL DEFAULT FALSE,
   custom_filter TEXT,
+  queue_flags_threshold INTEGER NOT NULL DEFAULT 3,
   blocklist_proxy_enabled BOOLEAN NOT NULL DEFAULT FALSE,
   blocklist_vpn_enabled BOOLEAN NOT NULL DEFAULT FALSE,
   blocklist_tor_enabled BOOLEAN NOT NULL DEFAULT FALSE
@@ -56,7 +60,7 @@ CREATE TABLE posts (
   ip_hash TEXT NOT NULL,
   identifier TEXT UNIQUE NOT NULL,
   authenticated_user_identifier UUID REFERENCES users(identifier) ON DELETE SET NULL,
-  --parent TEXT REFERENCES posts(identifier) ON DELETE CASCADE,
+  last_edited_by UUID REFERENCES users(identifier) ON DELETE SET NULL,
   reply TEXT,
   author TEXT NOT NULL DEFAULT 'anonymous',
   content TEXT NOT NULL,

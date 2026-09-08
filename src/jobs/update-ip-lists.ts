@@ -1,11 +1,11 @@
 require("dotenv");
 
-import { DB } from "../db";
+import { WRITER, READER } from "../db";
 
 // helpers
 const sourceLastUpdatedAt = async (source: "proxy" | "vpn" | "tor") => {
   const [lastUpdated] =
-    await DB`SELECT added FROM blocklist_ranges WHERE source = ${source} LIMIT 1`;
+    await READER`SELECT added FROM blocklist_ranges WHERE source = ${source} LIMIT 1`;
   return lastUpdated;
 };
 const sourceElapsedMinutesUpdateThreshold = async (
@@ -13,7 +13,7 @@ const sourceElapsedMinutesUpdateThreshold = async (
   minutes: string,
 ) => {
   const [lastUpdated] =
-    await DB`SELECT EXISTS(SELECT 1 FROM blocklist_ranges WHERE source = ${source} AND added < NOW() - INTERVAL '${DB.unsafe(minutes)} minutes')`;
+    await READER`SELECT EXISTS(SELECT 1 FROM blocklist_ranges WHERE source = ${source} AND added < NOW() - INTERVAL '${READER.unsafe(minutes)} minutes')`;
   return lastUpdated.exists;
 };
 // doProxy
@@ -46,8 +46,8 @@ const doVpn = async () => {
     ips.push(cidr);
   }
   const literal = `{${ips.map((s) => `"${s.replace(/"/g, '\\"')}"`).join(",")}}`;
-  await DB`DELETE FROM blocklist_ranges WHERE source = 'vpn'`;
-  await DB`INSERT INTO blocklist_ranges (source, range) SELECT 'vpn', unnest(${literal}::text[])::cidr`;
+  await WRITER`DELETE FROM blocklist_ranges WHERE source = 'vpn'`;
+  await WRITER`INSERT INTO blocklist_ranges (source, range) SELECT 'vpn', unnest(${literal}::text[])::cidr`;
 };
 
 // doTor
@@ -74,8 +74,8 @@ const doTor = async () => {
     );
 
   const literal = `{${ips.map((s) => `"${s.replace(/"/g, '\\"')}"`).join(",")}}`;
-  await DB`DELETE FROM blocklist_ranges WHERE source = 'tor'`;
-  await DB`INSERT INTO blocklist_ranges (source, range) SELECT 'tor', unnest(${literal}::text[])::cidr ON CONFLICT DO NOTHING`;
+  await WRITER`DELETE FROM blocklist_ranges WHERE source = 'tor'`;
+  await WRITER`INSERT INTO blocklist_ranges (source, range) SELECT 'tor', unnest(${literal}::text[])::cidr ON CONFLICT DO NOTHING`;
 };
 
 doProxy();

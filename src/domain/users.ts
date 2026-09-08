@@ -19,7 +19,7 @@ import {
   loginEnabled,
   signupInvitationRequired,
 } from "./service-settings.ts";
-import { DB } from "../db.ts";
+import { READER, WRITER } from "../db.ts";
 import { User } from "../types/entities";
 import { passwordIsSafe, verifyTotp } from "./auth.ts";
 import { config } from "../config.ts";
@@ -28,9 +28,11 @@ import { generateToken } from "./tokens.ts";
 import { userInformation } from "./enforcements.ts";
 import { randomBytes } from "node:crypto";
 import cookieParser from "cookie-parser";
+import { text } from "express";
 
 export const userUUID = async (name: string) => {
-  const [user] = await DB`SELECT identifier FROM users WHERE name = ${name}`;
+  const [user] =
+    await READER`SELECT identifier FROM users WHERE name = ${name}`;
   if (!user.identifier) {
     throw new NotFoundError(
       "No UUID could be found for the specified username",
@@ -39,24 +41,13 @@ export const userUUID = async (name: string) => {
   return user.identifier;
 };
 
-export const userIsSuperAdmin = async (uuid: string): Promise<boolean> => {
-  try {
-    if ((await userInformation(uuid)).is_superadmin) {
-      return true;
-    }
-    return false;
-  } catch {
-    return false;
-  }
-};
-
 const allowedRegex = /^[A-Za-z0-9_-]+$/;
 export const assertUserNameAllowed = async (name: string) => {
   if (!name.match(allowedRegex)) {
     throw new UnauthorizedError("Filtered username");
   }
   const usernameIsReserved = (
-    await DB`SELECT EXISTS(SELECT 1 FROM reserved_usernames WHERE username = ${name})`
+    await READER`SELECT EXISTS(SELECT 1 FROM reserved_usernames WHERE username = ${name})`
   )[0].exists;
   if (usernameIsReserved) {
     throw new ReservedError("Username is reserved");
@@ -87,7 +78,7 @@ export const createUser = async (
   try {
     password = await Bun.password.hash(password);
     const userIdentifier = generateToken();
-    const user = await DB.begin(async (tx) => {
+    const user = await WRITER.begin(async (tx) => {
       console.log("generating user");
       const [user] =
         await tx`INSERT INTO users (name, password_hash, ip_hash) VALUES (${name},${password},${hashIp(ip)}) RETURNING name`;
@@ -114,7 +105,7 @@ export const userPasswordIsValid = async (
   password: string,
 ): Promise<boolean> => {
   const [userEntry] =
-    await DB`SELECT name, identifier, password_hash FROM users WHERE identifier = ${identifier}`;
+    await READER`SELECT name, identifier, password_hash FROM users WHERE identifier = ${identifier}`;
   if (!userEntry) throw new NotFoundError("User not found");
   if (await Bun.password.verify(password, (userEntry as User).password_hash))
     return true;
@@ -131,7 +122,7 @@ export const loginUser = async (
     );
   }
   const [userEntry] =
-    await DB`SELECT name, identifier, totp_secret, can_login, password_hash FROM users WHERE name = ${name}`;
+    await READER`SELECT name, identifier, totp_secret, can_login, password_hash FROM users WHERE name = ${name}`;
   if (!userEntry) {
     await Bun.password.verify(password, DUMMY_PASSWORD_HASH);
   }
@@ -143,7 +134,7 @@ export const loginUser = async (
       "Attempted to log in as a user with invalid credentials",
     );
   }
-
+  const identifier = userEntry.identifier;
   if (!userEntry.can_login) {
     throw new LockedError("Attempted to log in as a user with login disabled");
   }
@@ -154,11 +145,14 @@ export const loginUser = async (
       );
     }
   }
+  if (await userIsPendingDeletion(identifier))
+    await cancelUserDeletion(identifier);
+
   return await createSession(name);
 };
 
 const updateUserLastSeenTime = async (identifier: string): Promise<void> => {
-  await DB`UPDATE users SET last_seen = now() WHERE identifier = ${identifier}`;
+  await WRITER`UPDATE users SET last_seen = now() WHERE identifier = ${identifier}`;
 };
 export const authenticateUser = async (
   token: string,
@@ -183,17 +177,17 @@ export const enableUserMfa = async (
   recoveryCodes: string[],
 ): Promise<void> => {
   const [userEntry] =
-    await DB`SELECT name,identifier,totp_secret FROM users WHERE identifier=${identifier}`;
+    await READER`SELECT name,identifier,totp_secret FROM users WHERE identifier=${identifier}`;
   if (!userEntry) throw new NotFoundError("User not found");
   if (userEntry.totp_secret)
     throw new BadRequestError("MFA Is already enabled for this user!");
-  await DB`UPDATE users SET totp_secret = ${secret}, mfa_recovery =  ${DB.array(recoveryCodes, "TEXT")} WHERE identifier = ${identifier}`;
+  await WRITER`UPDATE users SET totp_secret = ${secret}, mfa_recovery =  ${WRITER.array(recoveryCodes, "TEXT")} WHERE identifier = ${identifier}`;
   await revokeAllSessions(identifier);
   return;
 };
 
 export const disableUserMfa = async (identifier: string): Promise<void> => {
-  await DB`UPDATE users SET totp_secret = NULL, mfa_recovery = NULL WHERE identifier = ${identifier}`;
+  await WRITER`UPDATE users SET totp_secret = NULL, mfa_recovery = NULL WHERE identifier = ${identifier}`;
   return;
 };
 
@@ -204,7 +198,7 @@ export const changeUserPassword = async (
   otp?: string,
 ): Promise<void> => {
   const [userEntry] =
-    await DB`SELECT name, identifier, totp_secret, can_change_password, password_hash FROM users WHERE identifier = ${identifier}`;
+    await READER`SELECT name, identifier, totp_secret, can_change_password, password_hash FROM users WHERE identifier = ${identifier}`;
   console.log(userEntry);
   if (
     !userEntry.can_change_password ||
@@ -223,17 +217,39 @@ export const changeUserPassword = async (
     }
   }
   const newPasswordHash = await Bun.password.hash(newPassword);
-  await DB`UPDATE users SET password_hash = ${newPasswordHash} WHERE identifier = ${identifier}`;
-  await revokeAllSessions(identifier);
+  await WRITER.begin(async (tx) => {
+    await tx`UPDATE users SET password_hash = ${newPasswordHash} WHERE identifier = ${identifier}`;
+    await revokeAllSessions(identifier, tx);
+  });
 };
-export const resetUserPassword = async (identifier: string) => {};
+export const resetUserPassword = async (identifier: string) => {
+  const password = btoa(crypto.getRandomValues(new BigUint64Array(2)).join());
+
+  await WRITER.begin(async (tx) => {
+    await tx`UPDATE users SET password_hash = ${await Bun.password.hash(password)} WHERE identifier = ${identifier}`;
+    await revokeAllSessions(identifier, tx);
+  });
+  return password;
+};
+
+export const userIsPendingDeletion = async (identifier: string) => {
+  return (
+    await READER`SELECT pending_deletion FROM users WHERE identifier = ${identifier}`
+  )[0].pending_deletion;
+};
 
 export const deleteUser = async (
   ctx: RequestContext,
   identifier: string,
 ): Promise<void> => {
-  await revokeAllSessions(identifier);
-  await DB`DELETE FROM users WHERE identifier = ${identifier}`;
+  await WRITER.begin(async (tx) => {
+    await tx`UPDATE users SET pending_deletion = true, delete_at = (now() + INTERVAL '7 days') WHERE identifier = ${identifier}`;
+    await revokeAllSessions(identifier, tx);
+  });
+};
+
+export const cancelUserDeletion = async (identifier: string): Promise<void> => {
+  await WRITER`UPDATE users SET pending_deletion = false, delete_at = null WHERE identifier = ${identifier}`;
 };
 
 // Clear users who have not been seen for over one year
@@ -241,24 +257,16 @@ export const clearUnseenUsers = async (): Promise<void> => {};
 
 export const userCanBeBlocked = async (uuid: string): Promise<boolean> => {
   const [res] =
-    await DB`SELECT can_be_blocked FROM users WHERE identifier = ${uuid}`;
+    await READER`SELECT can_be_blocked FROM users WHERE identifier = ${uuid}`;
   if (!res) {
     throw new NotFoundError("Specified user does not exist");
   }
   return res.can_be_blocked;
 };
 export const userCanPost = async (uuid: string): Promise<boolean> => {
-  return (await DB`SELECT can_post FROM users WHERE identifier=${uuid}`)[0]
+  return (await READER`SELECT can_post FROM users WHERE identifier=${uuid}`)[0]
     .can_post;
 };
 const crypto = require("crypto");
 
 const cookies = require("cookie-signature");
-export const generateKaijuSessionKey = async () => {
-  await DB`INSERT INTO users (name, identifier, can_login, can_be_blocked, is_superadmin,ip_hash) VALUES ('kaiju', ${crypto.randomUUID()},false,false,true,'administrative action') ON CONFLICT (name) DO NOTHING`;
-  // const [identifier] = await DB`SELECT identifier FROM u`
-  const sessionToken = await createSession("kaiju");
-  const sessionKey = cookies.sign(sessionToken, null);
-  console.log(sessionKey);
-  return sessionKey;
-};

@@ -72,6 +72,28 @@ const toggleStatus = async (btn) => {
   }
 };
 
+const updateFlagThreshold = async (e) => {
+  let newThreshold;
+  if (e.value === "") newThreshold = 3;
+  else newThreshold = e.value;
+  e.disabled = true;
+
+  const res = await fetch(`/api/${instanceName()}/queue-threshold`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ threshold: newThreshold }),
+  });
+
+  if (!res.ok) {
+    createPopup(
+      "Failed to update threshold: " + errorStatus(res.status.toString()),
+    );
+    setTimeout(() => e.removeAttribute("disabled"), 2500);
+  } else {
+    e.removeAttribute("disabled");
+  }
+};
+
 // filters
 const submitFieldFilter = async (elem, field) => {
   elem.disabled = true;
@@ -106,7 +128,7 @@ const updateGlobalFilter = async (filterTA) => {
     filterTA.removeAttribute("disabled");
   }
 };
-const toggleKaijuSuppliedFilter = async (btn) => {
+const toggleSkybookSuppliedFilter = async (btn) => {
   event.preventDefault();
   btn.disabled = true;
   let method;
@@ -300,6 +322,13 @@ const initializeEventListeners = () => {
   const fieldFilterElems = document.querySelectorAll(
     "input[data-field-filter]",
   );
+  document
+    .getElementById("queueFlagThreshold")
+    .addEventListener("keyup", function (e) {
+      if (e.key === "Enter") {
+        updateFlagThreshold(this);
+      }
+    });
   for (const foo of fieldReplacementElems) {
     const field = foo.getAttribute("data-field-replacement");
     foo.addEventListener("keydown", (event) => {

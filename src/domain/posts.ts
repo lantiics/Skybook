@@ -14,7 +14,7 @@ import {
 } from "../errors.ts";
 import { RequestContext } from "../types/context.ts";
 import { generateToken, entryTokenValid } from "./tokens.ts";
-import { DB } from "../db.ts";
+import { READER, WRITER } from "../db.ts";
 import {
   flaggingEnabled,
   // replyingEnabled,
@@ -27,6 +27,7 @@ import {
   instanceIpBlocks,
   instanceSuppliedFilter,
   instanceDefaultFilters,
+  InstanceQueueFlaggedThreshold,
 } from "./instances.ts";
 import { Field, Post } from "../types/entities.ts";
 import {
@@ -37,6 +38,7 @@ import {
 } from "./ip.ts";
 import { userCanBeBlocked, userCanPost } from "./users.ts";
 import { config } from "../config.ts";
+import { tryGlobalBlock } from "./enforcements.ts";
 
 const generateIdentifier = (): string => {
   const data = crypto.randomUUID() + crypto.randomUUID();
@@ -116,14 +118,15 @@ const validatedEntry = async (
   const globalFilter = [...(fieldFilter || []), ...(defaultFilter || [])].join(
     "|",
   );
-  console.log({
-    "instance-supplied filter": fieldFilter,
-    "default, kaiju-provided filter the instance has enabled": defaultFilter,
-    "combined, which is what we check against": globalFilter,
-  });
+  // console.log({
+  //   "instance-supplied filter": fieldFilter,
+  //   "default, skybook-provided filter the instance has enabled": defaultFilter,
+  //   "combined, which is what we check against": globalFilter,
+  // });
 
   const cF =
-    await DB`SELECT name, is_special, is_public, is_required, replacement, filter FROM fields WHERE instance = ${ctx.instance}`;
+    await READER`SELECT name, is_special, is_public, is_required, replacement, filter FROM fields WHERE instance = ${ctx.instance}`;
+  //@ts-expect-error
   const customFields = Object.fromEntries(cF.map((v) => [v.name, v]));
 
   instanceFields = { ...instanceFields, ...customFields };
@@ -205,7 +208,7 @@ export const replyToPost = async (
   identifier: string,
   message: string,
 ) => {
-  await DB`UPDATE posts SET reply = ${message} WHERE identifier = ${identifier} AND instance = ${ctx.instance}`;
+  await WRITER`UPDATE posts SET reply = ${message} WHERE identifier = ${identifier} AND instance = ${ctx.instance}`;
 };
 export const createPost = async (
   ctx: RequestContext,
@@ -240,9 +243,9 @@ export const createPost = async (
         : [...PUBLIC_COLUMN_NAMES]
       ).join(",");
 
-  const row = await DB.begin(async (tx) => {
+  const row = await WRITER.begin(async (tx) => {
     const [row] =
-      await tx`INSERT INTO posts ${DB(entry)} RETURNING ${DB.unsafe(columns)}`;
+      await tx`INSERT INTO posts ${tx(entry)} RETURNING ${tx.unsafe(columns)}`;
     await tx`
   INSERT INTO tokens (instance, identifier, token, created_at, expires_at)
   VALUES (${entry.instance},  ${row.identifier}, ${_token}, NOW(), (NOW() + INTERVAL '2 days'))
@@ -255,7 +258,7 @@ export const createPost = async (
 export const editPost = async (
   ctx: RequestContext,
   identifier: string,
-  fields: Record<string, string | null>,
+  fields: Record<string, string | undefined>,
 ) => {
   if (!(await entryTokenValid(ctx, identifier))) {
     throw new UnauthorizedError(
@@ -271,21 +274,21 @@ export const editPost = async (
   }
   Object.keys(fields).forEach((key) => {
     if (!["content", "parent", "author"].includes(key)) {
+      //@ts-expect-error
       fields.extra = [[key, fields[key]]];
       delete fields[key];
     }
   });
   await validatedEntry(ctx, fields, true);
-  const [currentMetadata] =
-    await DB`SELECT authenticated_user_identifier FROM posts WHERE identifier = ${identifier}`;
   const columns = ctx.superAdmin
     ? `*`
     : (ctx.elevated
         ? [...PRIVATE_COLUMN_NAMES]
         : [...PUBLIC_COLUMN_NAMES]
       ).join(",");
+  fields.last_edited_by = ctx.user?.identifier;
   const row =
-    await DB`UPDATE posts SET ${DB(fields)} WHERE identifier = ${identifier} AND instance = ${ctx.instance}  RETURNING ${DB.unsafe(columns)}`;
+    await WRITER`UPDATE posts SET ${WRITER(fields)} WHERE identifier = ${identifier} AND instance = ${ctx.instance}  RETURNING ${WRITER.unsafe(columns)}`;
 
   return row;
 };
@@ -304,7 +307,7 @@ export const deletePost = async (ctx: RequestContext, identifier: string) => {
       );
     }
   }
-  await DB.begin(async (tx) => {
+  await WRITER.begin(async (tx) => {
     await tx`DELETE FROM posts WHERE identifier = ${identifier} AND instance = ${ctx.instance} `;
     await tx`DELETE FROM tokens WHERE identifier = ${identifier} AND instance = ${ctx.instance}`;
   });
@@ -318,9 +321,12 @@ export const blockPostCreator = async (
   if (!(await postCanBeBlocked(ctx, identifier)))
     throw new UnauthorizedError("Creator of post is unable to be blocked");
   const [postData] =
-    await DB`SELECT ip_hash,authenticated_user_identifier FROM posts WHERE identifier = ${identifier} AND instance = ${ctx.instance}`;
-  await DB.begin(async (tx) => {
+    await READER`SELECT ip_hash,authenticated_user_identifier FROM posts WHERE identifier = ${identifier} AND instance = ${ctx.instance}`;
+  await WRITER.begin(async (tx) => {
     await tx`INSERT INTO instance_blocks (instance, ip_hash, user_identifier, reason) VALUES (${ctx.instance},${postData.ip_hash},${postData.user_identifier},${reason})`;
+    const [blockCount] =
+      await tx`SELECT COUNT(*) FROM instance_blocks WHERE user_identifier IS NOT NULL`;
+    await tryGlobalBlock(postData.ip_hash, blockCount, tx);
     // await tx``;
   });
   // if (postData.authenticated_user_identifier) {
@@ -337,8 +343,8 @@ export const unblockPostCreator = async (
   identifier: string,
 ) => {
   const [postData] =
-    await DB`SELECT ip_hash,authenticated_user_identifier FROM posts WHERE identifier = ${identifier} AND instance = ${ctx.instance}`;
-  await DB`DELETE FROM instance_blocks WHERE instance = ${ctx.instance} AND (user_identifier = ${postData.identifier} OR ip_hash = ${postData.ip_hash})`;
+    await READER`SELECT ip_hash,authenticated_user_identifier FROM posts WHERE identifier = ${identifier} AND instance = ${ctx.instance}`;
+  await WRITER`DELETE FROM instance_blocks WHERE instance = ${ctx.instance} AND (user_identifier = ${postData.identifier} OR ip_hash = ${postData.ip_hash})`;
 };
 export const _getPostStatus = async (
   instance: string,
@@ -346,7 +352,7 @@ export const _getPostStatus = async (
   property: string,
 ) => {
   const [status] =
-    await DB`SELECT ${DB(property)} FROM posts WHERE identifier = ${identifier} AND instance = ${instance}`;
+    await READER`SELECT ${READER(property)} FROM posts WHERE identifier = ${identifier} AND instance = ${instance}`;
   return status[property];
 };
 export const _updatePost = async (
@@ -368,14 +374,14 @@ export const _updatePost = async (
     }
   }
   return (
-    await DB`UPDATE posts SET ${DB.unsafe(property)} WHERE identifier = ${identifier} AND instance = ${ctx.instance} returning ${DB.unsafe(columns)}`
+    await WRITER`UPDATE posts SET ${WRITER.unsafe(property)} WHERE identifier = ${identifier} AND instance = ${ctx.instance} returning ${WRITER.unsafe(columns)}`
   )[0];
 };
 export const postFlaggedByRequestor = async (
   ctx: RequestContext,
   identifier: string,
 ) => {
-  return await DB`SELECT EXISTS (SELECT 1 FROM post_flags WHERE instance = ${ctx.instance} AND identifier = ${identifier} AND
+  return await READER`SELECT EXISTS (SELECT 1 FROM post_flags WHERE instance = ${ctx.instance} AND identifier = ${identifier} AND
    (
     ${ctx.user?.identifier ? `user_identifier = ${ctx.user.identifier} OR ip_hash = ${hashIp(ctx.ip)}` : `ip_hash = ${hashIp(ctx.ip)}`} 
    ))`;
@@ -387,9 +393,16 @@ export const flagPost = async (ctx: RequestContext, identifier: string) => {
     !(await postIsQueued(ctx.instance, identifier)) &&
     (await postFlaggingEnabled(ctx.instance, identifier))
   ) {
-    return await DB.begin(async (tx) => {
+    const queueFlagsThreshold = await InstanceQueueFlaggedThreshold(
+      ctx.instance,
+    );
+    return await WRITER.begin(async (tx) => {
       await tx`INSERT INTO post_flags (instance, identifier, user_identifier, ip_hash) VALUES (${ctx.instance}, ${identifier}, ${ctx.user?.identifier}, ${hashIp(ctx.ip)});`;
-      await tx`UPDATE posts SET flag_count = flag_count + 1 WHERE instance = ${ctx.instance} AND identifier = ${identifier}`;
+      const [flagCount] =
+        await tx`UPDATE posts SET flag_count = flag_count + 1 WHERE instance = ${ctx.instance} AND identifier = ${identifier} RETURNING flag_count`;
+      if (flagCount >= queueFlagsThreshold) {
+        await tx`UPDATE posts SET is_queued = true WHERE instance = ${ctx.instance} AND identifier = ${identifier}`;
+      }
     });
   }
   throw new UnauthorizedError(
@@ -418,7 +431,7 @@ export const postCanBeBlocked = async (
     throw new NotFoundError("No identifier specified");
   }
   const [post] =
-    await DB`SELECT authenticated_user_identifier,can_block FROM posts WHERE identifier = ${identifier}`;
+    await READER`SELECT authenticated_user_identifier,can_block FROM posts WHERE identifier = ${identifier}`;
   if (
     post.authenticated_user_identifier &&
     post.authenticated_user_identifier !== ctx.user?.identifier
@@ -464,7 +477,7 @@ export const clearPostFlags = async (
   ctx: RequestContext,
   identifier: string,
 ) => {
-  return await DB.begin(async (tx) => {
+  return await WRITER.begin(async (tx) => {
     await tx`DELETE FROM post_flags WHERE instance = ${ctx.instance} AND identifier = ${identifier}`;
     await tx`UPDATE posts SET flag_count = 0 WHERE instance = ${ctx.instance} AND identifier = ${identifier}`;
   });
@@ -500,13 +513,13 @@ export const getPosts = async (
   }
 
   const additionalRequirements = ctx.elevated
-    ? DB.unsafe("")
-    : DB`AND is_visible AND NOT is_queued`;
+    ? READER.unsafe("")
+    : READER`AND  ((NOT is_queued AND is_visible) OR (authenticated_user_identifier IS NOT NULL AND authenticated_user_identifier = ${ctx.user?.identifier}))`;
   const order = ctx.elevated
-    ? DB.unsafe(
+    ? READER.unsafe(
         "block_count DESC, is_pinned DESC, is_queued DESC, flag_count DESC, seq DESC",
       )
-    : DB.unsafe("is_pinned DESC, seq DESC");
+    : READER.unsafe("is_pinned DESC,is_queued DESC, is_visible ASC, seq DESC");
   let columnList = ctx.superAdmin
     ? "*"
     : (ctx.elevated
@@ -525,12 +538,12 @@ export const getPosts = async (
     ) AS block_count`;
   }
   const query = ctx.elevated
-    ? DB`LEFT JOIN instance_blocks
+    ? READER`LEFT JOIN instance_blocks
       ON posts.instance = instance_blocks.instance
       AND (posts.ip_hash = instance_blocks.ip_hash OR posts.authenticated_user_identifier = instance_blocks.user_identifier)
     WHERE posts.instance = ${ctx.instance}`
-    : DB`WHERE instance = ${ctx.instance}`;
-  const entries = await DB`SELECT ${DB.unsafe(columnList)} FROM posts
+    : READER`WHERE instance = ${ctx.instance}`;
+  const entries = await READER`SELECT ${READER.unsafe(columnList)} FROM posts
       ${query}
     ${additionalRequirements}
     ORDER BY ${order} LIMIT ${perPage} OFFSET ${page * perPage}`;
@@ -580,13 +593,19 @@ export const getPosts = async (
   return entries;
 };
 
+export const pageCount = async (ctx: RequestContext) => {
+  const posts = await countPosts(ctx);
+  const pages = Math.floor(posts / config.posts.perPage);
+  return pages;
+};
+
 export const countPosts = async (ctx: RequestContext) => {
   const filter = ctx.elevated ? "" : "AND NOT is_queued AND is_visible";
   console.log(
-    await DB`SELECT COUNT(*) FROM posts WHERE instance = ${ctx.instance} ${DB.unsafe(filter)}`,
+    await READER`SELECT COUNT(*) FROM posts WHERE instance = ${ctx.instance} ${READER.unsafe(filter)}`,
     "this the countttt",
   );
   return (
-    await DB`SELECT COUNT(*) FROM posts WHERE instance = ${ctx.instance}  ${DB.unsafe(filter)}`
+    await READER`SELECT COUNT(*) FROM posts WHERE instance = ${ctx.instance}  ${READER.unsafe(filter)}`
   )[0].count;
 };

@@ -1,11 +1,4 @@
-import { DB } from "../db";
-import {
-  generateSecret,
-  generate,
-  verify,
-  generateURI,
-  ScureBase32Plugin,
-} from "otplib";
+import { generateSecret, verify, generateURI, ScureBase32Plugin } from "otplib";
 import QRCode from "qrcode";
 const crypto = require("node:crypto");
 
@@ -17,7 +10,7 @@ export const setupTwoFactor = async (user: string) => {
   const secret = generateSecret();
 
   const uri = generateURI({
-    issuer: "Kaiju",
+    issuer: "Skybook",
     label: user,
     secret,
   });
