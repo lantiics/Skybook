@@ -13,7 +13,7 @@
     <% } %>
     <button <%if (!post.reply){%>onclick="reply(this.parentNode.parentNode)" <%} else {%>onclick="deleteReply(this)" <%}%>><%=!post.reply?"reply":"delete reply"%></button>
       <% if (post.flag_count) {%><button onclick="actOnPost(this.parentNode.parentNode,this)" data-action="clear-flags">clear flags</button> <%}%>
-    <% if (!post.sys_lock&&!ctx.superAdmin) {%><button onclick="actOnPost(this.parentNode.parentNode,this)" data-action="toggle-flagging" <% if(post.authenticated_user_identifier&&post.authenticated_user_identifier===ctx.user.identifier) {%>disabled <%}%>><%=post.can_flag?"disable flagging":"enable flagging"%></button><%} %>
+    <% if (!post.sys_lock&&ctx.elevated&&!post.postedByRequestor) {%><button onclick="actOnPost(this.parentNode.parentNode,this)" data-action="toggle-flagging" <% if(post.authenticated_user_identifier&&post.authenticated_user_identifier===ctx.user.identifier) {%>disabled <%}%>><%=post.can_flag?"disable flagging":"enable flagging"%></button><%} %>
 
         <% } %>
         <% } %>

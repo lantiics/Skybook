@@ -1,10 +1,9 @@
-import { DB } from "../db.ts";
+import { READER, WRITER } from "../db.ts";
 import { UnauthorizedError } from "../errors.ts";
 import { RequestContext } from "../types/context";
 import { generateToken } from "./tokens.ts";
 import { randomBytes } from "node:crypto";
 import Bun from "bun";
-import { userIsSuperAdmin } from "./users.ts";
 const generateSessionKey = async (): Promise<string> => {
   const token = randomBytes(32).toString("hex");
   return token;
@@ -12,7 +11,7 @@ const generateSessionKey = async (): Promise<string> => {
 
 export const userIdentifier = async (user: string): Promise<string> => {
   const [identifier] =
-    await DB`SELECT identifier FROM users WHERE name = ${user}`;
+    await READER`SELECT identifier FROM users WHERE name = ${user}`;
   return identifier.identifier;
 };
 export const createSession = async (user: string): Promise<string> => {
@@ -20,7 +19,7 @@ export const createSession = async (user: string): Promise<string> => {
   const token = await generateSessionKey();
   const tokenHash = new Bun.CryptoHasher("sha256").update(token).digest("hex");
   console.log(await userIdentifier(user));
-  await DB`INSERT INTO sessions (token, user_name, user_identifier) VALUES (${tokenHash}, ${user}, ${await userIdentifier(user)} )`;
+  await WRITER`INSERT INTO sessions (token, user_name, user_identifier) VALUES (${tokenHash}, ${user}, ${await userIdentifier(user)} )`;
   console.timeEnd("Generated session key");
   return token;
 };
@@ -29,7 +28,7 @@ export const getSessionUser = async (
   token: string,
 ): Promise<RequestContext["user"]> => {
   const [row] =
-    await DB`SELECT user_name,user_identifier FROM sessions WHERE token = ${new Bun.CryptoHasher("sha256").update(token).digest("hex")} AND expires_at > now()`;
+    await READER`SELECT user_name,user_identifier FROM sessions WHERE token = ${new Bun.CryptoHasher("sha256").update(token).digest("hex")} AND expires_at > now()`;
   if (!row) {
     throw new UnauthorizedError("There is no specified session key available");
   }
@@ -37,19 +36,25 @@ export const getSessionUser = async (
   return {
     name: row.user_name,
     identifier: row.user_identifier,
-    superAdmin: await userIsSuperAdmin(row.user_identifier),
     mfaEnabled: (
-      await DB`SELECT EXISTS(SELECT 1 FROM users WHERE identifier = ${row.user_identifier} AND totp_secret IS NOT NULL)`
+      await READER`SELECT EXISTS(SELECT 1 FROM users WHERE identifier = ${row.user_identifier} AND totp_secret IS NOT NULL)`
     )[0].exists,
   };
 };
 
 export const revokeSession = async (token: string): Promise<void> => {
-  await DB`DELETE FROM sessions WHERE token = ${token}`;
+  token = new Bun.CryptoHasher("sha256").update(token).digest("hex");
+  const r = await WRITER`DELETE FROM sessions WHERE token = ${token}`;
+  console.log(r, "a");
 };
-export const revokeAllSessions = async (identifier: string): Promise<void> => {
-  await DB`DELETE FROM sessions WHERE user_identifier = ${identifier}`;
+export const revokeAllSessions = async (
+  identifier: string,
+  DB: any = WRITER,
+): Promise<void> => {
+  const r =
+    await DB`DELETE FROM sessions WHERE user_identifier = ${identifier}`;
+  console.log(r, "a");
 };
 export const clearExpiredSessions = async (): Promise<void> => {
-  await DB`DELETE FROM sessions WHERE expires_at <= now()`;
+  await WRITER`DELETE FROM sessions WHERE expires_at <= now()`;
 };

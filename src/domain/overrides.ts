@@ -1,4 +1,4 @@
-import { DB } from "../db.ts";
+import { READER, WRITER } from "../db.ts";
 import { RequestContext } from "../types/context";
 import { InvalidStatusError } from "../errors.ts";
 
@@ -16,7 +16,7 @@ const _toggleOverride = async (ctx: RequestContext, status: string) => {
       "Invalid status specified while attempting to toggle override",
     );
   }
-  await DB`INSERT INTO overrides (instance,name,value) VALUES (${ctx.instance ?? null},${status}, ${false}) ON CONFLICT ${ctx.instance ? DB.unsafe(`(instance, name) WHERE instance IS NOT NULL`) : DB.unsafe(`(name) WHERE instance IS NULL `)} DO UPDATE SET value = NOT overrides.value`;
+  await WRITER`INSERT INTO overrides (instance,name,value) VALUES (${ctx.instance ?? null},${status}, ${false}) ON CONFLICT ${ctx.instance ? WRITER.unsafe(`(instance, name) WHERE instance IS NOT NULL`) : WRITER.unsafe(`(name) WHERE instance IS NULL `)} DO UPDATE SET value = NOT overrides.value`;
 };
 const _deleteOverride = async (ctx: RequestContext, status: string) => {
   if (!ACCEPTED_STATUSES.includes(status)) {
@@ -24,7 +24,7 @@ const _deleteOverride = async (ctx: RequestContext, status: string) => {
       "Invalid status specified while attempting to delete override",
     );
   }
-  await DB`DELETE FROM overrides WHERE name = ${status} AND instance ${ctx.instance ? DB(`= ${ctx.instance}`) : DB.unsafe("IS NULL")}`;
+  await WRITER`DELETE FROM overrides WHERE name = ${status} AND instance ${ctx.instance ? WRITER(`= ${ctx.instance}`) : WRITER.unsafe("IS NULL")}`;
 };
 // Convenience functions
 export const toggleApprovalOverride = async (ctx: RequestContext) => {

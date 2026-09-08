@@ -7,7 +7,7 @@ export const assertCaptchaTokenValid = async (token: string) => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        secret: config.captcha.secret_key,
+        secret: process.env.CAPTCHA_SECRET,
         response: token,
       }),
     })

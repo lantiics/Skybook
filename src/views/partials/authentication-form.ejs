@@ -1,11 +1,14 @@
 <script src="/js/auth.js"></script>
 <% if (captcha.implementation==='cap') { %><script src="https://cdn.jsdelivr.net/npm/cap-widget@latest"></script> <% } %>
+<% if (authAction==='signup') {%><% if (skybook.invitation_required) {%> <h2>An invitation from an existing user is currently required to make an account.</h2> <%} }%>
+
 <form class="authentication" action="/api/auth/<%=authAction%>" method="POST" id="authentication">
   <fieldset id="fs">
     <input type="text" name="username" title="arr" pattern="[a-zA-Z0-9_]+" placeholder="username" required />
     <input type="password" name="password" id="password" placeholder="password" minlength="8" required />
+    <% if (authAction==='signup') {%><% if (skybook.invitation_required) {%> <input type="text" name="invitation" placeholder="invitation code" required> <%} }%>
     <% if (authAction === 'login') { %>
-    <input type="text" name="otp" placeholder="2fa code (if applicable)" minlength="6" maxlength="6" pattern="[0-9]+" />
+    <input type="text" name="otp" placeholder="2fa/recovery code, if applicable. 2fa in format 123456" minlength="6" maxlength="6" pattern="[0-9]+" />
 
     <%  } %>
     <% if (captcha.implementation==='cap') {%> <script>

@@ -6,7 +6,7 @@ import { authenticate } from "./middleware/authenticate.ts";
 import { resolveInstance } from "./middleware/resolve-instance.ts";
 import express from "express";
 const app = express();
-app.set("trust proxy", config.kaiju.proxies_between);
+app.set("trust proxy", config.skybook.proxies_between);
 
 app.listen(process.env.PORT || 3000);
 var path = require("path");
@@ -25,14 +25,14 @@ const createError = require("http-errors");
 
 app.use(express.static(path.join(__dirname, "public")));
 // app.use("/admin", express.static(path.join(__dirname, "admin")));
-const { router } = require("./routes/kaiju.ts");
+const { router } = require("./routes/skybook.ts");
 const { users } = require("./routes/users");
 const { account } = require("./routes/account");
 import { pagesRouter } from "./routes/pages";
 import { instanceRouter } from "./routes/pages";
+import vhost from "vhost";
 import { captchaProxy } from "./routes/captcha-proxy";
 
-import { DB } from "./db.ts";
 import { ipSource } from "./domain/ip.ts";
 import { UnauthorizedError } from "./errors.ts";
 
@@ -44,8 +44,21 @@ api.use("/auth", users);
 api.use("/:instance", resolveInstance, authenticate, router);
 console.log("using instance");
 
-app.use("/", authenticate, pagesRouter);
-app.use("/:instance", resolveInstance, authenticate, instanceRouter);
+const skybook = express.Router();
+skybook.use(authenticate, pagesRouter);
+if (config.skybook.subdomain_vanity) {
+  app.use(vhost(config.skybook.domain, skybook));
+} else {
+  app.use("/", skybook);
+}
+
+const instance = express.Router();
+instance.use(resolveInstance, authenticate, instanceRouter);
+if (config.skybook.subdomain_vanity) {
+  app.use(vhost(`*.${config.skybook.domain}`, instance));
+} else {
+  app.use("/:instance", instance);
+}
 app.use(function (req, res, next) {
   next(createError(404));
 });

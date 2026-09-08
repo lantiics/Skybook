@@ -1,5 +1,18 @@
 {
   "compilerOptions": {
+
+    "paths": {
+      "root/*":["./*"],
+      "@/*":["./src/*"],
+      "@domain/*":["./src/domain/*"],
+      "@jobs/*":["./src/jobs/*"],
+      "@middleware/*":["./src/middleware/*"],
+      "@public/*":["./src/public/*"],
+      "@routes/*":["./src/routes/*"],
+      "@startup/*":["./src/startup/*"],
+      "@views/*":["./src/views/*"],
+      "@types/*":["./src/types/*"]
+    },
     "allowImportingTsExtensions": true,
     "noEmit": true,
     "target": "ES2025",
@@ -21,6 +34,6 @@
     "isolatedModules": true,
     
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts"],
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/app.js", "src/app.js", "src/app.js"],
   "exclude": ["node_modules", "dist"]
 }

@@ -10,6 +10,7 @@ export const resolveInstance = async (
   let instance: string | undefined =
     (req.params.instance as string) ??
     (req.query.instance as string) ??
+    req.hostname.split(".")[0] ??
     undefined;
   if (typeof instance !== "undefined") {
     if (!(await instanceExists(instance))) {

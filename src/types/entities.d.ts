@@ -13,8 +13,6 @@ export interface User {
   readonly can_login: boolean;
   readonly can_post: boolean;
   readonly created_at: string;
-  //enforcements: Record<string, UserEnforcement>;
-  //enforcement_level: number;
   readonly last_seen: string;
   readonly totp_secret?: string;
 }
@@ -53,6 +51,7 @@ export interface Post {
   readonly identifier: string;
   readonly ip_hash: string;
   readonly authenticated_user_identifier: string | null;
+  readonly last_edited_by: string | null;
   reply: string | null;
   readonly is_visible: boolean;
   is_queued: boolean;
@@ -98,4 +97,13 @@ export interface GlobalIpBlock {
   ip_hash: string;
   blocked_at: string;
   reason?: string;
+}
+
+export interface UserEnforcement {
+  id: string;
+  user: string;
+  type: "lock" | "block_posting";
+  details: string;
+  created_at: string;
+  expires_at: string | null;
 }

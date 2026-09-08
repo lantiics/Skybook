@@ -1,20 +1,28 @@
-[kaiju]
-version = "0.0 (TESTING)"
+[skybook]
 proxies_between = 1
 environment = "development"
-[server]
-
+subdomain_vanity = true
+cloudflare = true
+user_enforcements_enabled=true
+domain="skybook.localhost"
+header="Skybook is currently under development, stability can not be guaranteed."
+invitation_required=false
 
 [captcha]
 implementation = "cap"                                       # cap (trycap.dev) | cloudflare
 token_property_name = "cap-token"
 site_key = "89a2b7836c"
-secret_key = "sk-ToUHcl2gqvIdZqM6JFi7VEct01osu8pPZwOUUUP0kY"
+
 challenge_url = "http://localhost:9000/"
 verification_url = "http://localhost:9000/siteverify"
 
 [users]
 indefinite_locking_threshold = 3
+expiration_threshold_days = 365
+expiration_grace_period_days = 7
+
+[posts]
+perPage = 15
 
 [filter]
 # Enforce a default filter on all instances
@@ -48,11 +56,16 @@ expiry_days = 7
 expiry_hours = 24
 
 [jobs]
-expiration_sweep_interval_minutes = 30
+# How often to check for accounts which haven't
+# been seen for at least users.expiration_threshold_days
+# and schedule them for deletion 
+expiration_sweep_interval_minutes = 60
+lift_enforcements_interval_minutes = 60
 
 [ip_blocking]
 automated_enforcements_enabled = false
 global_block_threshold = 15
+blocking_timeframe_days_max = 30           # As IP addresses are not permanent identifiers, we expire all IP blocks after this timeframe.
 proxy_addresses_blocked = true         #
 vpn_addresses_blocked = true           #
 tor_addresses_blocked = true           #

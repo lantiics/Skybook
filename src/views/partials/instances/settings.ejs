@@ -16,3 +16,5 @@
     <input type="checkbox" class="instance-switch" name="queueFiltered" id="instanceQueueFiltered" data-action="queue-filtered" <% if (status.queue_on_filtered.status) {%>checked <% } %> onclick="toggleStatus(this)">
   </div>
 </div>
+<label for="queueFlagThreshold">Number of times a post has to be flagged before being automatically placed into a queue:</label>
+<input id="queueFlagThreshold" value="<%=status.queue_flags_threshold.status%>" type="number">

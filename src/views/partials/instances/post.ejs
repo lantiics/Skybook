@@ -1,5 +1,5 @@
 <div class="entry <% if (post.is_highlighted) {%>highlighted<%}%>" data-identifier="<%=post.identifier%>" data-can-alter="<%=((post.authenticated_user_identifier==(ctx.user ? ctx.user.identifier:'not an identifier'))||ctx.elevated&&!post.sys_lock||ctx.superAdmin)%>">
-  <% if (post.is_queued) { %> <div>QUEUED</div> <% } %>
+  <% if (post.is_queued||!post.is_visible) { %> <div><%=post.is_queued?!post.is_visible?"QUEUED | ":"QUEUED":""%><%=!post.is_visible?"HIDDEN":""%></div> <% } %>
 
   <div class="entry-time" data-field="added-at">
     <%= post.added %>

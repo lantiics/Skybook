@@ -1,22 +1,31 @@
 import { JwtSymmetricAlgorithmNotAllowed } from "hono/utils/jwt/types";
 import raw from "../config.toml";
+import pkg from "root/package.json";
 
 const config = raw as {
-  kaiju: {
-    version: string;
+  skybook: {
     proxies_between: number | boolean;
+    subdomain_vanity: boolean;
+    domain: string;
+    header: string | null;
+    user_enforcements_enabled: boolean;
+    invitation_required: boolean;
   };
-  server: {
-    captcha: "cloudflare" | "cap";
-    captcha_token_property_name: string;
-  };
+
   captcha: {
     implementation: "cap" | "cloudflare";
     token_property_name: string;
     site_key: string;
-    secret_key: string;
     challenge_url: string;
     verification_url: string;
+  };
+  users: {
+    indefinite_locking_threshold: number;
+    expiration_threshold_days: number;
+    expiration_grace_period_days: number;
+  };
+  posts: {
+    perPage: number;
   };
 
   filter: {
@@ -41,7 +50,10 @@ const config = raw as {
   };
   sessions: { expiry_days: number };
   tokens: { expiry_hours: number };
-  jobs: { expiration_sweep_interval_minutes: number };
+  jobs: {
+    expiration_sweep_interval_minutes: number;
+    lift_enforcements_interval_minutes: number;
+  };
   ip_blocking: {
     global_block_threshold: number;
     automated_enforcements_enabled: boolean;
@@ -53,4 +65,6 @@ const config = raw as {
   is_production: boolean;
 };
 config.is_production = process.env.NODE_ENV === "production";
+const version = pkg.version;
+config.skybook.version = version;
 export { config };
