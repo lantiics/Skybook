@@ -39,6 +39,7 @@ router.post("/signup", authLimiter, async (req: Request, res: Response) => {
       if (!(await invitationIsValid(req.body.invitation)))
         throw new UnauthorizedError("Provided invitation token is invalid");
     }
+    req.body.username = req.body.username.toLowerCase();
 
     const sessionKey = await createUser(
       req.body.username,
@@ -73,6 +74,7 @@ router.post("/login", authLimiter, async (req: Request, res: Response) => {
   try {
     await assertCaptchaTokenValid(req.body[config.captcha.token_property_name]);
     console.time("Logged in");
+    req.body.username = req.body.username.toLowerCase();
     const sessionKey = await loginUser(
       req.body.username,
       req.body.password,
