@@ -9,14 +9,6 @@ CREATE TABLE instance_blocks (
 );
 CREATE UNIQUE INDEX instance_blocks_unique_user ON instance_blocks (instance, user_identifier) WHERE user_identifier IS NOT NULL;
 CREATE UNIQUE INDEX instance_blocks_unique_ip ON instance_blocks (instance, ip_hash) WHERE ip_hash IS NOT NULL;
--- CREATE TABLE instance_user_blocks (
---   instance TEXT NOT NULL REFERENCES instances(name) ON DELETE CASCADE,
---   user_identifier UUID REFERENCES users(identifier),
---   blocked_at TIMESTAMPTZ NOT NULL DEFAULT now(),
---   reason TEXT,
---   PRIMARY KEY (instance, user_identifier)
--- );
--- CREATE INDEX instance_user_blocks_user_idx ON instance_user_blocks (user_identifier);
 
 CREATE TABLE ip_block_stats (
   ip_hash TEXT PRIMARY KEY,
@@ -33,13 +25,13 @@ CREATE TABLE global_ip_blocks (
 
 CREATE TABLE user_enforcements (
     id UUID PRIMARY KEY,
-    user UUID NOT NULL REFERENCES users(identifier) ON DELETE CASCADE,
+    user_identifier UUID NOT NULL REFERENCES users(identifier) ON DELETE CASCADE,
     type TEXT NOT NULL,
     details TEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL,
-    expires_at TIMESTAMPTZ,
+    expires_at TIMESTAMPTZ
 );
-CREATE INDEX idx_user_enforcements_user_expires_at ON user_enforcements (user, expires_at) WHERE expires_at IS NOT NULL;
+CREATE INDEX idx_user_enforcements_user_expires_at ON user_enforcements (user_identifier, expires_at) WHERE expires_at IS NOT NULL;
 
 CREATE TABLE blocklist_ranges (
   source TEXT NOT NULL,

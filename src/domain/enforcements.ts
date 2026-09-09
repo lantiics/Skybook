@@ -34,7 +34,7 @@ const recordUserEnforcement = async (
   const created = enforcementAction === "locked" ? `${now}` : null;
   const enforcementID = crypto.randomUUID();
   const [row] =
-    await DB`INSERT INTO user_enforcements (id, user, type, details,created_at, expires_at) VALUES (${enforcementID},${UUID},${enforcementAction},${details},${created},${expires})`;
+    await DB`INSERT INTO user_enforcements (id, user_identifier, type, details,created_at, expires_at) VALUES (${enforcementID},${UUID},${enforcementAction},${details},${created},${expires})`;
 };
 
 /**
@@ -71,16 +71,16 @@ const temporarilyBlockUserPosting = async (
   });
 };
 
-export const recordUserBlocked = async (name: string): Promise<void> => {
-  const UUID = await userUUID(name);
-  await WRITER`INSERT INTO user_enforcements (identifier, status, block_count) VALUES (${UUID},active,1)
-    ON CONFLICT (identifier) DO UPDATE SET block_count = user_enforcements.block_count + 1`;
-};
+// export const recordUserBlocked = async (name: string): Promise<void> => {
+//   const UUID = await userUUID(name);
+//   await WRITER`INSERT INTO user_enforcements (identifier, status, block_count) VALUES (${UUID},active,1)
+//     ON CONFLICT (identifier) DO UPDATE SET block_count = user_enforcements.block_count + 1`;
+// };
 
-export const decrementUserBlockedInt = async (name: string): Promise<void> => {
-  const UUID = await userUUID(name);
-  await WRITER`UPDATE user_enforcements SET block_count = GREATEST (block_count - 1, 0) WHERE identifier = ${UUID}`;
-};
+// export const decrementUserBlockedInt = async (name: string): Promise<void> => {
+//   const UUID = await userUUID(name);
+//   await WRITER`UPDATE user_enforcements SET block_count = GREATEST (block_count - 1, 0) WHERE identifier = ${UUID}`;
+// };
 
 export const toggleUserLocked = async (
   details: string,
