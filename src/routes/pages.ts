@@ -4,7 +4,6 @@ import ejs from "ejs";
 import { countPosts, getPosts, pageCount } from "../domain/posts";
 import {
   compiledInstanceStatus,
-  instanceEnabledDefaultFilters,
   instanceHasRequesterBlocked,
   instanceIpBlocks,
   instanceSuppliedFilter,
@@ -97,7 +96,11 @@ instanceRouter.get(
           }
           if (post.extra == "{}" || !post.extra) {
             post.extra = [];
+          } else {
+            post.extra = Object.entries(post.extra);
           }
+
+          console.log(post.extra, "yea");
         }
         res.locals.posts = posts;
       }
@@ -108,13 +111,8 @@ instanceRouter.get(
           vpn: config.ip_blocking.vpn_addresses_blocked,
           tor: config.ip_blocking.tor_addresses_blocked,
         };
-        (res.locals.globalFilter = await instanceSuppliedFilter(
-          req.ctx.instance,
-        )) ?? "";
-        res.locals.filter = await instanceEnabledDefaultFilters(
-          req.ctx.instance,
-        );
-        res.locals.filter.global = config.filter;
+        (res.locals.filter = await instanceSuppliedFilter(req.ctx.instance)) ??
+          "";
       }
 
       res.locals.fields = await getFieldData(req.ctx.instance);
@@ -171,6 +169,8 @@ instanceRouter.get("/embed", async (req: Request, res: Response) => {
         }
         if (post.extra == "{}" || !post.extra) {
           post.extra = [];
+        } else {
+          post.extra = Object.entries(post.extra);
         }
       }
       res.locals.posts = posts;
@@ -182,11 +182,8 @@ instanceRouter.get("/embed", async (req: Request, res: Response) => {
         vpn: config.ip_blocking.vpn_addresses_blocked,
         tor: config.ip_blocking.tor_addresses_blocked,
       };
-      (res.locals.globalFilter = await instanceSuppliedFilter(
-        req.ctx.instance,
-      )) ?? "";
-      res.locals.filter = await instanceEnabledDefaultFilters(req.ctx.instance);
-      res.locals.filter.global = config.filter;
+      (res.locals.filter = await instanceSuppliedFilter(req.ctx.instance)) ??
+        "";
     }
 
     res.locals.fields = await getFieldData(req.ctx.instance);

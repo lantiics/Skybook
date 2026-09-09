@@ -52,12 +52,12 @@ if (config.skybook.subdomain_vanity) {
   app.use("/", skybook);
 }
 
-const instance = express.Router();
-instance.use(resolveInstance, authenticate, instanceRouter);
 if (config.skybook.subdomain_vanity) {
+  const instance = express.Router();
+  instance.use(resolveInstance, authenticate, instanceRouter);
   app.use(vhost(`*.${config.skybook.domain}`, instance));
 } else {
-  app.use("/:instance", instance);
+  app.use("/:instance", resolveInstance, authenticate, instanceRouter);
 }
 app.use(function (req, res, next) {
   next(createError(404));

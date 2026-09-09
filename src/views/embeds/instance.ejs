@@ -2,32 +2,74 @@
 <link rel="stylesheet" href="/stylesheets/instance.css">
 <script src="/js/main.js"></script>
 <script src="/js/instance.js"></script>
+<meta name="instance-name" content="<%=ctx.instance%>">
 <style>
+  input {
+    width: 100%;
+
+  }
+
+  .entry-submission {
+    width: 90vw;
+    margin-inline: 0px;
+    /* display: none; */
+  }
+
   textarea {
-    width: 100%
+    width: 100%;
+
+
   }
 
   .entry {
-    width: 100%
+    max-width: 100%;
+    width: 100%;
+
+  }
+
+  :root {
+    margin: 0px;
+    padding: 0px;
+  }
+
+  body {
+    margin: 0px;
+    padding: 0px;
+  }
+
+  .entries {
+    margin: 0 auto;
+    align-items: center;
+    padding: 0px;
+    width: 90vw;
+    max-width: 100%;
+  }
+
+  cap-widget {
+    /* width: fit-content; */
+    /* max-width: 100%; */
   }
 </style>
 
-<% if (ctx.elevated) { %> <%- include('../partials/instances/elevated-interface', {fields: fields})%> <% } %>
-<% if(status.submission_enabled.status||ctx.elevated) {%><%- include('../partials/instances/entry-form')%> <% } else {%><div>Submission is currently unavailable</div> <%}%>
+<div style="display:flex;flex-direction: column;align-items: center;margin-block:1rem">
+
+
+  <% if(status.submission_enabled.status||ctx.elevated) {%><%- include('../partials/instances/entry-form')%> <% } else {%><div>Submission is currently unavailable</div> <%}%>
 <!-- -->
 <div>
   <div class="entries" id="entries">
 
     <% if (status.is_visible.status || ctx.elevated) { %>
 
-<% if (typeof posts !== 'undefined') { %>
+  <% if (typeof posts !== 'undefined') { %>
 
-<%- include('../partials/instances/posts', {posts:posts,ctx:ctx})%>
-<% } else { %> <div class="entry">
-  <div>no entries</div>
-</div> <% } %>
-<% } else { %>
-<div>Posts are currently not visible</div>
-<% } %>
+  <%- include('../partials/instances/posts', {posts:posts,ctx:ctx})%>
+  <% } else { %> <div class="entry">
+    <div>no entries</div>
+  </div> <% } %>
+  <% } else { %>
+  <div>Posts are currently not visible</div>
+  <% } %>
+</div>
 </div>
 </div>

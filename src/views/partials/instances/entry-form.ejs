@@ -5,50 +5,65 @@
     <fieldset id="fs">
       <label for="author">your name: </label>
       <input name="author" id="author" placeholder="anonymous">
+      <% for (field of fields) { if (!['content','author'].includes(field.name)) {%><label for="field-<%=field.name%>"><%=field.name%>:</label><input name="<%=field.name%>" id="field-<%=field.name%>" placeholder="<%=field.name%>" <% if (field.required) {%> required <% } %>> <% } } %>
       <label for="content">message:</label>
       <textarea id="content" name="content" placeholder="say something!" required></textarea>
-      <% for (field of fields) { if (!['content','author'].includes(field.name)) {%><input name="<%=field.name%>" placeholder="<%=field.name%>" <% if (field.required) {%> required <% } %>> <% } } %>
-      <% if (captcha.implementation==='cap') {%> <script>
+      <% if (captcha.implementation==='cloudflare') {%> <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script><%}%>
+      <% if (captcha.implementation) {%> <script>
         const appendWidget = () => {
           document.querySelectorAll('[data-unsolvedcaptcha="disabled"]').forEach(e => e.disabled = true);
-          document.querySelectorAll("#captcha").forEach(e => e.remove())
-          const capWidget = Object.assign(document.createElement("cap-widget"), {
+
+          <% if (captcha.implementation==='cap') {%>
+          const widget = Object.assign(document.createElement("<%=captcha.implementation==="cap"?'cap-widget':'div'%>"), {
             required: true,
             style: "place-self:center;margin-top:0.5rem",
-            id: "captcha"
           })
-          capWidget.setAttribute("data-cap-api-endpoint", "/api/captcha/<%=captcha.site_key%>")
-          capWidget.setAttribute("onsolve", `document.querySelectorAll('[data-unsolvedcaptcha="disabled"]').forEach(e=>e.removeAttribute("disabled"));`)
-          document.getElementById("fs").append(capWidget)
-        }
-        const initSolving = () => {
+
+          widget.setAttribute("data-cap-api-endpoint", "/api/captcha/<%=captcha.site_key%>");
+          widget.setAttribute("onsolve", `document.querySelectorAll('[data-unsolvedcaptcha="disabled"]').forEach(e=>e.removeAttribute("disabled"));`)
 
 
+          document.getElementById("fs").append(widget) <% } else if (captcha.implementation==='cloudflare') {%>
 
-          (async () => {
-            try {
-              const cap = new Cap({
-                apiEndpoint: "/api/captcha/<%=captcha.site_key%>"
-              });
-
-              const solution = await cap.solve();
-              if (solution.success) {
-                document.getElementById("submission-form").append(Object.assign(document.createElement("input"), {
-                  type: "hidden",
-                  name: "cap-token",
-                  value: solution.token,
-                  id: "captcha"
-                }));
-                document.querySelectorAll('[data-unsolvedcaptcha="disabled"]').forEach(e => e.removeAttribute("disabled"));
-              } else {
-                console.log("failed")
-                appendWidget()
-
-              }
-            } catch (e) {
-              appendWidget()
+          turnstile.render('#turnstile', {
+            sitekey: '<%=captcha.site_key%>',
+            theme: "dark",
+            callback: function() {
+              document.querySelectorAll('[data-unsolvedcaptcha="disabled"]').forEach(e => e.removeAttribute("disabled"));
             }
-          })()
+          })
+
+          <%}%>
+      }
+      const initSolving = () => {
+        <% if (captcha.implementation==='cap') {%>
+
+            (async () => {
+              try {
+                const cap = new Cap({
+                  apiEndpoint: "/api/captcha/<%=captcha.site_key%> "
+                });
+
+                const solution = await cap.solve();
+                if (solution.success) {
+                  document.getElementById("submission-form").append(Object.assign(document.createElement("input"), {
+                    type: "hidden",
+                    name: "cap-token",
+                    value: solution.token,
+                    id: "cap"
+                  }));
+                  document.querySelectorAll('[data-unsolvedcaptcha="disabled"]').forEach(e => e.removeAttribute("disabled"));
+                } else {
+                  console.log("failed")
+                  appendWidget()
+
+                }
+              } catch (e) {
+                appendWidget()
+              }
+            })()
+          <%} else {%>appendWidget() <% }%>
+
         }
         const handler = function(e) {
           initSolving();
@@ -56,10 +71,14 @@
         }
         document.getElementById("content").addEventListener("keydown", handler)
       </script><%}%>
+      <div id="turnstile"></div>
+      
       <input type="submit" value="Submit" id="submit-entry" data-unsolvedcaptcha="disabled" disabled/>
     </fieldset>
   </form>
+
 </div>
-<% } else { %>
+
+      <% } else { %>
       <div>submission disabled</div>
       <% } %>

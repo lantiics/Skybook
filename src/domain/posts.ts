@@ -26,7 +26,6 @@ import {
   unblockUser,
   instanceIpBlocks,
   instanceSuppliedFilter,
-  instanceDefaultFilters,
   InstanceQueueFlaggedThreshold,
 } from "./instances.ts";
 import { Field, Post } from "../types/entities.ts";
@@ -114,15 +113,6 @@ const validatedEntry = async (
     if (field === "") delete fields[name];
   }
   const fieldFilter = await instanceSuppliedFilter(ctx.instance);
-  const defaultFilter = await instanceDefaultFilters(ctx.instance);
-  const globalFilter = [...(fieldFilter || []), ...(defaultFilter || [])].join(
-    "|",
-  );
-  // console.log({
-  //   "instance-supplied filter": fieldFilter,
-  //   "default, skybook-provided filter the instance has enabled": defaultFilter,
-  //   "combined, which is what we check against": globalFilter,
-  // });
 
   const cF =
     await READER`SELECT name, is_special, is_public, is_required, replacement, filter FROM fields WHERE instance = ${ctx.instance}`;
@@ -141,9 +131,8 @@ const validatedEntry = async (
   let entry: Partial<Post> = {
     is_queued: instanceStatus.approval_required.status,
   };
-  console.log(globalFilter);
-  if (globalFilter) {
-    const filter = new RegExp(globalFilter);
+  if (fieldFilter) {
+    const filter = new RegExp(fieldFilter, "ig");
     if (Object.values(fields).some((field) => filter.test(field))) {
       if (instanceStatus.queue_on_filtered.status) {
         entry.is_queued = true;
@@ -152,10 +141,6 @@ const validatedEntry = async (
           "At least one field violated the instance's global filter",
         );
       }
-      console.log(
-        "one or more of these fields were filtered: \n" +
-          JSON.stringify(fields, null, 2),
-      );
     }
   }
 
@@ -187,7 +172,7 @@ const validatedEntry = async (
       }
     }
   }
-  let extra = [];
+  let extra: Record<string, string> = {};
   for (const [field, content] of Object.entries(fields)) {
     if (field === "author" && content.length > config.fields.author_max_length)
       throw new FilteredError("Field length is above limit");
@@ -195,7 +180,7 @@ const validatedEntry = async (
       throw new FilteredError("Field length is above limit");
     if (!["author", "parent", "content"].includes(field)) {
       delete fields[field];
-      extra.push([field, content]);
+      extra[field] = content;
     }
   }
   fields.extra = extra;
@@ -393,9 +378,9 @@ export const flagPost = async (ctx: RequestContext, identifier: string) => {
     !(await postIsQueued(ctx.instance, identifier)) &&
     (await postFlaggingEnabled(ctx.instance, identifier))
   ) {
-    const queueFlagsThreshold = await InstanceQueueFlaggedThreshold(
-      ctx.instance,
-    );
+    const queueFlagsThreshold = (
+      await InstanceQueueFlaggedThreshold(ctx.instance)
+    ).status;
     return await WRITER.begin(async (tx) => {
       await tx`INSERT INTO post_flags (instance, identifier, user_identifier, ip_hash) VALUES (${ctx.instance}, ${identifier}, ${ctx.user?.identifier}, ${hashIp(ctx.ip)});`;
       const [flagCount] =

@@ -5,16 +5,17 @@ import { RESERVED_COLUMN_NAMES } from "../defaults.ts";
 import { ReservedError, UnauthorizedError } from "../errors.ts";
 const allWritableFields = async (instance: string): Promise<Set<string>> => {
   console.log("meoww");
-  const dbFields = new Set(["content", "author", "parent"]);
-  const [additionalFields] =
-    await READER`SELECT * FROM fields WHERE instance = ${instance}`;
-  if (additionalFields) {
+  const dbFields = new Set(["content", "author"]);
+  const additionalFields =
+    await READER`SELECT instance,name,is_public,is_special,is_required,replacement,filter FROM fields WHERE instance = ${instance}`;
+  if (additionalFields !== "{}") {
     for (const field of additionalFields as Field[]) {
       dbFields.add(field.name);
     }
 
     return dbFields as Set<string>;
   }
+  console.log(dbFields);
   return dbFields;
 };
 export const allFieldsAreWritable = async (
@@ -57,7 +58,7 @@ const fieldNameAccepted = (name: string): boolean => {
   return !RESERVED_COLUMN_NAMES.has(name as any);
 };
 export const setField = async (
-  ctx: RequestContext,
+  instance: string,
   field: Field,
 ): Promise<Field> => {
   if (
@@ -76,7 +77,7 @@ export const setField = async (
   //   field.replacement = null;
   // }
   const record = {
-    instance: ctx.instance,
+    instance: instance,
     name: field.name,
     is_required: field.is_required,
   };
@@ -113,16 +114,16 @@ export const renameField = async (
   });
 };
 
-const deleteField = async (
-  ctx: RequestContext,
+export const deleteField = async (
+  instance: string,
   name: string,
 ): Promise<void> => {
   if (RESERVED_COLUMN_NAMES.has(name as any)) {
     throw new ReservedError("Cannot delete a system reserved field");
   }
   await WRITER.begin(async (tx) => {
-    await tx`DELETE FROM fields WHERE name = ${name} AND instance = ${ctx.instance};`;
-    await tx`UPDATE posts SET extra = extra - ${name} WHERE instance = ${ctx.instance}`;
+    await tx`DELETE FROM fields WHERE name = ${name} AND instance = ${instance};`;
+    await tx`UPDATE posts SET extra = extra - ${name} WHERE instance = ${instance}`;
   });
 };
 

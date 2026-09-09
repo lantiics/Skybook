@@ -12,7 +12,8 @@
     <th contenteditable="<%=!['content','author'].includes(field.name)%>" data-field="name"><%=field.name%></th>
     <th><input type="checkbox" <% if (field.name==='content') { %> disabled <% } %> <% if (field.is_required) {%> checked <%}%> <% if (field.name!=='content') {%> onclick='toggleFieldRequired(this)' <%}%>></th>
     <th ><input <% if (field.name==='content'||!field.is_required) {%> disabled <%}%> type="text" maxlength="50" value="<%=field.replacement%>" data-field-replacement="<%=field.name%>"></th>
-    <th><input value="<%=field.filter%>" maxlength="1000" data-field-filter="<%=field.name%>"></th>
+    <th><input value="<%=field.filter%>" maxlength="1000" data-field-filter="<%=field.name%>" placeholder="EXCLUDE DELIMITERS (e.g, */*hello*/*)"></th>
+    <% if (!['author','content'].includes(field.name)) {%> <th><button onclick="deleteField(this)">Delete</button></th> <%}%>
   </tr> <% } %>
   <tr style="width:1px;height:15px;">
   </tr>

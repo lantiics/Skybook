@@ -4,6 +4,7 @@ import pkg from "root/package.json";
 
 const config = raw as {
   skybook: {
+    version: string;
     proxies_between: number | boolean;
     subdomain_vanity: boolean;
     domain: string;

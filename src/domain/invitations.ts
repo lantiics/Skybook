@@ -26,7 +26,7 @@ export const newInvitation = async (
     );
   const token = crypto.randomUUID();
   const [row] =
-    await WRITER`INSERT INTO invitations (token, created_by, created_at, uses) VALUES (${token}, ${creatorIdentifier}, now(), 0)`;
+    await WRITER`INSERT INTO invitations (token, created_by, created_at, uses) VALUES (${token}, ${creatorIdentifier}, now(), 0) RETURNING token`;
   if (!row) {
     throw new Error("Failed to insert invitation token");
   }

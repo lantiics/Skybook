@@ -94,7 +94,7 @@ const updateFlagThreshold = async (e) => {
   }
 };
 
-// filters
+//#region FILTERS
 const submitFieldFilter = async (elem, field) => {
   elem.disabled = true;
   const filter = elem.value;
@@ -128,25 +128,7 @@ const updateGlobalFilter = async (filterTA) => {
     filterTA.removeAttribute("disabled");
   }
 };
-const toggleSkybookSuppliedFilter = async (btn) => {
-  event.preventDefault();
-  btn.disabled = true;
-  let method;
-  if (!btn.checked) method = "DELETE";
-  else method = "PATCH";
-  const filter = btn.getAttribute("data-filter");
-
-  const res = await fetch(`/api/${instanceName()}/filter/${filter}`, {
-    method: method,
-  });
-  if (!res.ok) {
-    createPopup(errorStatus(res.status.toString()));
-    setTimeout(() => btn.removeAttribute("disabled"), 2500);
-  } else {
-    btn.checked = !btn.checked;
-    btn.removeAttribute("disabled");
-  }
-};
+//#endregion
 
 // Allow blocking of proxy/VPN/Tor addresses
 const blockAddresses = async (btn, service) => {
@@ -192,7 +174,7 @@ const blockAddresses = async (btn, service) => {
   }
 };
 
-// fields
+//#region FIELDS
 
 const toggleFieldRequired = async (input) => {
   event.preventDefault();
@@ -294,7 +276,25 @@ const submitFieldReplacement = async (elem, field) => {
   return;
 };
 
-// entries
+const deleteField = async (btn) => {
+  btn.disabled = true;
+  const fieldName = btn.parentNode.parentNode.getAttribute("data-field-name");
+  const res = await fetch(`/api/${instanceName()}/field/${fieldName}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) {
+    createPopup(
+      "Failed to delete field: " + errorStatus(res.status.toString()),
+    );
+    setTimeout(() => btn.removeAttribute("disabled"), 2500);
+  } else {
+    btn.parentNode.parentNode.delete();
+    location.reload();
+  }
+};
+
+//#endregion
+//#region ENTRIES
 const deleteReply = async (btn) => {
   btn.disabled = true;
   const identifier = btn.parentNode.parentNode.getAttribute("data-identifier");
@@ -314,7 +314,7 @@ const deleteReply = async (btn) => {
   btn.setAttribute("data-action", "reply");
   btn.onclick = () => reply(btn.parentNode.parentNode);
 };
-
+//#endregion
 const initializeEventListeners = () => {
   const fieldReplacementElems = document.querySelectorAll(
     "input[data-field-replacement]",

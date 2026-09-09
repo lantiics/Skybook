@@ -1,8 +1,12 @@
 import { RequestContext } from "../types/context.ts";
 import { Field, Post } from "../types/entities.ts";
 import { READER, WRITER } from "../db.ts";
-import { BadRequestError, LockedError } from "../errors.ts";
-import { PUBLIC_COLUMN_NAMES, PRIVATE_COLUMN_NAMES } from "../defaults.ts";
+import { BadRequestError, LockedError, UnauthorizedError } from "../errors.ts";
+import {
+  PUBLIC_COLUMN_NAMES,
+  PRIVATE_COLUMN_NAMES,
+  RESERVED_COLUMN_NAMES,
+} from "../defaults.ts";
 import { setField, allFieldsAreWritable } from "./fields.ts";
 import { sql } from "bun";
 import { hashIp } from "./ip.ts";
@@ -307,78 +311,74 @@ export const toggleInstanceVPNBlacklist = async (instance: string) => {
     "blocklist_vpn_enabled",
   );
 };
+
 export const toggleInstanceTorBlacklist = async (instance: string) => {
   return await _toggleSpecifiedInstanceStatus(
     instance,
     "blocklist_tor_enabled",
   );
 };
-// Implement default, Skybook-provided filters for instances
-export const enableInstanceDefaultFilter = async (
-  instance: string,
-  filter: string,
-) => {
-  await WRITER`INSERT INTO instance_filters (instance, filter) VALUES (${instance},${filter})
-  ON CONFLICT (instance, filter) DO NOTHING`;
-};
-export const disableInstanceDefaultFilter = async (
-  instance: string,
-  filter: string,
-) => {
-  await WRITER`DELETE FROM instance_filters WHERE instance = ${instance} AND filter = ${filter}`;
-};
-//#endergion TOGGLES
 
-// booleans
-export const instanceEnabledDefaultFilters = async (instance: string) => {
-  let filters: Record<string, boolean> = {};
-  const [filterQuery] =
-    await READER`SELECT filter FROM instance_filters WHERE instance = ${instance}`;
-  for (const filter of Object.values(filterQuery ?? {})) {
-    filters[filter as string] = true;
-  }
-  console.log(filters, "filters here in thee tihng");
-  return filters;
-};
-// Filter lists
-export const instanceDefaultFilters = async (instance: string) => {
-  const [filtersQuery] = await READER`SELECT filter FROM filters t1
-  WHERE t1.identifier IN (
-  SELECT t2.filter
-  FROM instance_filters t2
-  WHERE t2.instance = ${instance})`;
-  if (filtersQuery) {
-    const filters = Object.values(filtersQuery).join("|");
-    console.log(filters, "filter lsits yea yea");
-    return filters;
-  } else return null;
-};
+//#endregion TOGGLES
+
 export const exportInstance = async (ctx: RequestContext) => {
-  return {
-    entries:
-      await READER`SELECT ${READER.unsafe(EXPORTABLE_COLUMN_NAMES.join(","))} FROM posts WHERE instance = ${ctx.instance}`,
-    fields: await READER`SELECT * FROM fields WHERE instance = ${ctx.instance}`,
-  };
+  const entries =
+    await READER`SELECT ${READER.unsafe(EXPORTABLE_COLUMN_NAMES.join(","))} FROM posts WHERE instance = ${ctx.instance}`;
+  const header = EXPORTABLE_COLUMN_NAMES.join(",");
+  let csv = EXPORTABLE_COLUMN_NAMES.join(",") + "\n";
+  csv += entries //@ts-expect-error
+    .map((r) =>
+      [
+        r.author,
+        r.content,
+        JSON.stringify(r.extra),
+        r.reply,
+        new Date(r.added).toISOString(),
+      ]
+        .map((v) => (v == null ? "" : `"${String(v).replace(/"/g, '""')}"`))
+        .join(","),
+    )
+    .join("\n");
+  return csv;
 };
-export const importInstance = async (
-  ctx: RequestContext,
-  data: { fields: Field[]; entries: Post[] },
-) => {
-  console.log(data, "import data");
-  for (const field of data.fields) {
-    try {
-      setField(ctx, field);
-    } catch {
-      continue; // An error will be thrown if a field is disallowed, we only care about user-created fields so we ignore it.
+export const importInstance = async (instance: string, entries: Post[]) => {
+  console.log(entries, "import data");
+  entries = entries.slice(0, 1000);
+  let extraKeys: Set<string> = new Set([]);
+  for (const entry of entries) {
+    const inputFields = [
+      "author",
+      "content", //@ts-expect-error
+      ...Object.keys(JSON.parse(entry.extra)),
+      "reply",
+      "added",
+    ];
+    console.log(
+      entry.extra,
+      Object.keys(entry.extra), //@ts-expect-error
+      Object.keys(JSON.parse(entry.extra)),
+      "all u need here bud",
+    );
+    //@ts-expect-error
+    if (JSON.parse(entry.extra) !== "{}") {
+      //@ts-expect-error
+      for (const field of Object.keys(JSON.parse(entry.extra))) {
+        console.log(field, "ahh");
+        if (!extraKeys.has(field)) {
+          //@ts-expect-error
+          await setField(instance, { name: field, is_required: false });
+        }
+      }
     }
-  }
-  for (const entry of data.entries) {
-    const inputFields = ["author", "content", ...Object.keys(entry.extra)];
+
     console.log(inputFields);
-    if (await allFieldsAreWritable(ctx.instance, inputFields)) {
+    if (
+      //@ts-expect-error
+      await allFieldsAreWritable(instance, Object.keys(JSON.parse(entry.extra)))
+    ) {
       console.log("continuing");
       const clearedEntry = {
-        instance: ctx.instance,
+        instance: instance,
         author: entry.author,
         content: entry.content,
         extra: entry.extra,
