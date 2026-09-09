@@ -16,7 +16,9 @@ const additionalPostAlterationHeaders = (identifier) => {
   return additionalHeaders;
 };
 const instanceName = () => {
-  return document.querySelector("meta[name='instance-name']").content;
+  return document
+    .querySelector("meta[name='instance-name']")
+    .getAttribute("content");
 };
 
 const actOnPost = async (post, actionButton) => {

@@ -14,8 +14,6 @@ import {
   toggleInstanceProxyBlacklist,
   toggleInstanceQueueOnFiltered,
   updateInstanceSuppliedFilter,
-  disableInstanceDefaultFilter,
-  enableInstanceDefaultFilter,
   exportInstance,
   importInstance,
   updateInstanceQueueFlaggedThreshold,
@@ -43,9 +41,15 @@ import {
   setFieldFilter,
   setField,
   renameField,
+  deleteField,
 } from "../domain/fields.ts";
-import multer from "multer";
+const multer = require("multer");
+const { Readable } = require("stream");
 import { assertCaptchaTokenValid } from "../domain/captcha.ts";
+import csvParser from "csv-parser";
+const path = require("path");
+const os = require("os");
+const fs = require("node:fs");
 
 //#region HELPERS
 
@@ -202,15 +206,18 @@ router.post(
   async (req: Request, res: Response, next: NextFunction) => {
     if (!req.ctx.elevated) return res.sendStatus(403);
     try {
-      //TODO
-      //
-      //
-      //
+      //@ts-expect-error
+      const r = []; //@ts-expect-error
+      const stream = Readable.from(req.file!.buffer);
+      const res = await stream
+        .pipe(csvParser()) //@ts-expect-error
+        .on("data", (data) => r.push(data))
+        .on("end", async () => {
+          //@ts-expect-error
+          const importResult = await importInstance(req.ctx.instance, r);
+          return importResult;
+        });
 
-      const importResult = await importInstance(
-        req.ctx,
-        JSON.parse(req.file!.buffer.toString()),
-      );
       return res.sendStatus(201);
     } catch (e) {
       return res.sendStatus(errorStatus(e, req.ctx.elevated));
@@ -360,39 +367,6 @@ router.patch(
     }
   },
 );
-// Implement default, Skybook-provided filters
-router.patch(
-  "/filter/:filter",
-  alterationLimiter,
-  async (req: Request, res: Response) => {
-    if (!req.ctx.elevated) return res.sendStatus(403);
-    try {
-      await enableInstanceDefaultFilter(
-        req.ctx.instance,
-        req.params.filter as string,
-      );
-      return res.sendStatus(201);
-    } catch (e) {
-      return res.sendStatus(errorStatus(e, req.ctx.elevated));
-    }
-  },
-);
-router.delete(
-  "/filter/:filter",
-  alterationLimiter,
-  async (req: Request, res: Response) => {
-    if (!req.ctx.elevated) return res.sendStatus(403);
-    try {
-      await disableInstanceDefaultFilter(
-        req.ctx.instance,
-        req.params.filter as string,
-      );
-      return res.sendStatus(204);
-    } catch (e) {
-      return res.sendStatus(errorStatus(e, req.ctx.elevated));
-    }
-  },
-);
 
 //#endregion INSTANCE METHODS
 //#region FIELDS
@@ -440,7 +414,7 @@ router
       if (!req.ctx.elevated) return res.sendStatus(403);
       try {
         req.body.name = req.params.field;
-        const field = await setField(req.ctx, req.body);
+        const field = await setField(req.ctx.instance, req.body);
         console.log(field, "mhm");
         return res.status(201).send(field);
       } catch (e) {
@@ -453,6 +427,7 @@ router
     async (req: Request, res: Response, next: NextFunction) => {
       if (!req.ctx.elevated) return res.sendStatus(403);
       try {
+        await deleteField(req.ctx.instance, req.params.field as string);
         return res.sendStatus(204);
       } catch (e) {
         return res.sendStatus(errorStatus(e, req.ctx.elevated));

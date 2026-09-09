@@ -4,6 +4,7 @@ import { RequestContext } from "../types/context";
 import { generateToken } from "./tokens.ts";
 import { randomBytes } from "node:crypto";
 import Bun from "bun";
+import { userInformation } from "./enforcements.ts";
 const generateSessionKey = async (): Promise<string> => {
   const token = randomBytes(32).toString("hex");
   return token;
@@ -32,13 +33,12 @@ export const getSessionUser = async (
   if (!row) {
     throw new UnauthorizedError("There is no specified session key available");
   }
-
+  const uData = await userInformation(row.user_identifier);
   return {
     name: row.user_name,
     identifier: row.user_identifier,
-    mfaEnabled: (
-      await READER`SELECT EXISTS(SELECT 1 FROM users WHERE identifier = ${row.user_identifier} AND totp_secret IS NOT NULL)`
-    )[0].exists,
+    mfaEnabled: uData.totp_secret !== null,
+    can_create_invitations: uData.can_create_invitations,
   };
 };
 

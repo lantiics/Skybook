@@ -1,6 +1,21 @@
 <h1>hello, <%=ctx.user.name %></h1>
 <div style="display: flex;flex-direction: column;place-items: center;gap: 1rem;text-align:center;">
 
+  <div>
+    <button onclick="(async ()=> {
+      this.disabled=true;
+      const res = await fetch('/api/auth/invitation', {method:'POST'})
+      const body = await res.text()
+      if (!res.ok) {
+        createPopup('Failed to create invitation: '+errorStatus(res.status.toString()))
+        setTimeout(()=> this.removeAttribute('disabled'),2500)
+      } else {
+        await navigator.clipboard.writeText(body)
+        this.innerText=`Your invitation code is ${body}, it has been copied to your clipboard. make sure you save it. It can only be used three times.`
+      }
+    })()">Generate invitation</button>
+  </div>
+
   <h2>Account settings</h2>
   <div>
     <h3>2fa</h3>

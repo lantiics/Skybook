@@ -1,20 +1,20 @@
 [skybook]
 proxies_between = 1
 environment = "development"
-subdomain_vanity = true
+subdomain_vanity = false
 cloudflare = true
 user_enforcements_enabled=true
-domain="skybook.localhost"
+domain="skybook.page"
 header="Skybook is currently under development, stability can not be guaranteed."
-invitation_required=false
+invitation_required=true
 
 [captcha]
-implementation = "cap"                                       # cap (trycap.dev) | cloudflare
-token_property_name = "cap-token"
-site_key = "89a2b7836c"
+implementation = "cloudflare"                                       # cap (trycap.dev) | cloudflare
+token_property_name = "cf-turnstile-response" # cap-token | cf-turnstile-response
+site_key = "1x00000000000000000000AA" # 89a2b7836c
 
 challenge_url = "http://localhost:9000/"
-verification_url = "http://localhost:9000/siteverify"
+verification_url = "https://challenges.cloudflare.com/turnstile/v0/siteverify" #https://challenges.cloudflare.com/turnstile/v0/siteverify
 
 [users]
 indefinite_locking_threshold = 3
@@ -23,15 +23,6 @@ expiration_grace_period_days = 7
 
 [posts]
 perPage = 15
-
-[filter]
-# Enforce a default filter on all instances
-# By default all filters specified here are false, 
-# which allows instance owners to toggle them manually.
-# If a new filter is added, it is to be added here and in src/config.ts.
-
-derogatory = false
-
 
 [fields]
 author_max_length = 50

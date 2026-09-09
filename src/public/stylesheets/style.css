@@ -1,12 +1,12 @@
 :root {
-  --primary-container: #343434;
-  --border-color: #2c2b2b;
+  --primary-container: #0b1444;
+  --border-color: #161e4a;
   --primary-padding: 6px;
   --primary-brad: 16px;
   --secondary-container: orange;
   --secondary-padding: 4px;
   --secondary-brad: 10px;
-  --tertiary-container: #363446;
+  --tertiary-container: #322b6a;
   --on-tertiary: var(--color);
   --tertiary-brad: 6px;
   --important: #2170a5;
@@ -17,7 +17,7 @@
   --on-danger: #d2b0b0;
   --caution: #c2af8e;
   --on-caution: black;
-  background-color: #000;
+  background-color: #070c28;
   --color: #e3e3e3;
   color: #e3e3e3;
   font-family: Arial, Helvetica, sans-serif;
@@ -103,7 +103,7 @@ header nav {
 
 main {
   border-radius: var(--primary-brad);
-  border: 1px groove var(--border-color);
+  /* border: 1px groove var(--border-color); */
   /* width: 100%; */
   display: flex;
   flex-direction: column;
@@ -112,13 +112,14 @@ main {
   gap: 1rem;
   padding: 0.5rem;
 }
-h1 {
+h1,
+h2 {
   text-align: center;
 }
 
 button {
   border-radius: var(--secondary-brad);
-  --container-color: #212121;
+  --container-color: #191545;
   --text-color: var(--on-secondary);
   border: 1px groove var(--border-color);
   background-color: var(--container-color);
@@ -187,6 +188,7 @@ textarea {
   transition-property: border-color filter transform;
   font-family: monospace;
   font-size: small;
+  width: fit-content;
   &:not([type="checkbox"])&:not(:disabled) {
     &:hover {
       filter: brightness(120%);

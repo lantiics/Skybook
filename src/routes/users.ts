@@ -17,13 +17,14 @@ import {
 } from "../errors.ts";
 import { assertCaptchaTokenValid } from "../domain/captcha.ts";
 import { verifyTotp } from "../domain/auth.ts";
-import { invitationIsValid } from "../domain/invitations.ts";
+import { invitationIsValid, newInvitation } from "../domain/invitations.ts";
+import { authenticate } from "../middleware/authenticate.ts";
 
 const router = Router();
 export const users = router;
 const authLimiter = limiter({
   windowMs: config.rate_limits.auth_window_ms,
-  limit: 333, //config.rate_limits.auth_limit,
+  limit: config.rate_limits.auth_limit,
 });
 
 router.post("/signup", authLimiter, async (req: Request, res: Response) => {
@@ -51,7 +52,15 @@ router.post("/signup", authLimiter, async (req: Request, res: Response) => {
       sameSite: "strict",
       domain: config.skybook.domain,
     });
-    return res.status(201).setHeader("goto", `/${req.body.username}`).send();
+    return res
+      .status(201)
+      .setHeader(
+        "goto",
+        config.skybook.subdomain_vanity
+          ? `http://${req.body.username}.${config.skybook.domain}`
+          : `/${req.body.username}`,
+      )
+      .send();
   } catch (e) {
     return res.sendStatus(errorStatus(e, false));
   }
@@ -131,3 +140,16 @@ router.post("/password", async (req: Request, res: Response) => {
     return res.sendStatus(errorStatus(e, false));
   }
 });
+router.post(
+  "/invitation",
+  authenticate,
+  authLimiter,
+  async (req: Request, res: Response) => {
+    try {
+      const invitation = await newInvitation(req.ctx.user!.identifier);
+      return res.status(201).send(invitation);
+    } catch (e) {
+      return res.sendStatus(errorStatus(e, false));
+    }
+  },
+);

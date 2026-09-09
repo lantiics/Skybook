@@ -33,6 +33,11 @@ main {
     width: 80vw;
   }
 }
+.actions {
+  display: grid;
+  /* flex-direction: column; */
+  gap: 11rem;
+}
 .entry:hover {
   border-color: color-mix(in hsl, var(--border-color) 70%, white 30%);
 }
