@@ -39,7 +39,7 @@ router.post("/signup", authLimiter, async (req: Request, res: Response) => {
       if (!(await invitationIsValid(req.body.invitation)))
         throw new UnauthorizedError("Provided invitation token is invalid");
     }
-    console.log(req);
+
     const sessionKey = await createUser(
       req.body.username,
       req.body.password,
