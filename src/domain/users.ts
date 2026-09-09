@@ -81,9 +81,9 @@ export const createUser = async (
     const user = await WRITER.begin(async (tx) => {
       console.log("generating user");
       const [user] =
-        await tx`INSERT INTO users (name, password_hash, ip_hash) VALUES (${name},${password},${hashIp(ip)}) RETURNING name`;
+        await tx`INSERT INTO users (name, identifier, password_hash, ip_hash) VALUES (${name},${userIdentifier},${password},${hashIp(ip)}) RETURNING name`;
       console.log("generating instance");
-      await tx`INSERT INTO instances (name) VALUES (${name})`;
+      await tx`INSERT INTO instances (name, user_identifier) VALUES (${name}, ${userIdentifier})`;
       return user;
     });
     console.log("generating session");

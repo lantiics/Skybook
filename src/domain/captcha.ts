@@ -12,6 +12,7 @@ export const assertCaptchaTokenValid = async (token: string) => {
       }),
     })
   ).json();
+
   if (!success) throw new CaptchaFailedError("Failed to pass captcha");
   return success;
 };
