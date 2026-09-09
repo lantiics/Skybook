@@ -28,8 +28,6 @@ module.exports = {
     {
       name: "Skybook",
       script: "./src/app.js",
-      instances: "max",
-      exec_mode: "cluster",
       args: "dotenv_config_path=./.env",
       interpreter: "bun",
     },
