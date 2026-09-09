@@ -12,11 +12,13 @@
       <% if (captcha.implementation) {%> <script>
         const appendWidget = () => {
           document.querySelectorAll('[data-unsolvedcaptcha="disabled"]').forEach(e => e.disabled = true);
+          document.querySelectorAll('#captcha').forEach(e => e.remove());
 
           <% if (captcha.implementation==='cap') {%>
           const widget = Object.assign(document.createElement("<%=captcha.implementation==="cap"?'cap-widget':'div'%>"), {
             required: true,
             style: "place-self:center;margin-top:0.5rem",
+            id: "captcha"
           })
 
           widget.setAttribute("data-cap-api-endpoint", "/api/captcha/<%=captcha.site_key%>");
@@ -50,7 +52,7 @@
                     type: "hidden",
                     name: "cap-token",
                     value: solution.token,
-                    id: "cap"
+                    id: "captcha"
                   }));
                   document.querySelectorAll('[data-unsolvedcaptcha="disabled"]').forEach(e => e.removeAttribute("disabled"));
                 } else {
