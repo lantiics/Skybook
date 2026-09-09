@@ -605,4 +605,4 @@ INSERT INTO reserved_usernames VALUES
 ('yourname'),
 ('yoursite'),
 ('yourusername'),
-('kaiju');
+('skybook');

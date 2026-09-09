@@ -7,7 +7,7 @@ import { createProxyMiddleware, fixRequestBody } from "http-proxy-middleware";
 
 if (config.captcha.implementation === "cap") {
   router.post(
-    `/${config.captcha.site_key}/:s`,
+    `/${config.captcha.site_key}/challenge/`,
     createProxyMiddleware({
       target: config.captcha.challenge_url,
       changeOrigin: true,
