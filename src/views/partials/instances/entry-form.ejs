@@ -41,7 +41,7 @@
             (async () => {
               try {
                 const cap = new Cap({
-                  apiEndpoint: "/api/captcha/<%=captcha.site_key%> "
+                  apiEndpoint: "/api/captcha/<%=captcha.site_key%>"
                 });
 
                 const solution = await cap.solve();
