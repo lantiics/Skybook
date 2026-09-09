@@ -28,7 +28,7 @@ CREATE INDEX idx_users_pending_deletion ON users (delete_at) WHERE pending_delet
 
 CREATE TABLE instances (
   name TEXT PRIMARY KEY REFERENCES users(name) ON DELETE CASCADE ON UPDATE CASCADE,
-  user_identifier TEXT UNIQUE NOT NULL REFERENCES users(identifier) ON DELETE CASCADE ON UPDATE CASCADE,
+  user_identifier UUID UNIQUE NOT NULL REFERENCES users(identifier) ON DELETE CASCADE ON UPDATE CASCADE,
   is_visible BOOLEAN NOT NULL DEFAULT TRUE, -- -- -- --  -- --
   submission_enabled BOOLEAN NOT NULL DEFAULT TRUE, -- -- --
   --replying_enabled BOOLEAN NOT NULL DEFAULT FALSE,
