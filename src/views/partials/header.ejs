@@ -5,7 +5,7 @@
     <% if (!ctx.authenticated) { %> <a <% if (skybook.subdomain_vanity) {%>href="http://<%=skybook.domain%>/login" <%} else {%> href="/login" <%}%>>Log in</a><a <% if (skybook.subdomain_vanity) {%>href="http://<%=skybook.domain%>/signup" <%} else {%> href="/signup" <%}%>>Sign up</a>
   <% } else {%> <a <% if (skybook.subdomain_vanity) {%> href="http://<%=ctx.user.name%>.<%=skybook.domain%>" <%} else {%>href="/<%=ctx.user.name %>" <%}%>>my guestbook</a>
   <div class="authenticated-user-header"><a <% if (skybook.subdomain_vanity) {%>href="http://<%=skybook.domain%>/account" <%} else {%> href="/account" <%}%>>
-      <%= (ctx.user?.name?ctx.user.name+(ctx.superAdmin?" - administrator":""):"undefined"??"undefined")
+      <%= (ctx.user?.name?ctx.user.name:"undefined")
                             %> </a>&gt;</div> <button onclick="fetch('/api/auth/logout', {method: 'POST'}).then((req)=> {if (req.ok) location.reload()})">log
       out</button>
     <% }%>
