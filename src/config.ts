@@ -12,6 +12,7 @@ const config = raw as {
     user_enforcements_enabled: boolean;
     invitation_required: boolean;
     username_max_length: number;
+    username_min_length: number;
   };
 
   captcha: {

@@ -52,8 +52,13 @@ export const assertUserNameAllowed = async (name: string) => {
   if (usernameIsReserved) {
     throw new ReservedError("Username is reserved");
   }
-  if (name.length > config.skybook.username_max_length)
-    throw new BadRequestError("Specified username length is above limit");
+  if (
+    name.length > config.skybook.username_max_length ||
+    name.length < config.skybook.username_min_length
+  )
+    throw new BadRequestError(
+      "Specified username is not permitted by length limitations",
+    );
 
   return true;
 };
