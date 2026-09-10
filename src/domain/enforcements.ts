@@ -6,7 +6,7 @@ import { userUUID } from "./users";
 import { config } from "../config.ts";
 export const userInformation = async (UUID: string) => {
   const [uI] = //enforcements, enforcement_count
-    await READER`SELECT name, identifier, can_login, can_post, can_delete_account, created_at, last_seen, can_create_invitations FROM users WHERE identifier = ${UUID}`;
+    await READER`SELECT name, identifier, can_login, can_post, can_delete_account, created_at, last_seen, can_create_invitations, totp_secret FROM users WHERE identifier = ${UUID}`;
   if (uI === undefined) {
     throw new NotFoundError("Requested user could not be found");
   }
@@ -27,7 +27,7 @@ const recordUserEnforcement = async (
   duration: number | null,
   DB = WRITER,
 ): Promise<void> => {
-  const currentStatus = await userEnforcementStatus(UUID);
+  // const currentStatus = await userEnforcementStatus(UUID);
 
   const now = new Date().toISOString();
   const expires = duration ? new Date(Date.now() + duration) : null;
