@@ -52,6 +52,8 @@ export const assertUserNameAllowed = async (name: string) => {
   if (usernameIsReserved) {
     throw new ReservedError("Username is reserved");
   }
+  if (name.length > 15)
+    throw new BadRequestError("Specified username length is above limit");
 
   return true;
 };

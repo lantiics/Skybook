@@ -1,11 +1,6 @@
 CREATE TABLE users (
   identifier UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
-  name TEXT UNIQUE NOT NULL, --CHECK (
-    --NOT EXISTS (
-   --   SELECT 1 FROM reserved_usernames r
-    --  WHERE r.value = users.name
-   -- )
- -- )
+  name VARCHAR(15) UNIQUE NOT NULL,
   ip_hash TEXT NOT NULL,
   password_hash TEXT NOT NULL,
   totp_secret TEXT,
