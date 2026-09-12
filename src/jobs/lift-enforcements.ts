@@ -27,7 +27,7 @@ const liftUserEnforcements = async () => {
       default:
         continue;
     }
-    await WRITER`UPDATE usets SET ${WRITER.unsafe($QUERY)} WHERE identifier = ${enforcement.user}`;
+    await WRITER`UPDATE users SET ${WRITER.unsafe($QUERY)} WHERE identifier = ${enforcement.user}`;
   }
 };
 
