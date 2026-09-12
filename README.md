@@ -48,7 +48,7 @@ Skybook supports captchas using either [Cap](https://trycap.dev) or Cloudflare T
 
 After completing setup of either captchaing service, there are some configuration values needed in order to enable captchaing.
 
-The following *need* to be setin order for Kaiju to work, alter according to your configuration:
+The following *need* to be set in order for Skybook to work, alter according to your configuration:
 ```toml
 [skybook]
 proxies_between = 1 # If using Cloudflare, required to be at least 1 for Expressjs's 'Trust proxy' setting to actually register IP addresses.
