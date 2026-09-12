@@ -143,14 +143,12 @@ const doVpn = async () => {
 // We can only access this list once every 30 minutes; Rate limited elsewise.
 // If doing development, I recommend downloading the file locally and replacing the URL here
 // with a file:// URL.
-const TorDownloadURL =
-  "file:///home/admin/Development/Projects/dropbox/tor.txt";
+const TorDownloadURL = "https://www.dan.me.uk/torlist/?exit";
 const doTor = async () => {
   if (await sourceElapsedMinutesUpdateThreshold("tor", "30")) return;
   const res = await fetch(TorDownloadURL, {
     headers: {
-      "User-Agent":
-        "hey dan im like doing development on my machine and i may have forgotten to disable the fetching of ips when validating ip blocking sorry",
+      "User-Agent": "Skybook IP blocklist updating (gitlab:lantics/skybook)",
     },
   });
   if (!res.ok) return;
