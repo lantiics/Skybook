@@ -331,14 +331,14 @@ export const exportInstance = async (ctx: RequestContext) => {
     await READER`SELECT ${READER.unsafe(EXPORTABLE_COLUMN_NAMES.join(","))} FROM posts WHERE instance = ${ctx.instance}`;
   const header = EXPORTABLE_COLUMN_NAMES.join(",");
   let csv = EXPORTABLE_COLUMN_NAMES.join(",") + "\n";
-  csv += entries //@ts-expect-error
-    .map((r) =>
+  csv += entries
+    .map((post: Post) =>
       [
-        r.author,
-        r.content,
-        JSON.stringify(r.extra),
-        r.reply,
-        new Date(r.added).toISOString(),
+        post.author,
+        post.content,
+        JSON.stringify(post.extra),
+        post.reply,
+        new Date(post.added).toISOString(),
       ]
         .map((v) => (v == null ? "" : `"${String(v).replace(/"/g, '""')}"`))
         .join(","),
@@ -351,36 +351,32 @@ export const importInstance = async (instance: string, entries: Post[]) => {
   entries = entries.slice(0, 1000);
   let extraKeys: Set<string> = new Set([]);
   for (const entry of entries) {
+    if ((entry.extra as unknown) == "{}") entry.extra = {};
     const inputFields = [
       "author",
-      "content", //@ts-expect-error
-      ...Object.keys(JSON.parse(entry.extra)),
+      "content",
+      ...Object.keys(entry.extra),
       "reply",
       "added",
     ];
     console.log(
       entry.extra,
-      Object.keys(entry.extra), //@ts-expect-error
-      Object.keys(JSON.parse(entry.extra)),
+      Object.keys(entry.extra),
+      Object.keys(entry.extra),
       "all u need here bud",
     );
-    //@ts-expect-error
-    if (JSON.parse(entry.extra) !== "{}") {
-      //@ts-expect-error
-      for (const field of Object.keys(JSON.parse(entry.extra))) {
+
+    if (entry.extra) {
+      for (const field of Object.keys(entry.extra)) {
         console.log(field, "ahh");
         if (!extraKeys.has(field)) {
-          //@ts-expect-error
           await setField(instance, { name: field, is_required: false });
         }
       }
     }
 
     console.log(inputFields);
-    if (
-      //@ts-expect-error
-      await allFieldsAreWritable(instance, Object.keys(JSON.parse(entry.extra)))
-    ) {
+    if (await allFieldsAreWritable(instance, Object.keys(entry.extra))) {
       console.log("continuing");
       const clearedEntry = {
         instance: instance,
@@ -389,6 +385,7 @@ export const importInstance = async (instance: string, entries: Post[]) => {
         extra: entry.extra,
         reply: entry.reply,
         added: entry.added,
+        ip_hash: "Added via import",
         identifier: crypto.randomUUID(),
       };
       const row =
