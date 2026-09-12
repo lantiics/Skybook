@@ -59,7 +59,9 @@ export const authenticate = async (
   req.ctx = {
     ...req.ctx,
     user: user,
-    superAdmin: req.headers["x-superadmin-key"] === process.env.SUPERADMIN_KEY,
+    superAdmin:
+      ![undefined, null, ""].includes(process.env.SUPERADMIN_KEY) &&
+      req.headers["x-superadmin-key"] === process.env.SUPERADMIN_KEY,
     authenticated: !!user,
     ip: req.ip!,
   };
@@ -68,6 +70,7 @@ export const authenticate = async (
   if (!req.ctx?.instance) {
   }
   let elevated = req.ctx.superAdmin ?? false;
+  console.log(elevated, "elevated");
   if (!elevated && user && user.name === req.ctx?.instance) {
     elevated = true;
   }
