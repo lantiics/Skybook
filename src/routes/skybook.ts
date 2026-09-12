@@ -7,7 +7,6 @@ import {
   toggleInstanceVisibility,
   toggleInstanceApproval,
   toggleInstanceFlagging,
-  toggleInstanceReplying,
   toggleInstanceSubmission,
   toggleInstanceTorBlacklist,
   toggleInstanceVPNBlacklist,
@@ -28,7 +27,6 @@ import {
   togglePostHighlight,
   togglePostFlagging,
   togglePostPin,
-  togglePostReplying,
   togglePostVisibility,
   clearPostFlags,
   lockPostMethods,
@@ -47,6 +45,7 @@ const multer = require("multer");
 const { Readable } = require("stream");
 import { assertCaptchaTokenValid } from "../domain/captcha.ts";
 import csvParser from "csv-parser";
+import { Post } from "../types/entities";
 const path = require("path");
 const os = require("os");
 const fs = require("node:fs");
@@ -206,14 +205,14 @@ router.post(
   async (req: Request, res: Response, next: NextFunction) => {
     if (!req.ctx.elevated) return res.sendStatus(403);
     try {
+      const r: Post[] = [];
       //@ts-expect-error
-      const r = []; //@ts-expect-error
       const stream = Readable.from(req.file!.buffer);
-      const res = await stream
-        .pipe(csvParser()) //@ts-expect-error
-        .on("data", (data) => r.push(data))
+      const response = await stream
+        .pipe(csvParser())
+        //@ts-expect-error
+        .on("data", (data: unknown) => r.push(data))
         .on("end", async () => {
-          //@ts-expect-error
           const importResult = await importInstance(req.ctx.instance, r);
           return importResult;
         });
@@ -291,19 +290,6 @@ router.patch(
     if (!req.ctx.elevated) return res.sendStatus(403);
     try {
       await toggleInstanceSubmission(req.ctx.instance);
-      return res.sendStatus(200);
-    } catch (e) {
-      return res.sendStatus(errorStatus(e, req.ctx.elevated));
-    }
-  },
-);
-router.patch(
-  "/replying",
-  alterationLimiter,
-  async (req: Request, res: Response, next: NextFunction) => {
-    if (!req.ctx.elevated) return res.sendStatus(403);
-    try {
-      await toggleInstanceReplying(req.ctx.instance);
       return res.sendStatus(200);
     } catch (e) {
       return res.sendStatus(errorStatus(e, req.ctx.elevated));
@@ -462,22 +448,6 @@ router.delete(
     try {
       await unblockPostCreator(req.ctx, req.params.identifier as string);
       return res.sendStatus(201);
-    } catch (e) {
-      return res.sendStatus(errorStatus(e, req.ctx.elevated));
-    }
-  },
-);
-router.patch(
-  "/entry/:identifier/replying",
-  alterationLimiter,
-  async (req: Request, res: Response, next: NextFunction) => {
-    if (!req.ctx.elevated) return res.sendStatus(403);
-    try {
-      const entry = await togglePostReplying(
-        req.ctx,
-        req.params.identifier as string,
-      );
-      return res.status(200).send(entry);
     } catch (e) {
       return res.sendStatus(errorStatus(e, req.ctx.elevated));
     }
