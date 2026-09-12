@@ -18,10 +18,10 @@ const liftUserEnforcements = async () => {
   ) as UserEnforcement[]) {
     let $QUERY;
     switch (enforcement.type) {
-      case "lock":
+      case "locked":
         $QUERY = "can_login = true, can_post = true";
         break;
-      case "block_posting":
+      case "posting_blocked":
         $QUERY = "can_post = true";
         break;
       default:

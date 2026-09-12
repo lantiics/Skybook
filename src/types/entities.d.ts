@@ -102,7 +102,7 @@ export interface GlobalIpBlock {
 export interface UserEnforcement {
   id: string;
   user: string;
-  type: "lock" | "block_posting";
+  type: "locked" | "posting_blocked";
   details: string;
   created_at: string;
   expires_at: string | null;
