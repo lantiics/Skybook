@@ -139,7 +139,6 @@ router.post("/password", async (req: Request, res: Response) => {
   } catch (e) {
     const encodedPopupText = btoa("Failed to change password");
     return res.redirect("/account#pup:" + encodedPopupText);
-    return res.sendStatus(errorStatus(e, false));
   }
 });
 router.post(
