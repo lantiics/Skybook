@@ -66,12 +66,6 @@ router.post("/enable-totp", async (req: Request, res: Response) => {
     return res.sendStatus(errorStatus(e, false));
   }
 });
-router.post("/verify-totp", async (req: Request, res: Response) => {
-  try {
-  } catch (e) {
-    return res.sendStatus(errorStatus(e, false));
-  }
-});
 
 router.post("/disable-totp", async (req: Request, res: Response) => {
   try {
