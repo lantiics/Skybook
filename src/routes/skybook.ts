@@ -550,84 +550,85 @@ router.patch(
 //#endregion ELEVATED
 
 //#region OVERRIDES
-router.patch(
-  "/entry/:identifier/lock",
-  alterationLimiter,
-  async (req: Request, res: Response, next: NextFunction) => {
-    if (!req.ctx.superAdmin) return res.sendStatus(403);
-    try {
-      const entry = await lockPostMethods(
-        req.ctx,
-        req.params.identifier as string,
-      );
-      return res.status(200).send(entry);
-    } catch (e) {
-      return res.sendStatus(errorStatus(e, req.ctx.elevated));
-    }
-  },
-);
+// router.patch(
+//   "/entry/:identifier/lock",
+//   alterationLimiter,
+//   async (req: Request, res: Response, next: NextFunction) => {
+//     if (!req.ctx.superAdmin) return res.sendStatus(403);
+//     try {
+//       const entry = await lockPostMethods(
+//         req.ctx,
+//         req.params.identifier as string,
+//       );
+//       return res.status(200).send(entry);
+//     } catch (e) {
+//       return res.sendStatus(errorStatus(e, req.ctx.elevated));
+//     }
+//   },
+// );
 
-router.patch("/lock", async (req: Request, res: Response) => {
-  if (!req.ctx.superAdmin) return res.sendStatus(403);
-  try {
-  } catch (e) {}
-});
-router
-  .route("/override/:method")
-  .patch(async (req: Request, res: Response) => {
-    try {
-      if (!req.ctx.superAdmin)
-        throw new UnauthorizedError(
-          "Insufficient permissions to access system-level endpoint",
-        );
+// router.patch("/lock", async (req: Request, res: Response) => {
+//   if (!req.ctx.superAdmin) return res.sendStatus(403);
+//   try {
+//     await
+//   } catch (e) {}
+// });
+// router
+//   .route("/override/:method")
+//   .patch(async (req: Request, res: Response) => {
+//     try {
+//       if (!req.ctx.superAdmin)
+//         throw new UnauthorizedError(
+//           "Insufficient permissions to access system-level endpoint",
+//         );
 
-      switch (req.params.method as string) {
-        case "visibility":
-          break;
-        case "submission":
-          break;
-        case "replying":
-          break;
-        case "approval":
-          break;
-        case "flagging":
-          break;
-        case "queue-filtered":
-          break;
-        default:
-          throw new NotFoundError("Requested method is not available");
-      }
-      return res.sendStatus(200);
-    } catch (e) {
-      return res.sendStatus(errorStatus(e, req.ctx.authenticated));
-    }
-  })
-  .delete(async (req: Request, res: Response) => {
-    try {
-      if (!req.ctx.superAdmin)
-        throw new UnauthorizedError(
-          "Insufficient permissions to access system-level endpoint",
-        );
+//       switch (req.params.method as string) {
+//         case "visibility":
+//           break;
+//         case "submission":
+//           break;
+//         case "replying":
+//           break;
+//         case "approval":
+//           break;
+//         case "flagging":
+//           break;
+//         case "queue-filtered":
+//           break;
+//         default:
+//           throw new NotFoundError("Requested method is not available");
+//       }
+//       return res.sendStatus(200);
+//     } catch (e) {
+//       return res.sendStatus(errorStatus(e, req.ctx.authenticated));
+//     }
+//   })
+//   .delete(async (req: Request, res: Response) => {
+//     try {
+//       if (!req.ctx.superAdmin)
+//         throw new UnauthorizedError(
+//           "Insufficient permissions to access system-level endpoint",
+//         );
 
-      switch (req.params.method as string) {
-        case "visibility":
-          break;
-        case "submission":
-          break;
-        case "replying":
-          break;
-        case "approval":
-          break;
-        case "flagging":
-          break;
-        case "queue-filtered":
-          break;
-        default:
-          throw new NotFoundError("Requested method is not available");
-      }
-      return res.sendStatus(200);
-    } catch (e) {
-      return res.sendStatus(errorStatus(e, req.ctx.authenticated));
-    }
-  });
+//       switch (req.params.method as string) {
+//         case "visibility":
+//           break;
+//         case "submission":
+//           break;
+//         case "replying":
+//           break;
+//         case "approval":
+//           break;
+//         case "flagging":
+//           break;
+//         case "queue-filtered":
+//           break;
+//         default:
+//           throw new NotFoundError("Requested method is not available");
+//       }
+//       return res.sendStatus(200);
+//     } catch (e) {
+//       return res.sendStatus(errorStatus(e, req.ctx.authenticated));
+//     }
+//   });
 //#endregion
