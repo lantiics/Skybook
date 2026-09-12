@@ -288,7 +288,7 @@ const deleteField = async (btn) => {
     );
     setTimeout(() => btn.removeAttribute("disabled"), 2500);
   } else {
-    btn.parentNode.parentNode.delete();
+    btn.parentNode.parentNode.remove();
     location.reload();
   }
 };
