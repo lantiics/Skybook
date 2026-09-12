@@ -270,9 +270,6 @@ export const toggleInstanceVisibility = async (instance: string) => {
 export const toggleInstanceSubmission = async (instance: string) => {
   return await _toggleSpecifiedInstanceStatus(instance, "submission_enabled");
 };
-export const toggleInstanceReplying = async (instance: string) => {
-  return await _toggleSpecifiedInstanceStatus(instance, "replying_enabled");
-};
 export const toggleInstanceApproval = async (instance: string) => {
   return await _toggleSpecifiedInstanceStatus(instance, "approval_required");
 };
