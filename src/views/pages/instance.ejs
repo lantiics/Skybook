@@ -2,21 +2,23 @@
 
 
 <% if (ctx.elevated) { %> <%- include('../partials/instances/elevated-interface', {fields: fields})%> <% } %>
-<% if(status.submission_enabled.status||ctx.elevated) {%><%- include('../partials/instances/entry-form')%> <% } else {%><div class="instance-information">Submission is currently unavailable</div> <%}%>
+<% if (!ctx.elevated) {%>
+<% if(status.submission_enabled.status) {%><%- include('../partials/instances/entry-form')%> <% } else {%><div class="instance-information">Submission is currently unavailable</div> <%}%>
+<% } %>
 <!-- -->
 <div>
   <div class="entries" id="entries">
 
     <% if (status.is_visible.status || ctx.elevated) { %>
 
-<% if (typeof posts !== 'undefined') { %>
+    <% if (typeof posts !== 'undefined') { %>
 
-<%- include('../partials/instances/posts', {posts:posts,ctx:ctx})%>
-<% } else { %> <div class="entry">
-  <div class="instance-information">no entries</div>
-</div> <% } %>
-<% } else { %>
-<div class="instance-information">Posts are currently not visible</div>
-<% } %>
-</div>
+    <%- include('../partials/instances/posts', {posts:posts,ctx:ctx})%>
+    <% } else { %> <div class="entry">
+      <div class="instance-information">no entries</div>
+    </div> <% } %>
+    <% } else { %>
+    <div class="instance-information">Posts are currently not visible</div>
+    <% } %>
+  </div>
 </div>
