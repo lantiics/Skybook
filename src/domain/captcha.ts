@@ -2,7 +2,7 @@ import { config } from "../config";
 import { CaptchaFailedError } from "../errors";
 
 export const assertCaptchaTokenValid = async (token: string) => {
-  const { success } = await (
+  const { success } = (await (
     await fetch(config.captcha.verification_url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -11,7 +11,7 @@ export const assertCaptchaTokenValid = async (token: string) => {
         response: token,
       }),
     })
-  ).json();
+  ).json()) as Record<string, unknown>;
 
   if (!success) throw new CaptchaFailedError("Failed to pass captcha");
   return success;
