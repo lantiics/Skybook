@@ -193,4 +193,4 @@ setInterval(
   30 * 60 * 1000,
 ); // 30 minutes
 
-setInterval(() => reindex, 12 * 60 * 60 * 1000); // 12 hours
+setInterval(reindex, 12 * 60 * 60 * 1000); // 12 hours
