@@ -1,6 +1,6 @@
 CREATE TABLE users (
   identifier UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
-  name VARCHAR(15) UNIQUE NOT NULL,
+  name VARCHAR(15) UNIQUE NOT NULL
   ip_hash TEXT NOT NULL,
   password_hash TEXT NOT NULL,
   totp_secret TEXT,
@@ -115,4 +115,4 @@ CREATE TABLE service_settings (
   value BOOLEAN NOT NULL,
   message TEXT
 );
-INSERT INTO service_settings (name, value) VALUES ('signup_enabled', false), ('totp_enabled', true),('login_enabled',true),('account_deletion_enabled',true);
+INSERT INTO service_settings (name, value) VALUES ('signup_enabled', false), ('totp_enabled', true),('login_enabled',true),('account_deletion_enabled',true), ('signup_requires_invitation',false);
