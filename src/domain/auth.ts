@@ -46,10 +46,6 @@ export const generateRecoveryCodes = (): string[] => {
   return codes;
 };
 
-// const generateToken = async (secret: string) => {
-//   return await generate({ secret });
-// };
-
 export const verifyTotp = async (secret: string, token: string) => {
   return (await verify({ secret, token })).valid;
 };

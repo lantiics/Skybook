@@ -14,6 +14,9 @@ const config = raw as {
     username_max_length: number;
     username_min_length: number;
   };
+  instances: {
+    max_global_filter_length: number;
+  };
 
   captcha: {
     implementation: "cap" | "cloudflare";
@@ -35,6 +38,9 @@ const config = raw as {
     derogatory: boolean;
   };
   fields: {
+    max_filter_length: number;
+    name_max_length: number;
+    max_count: number;
     typical_max_length: number;
     author_max_length: number;
   };

@@ -10,6 +10,7 @@ import {
 import { setField, allFieldsAreWritable } from "./fields.ts";
 import { sql } from "bun";
 import { hashIp } from "./ip.ts";
+import { config } from "../config.ts";
 
 const EXPORTABLE_COLUMN_NAMES = [
   "author",
@@ -286,6 +287,10 @@ export const updateInstanceSuppliedFilter = async (
   instance: string,
   filter: string,
 ) => {
+  if (filter.length > config.instances.max_global_filter_length)
+    throw new BadRequestError(
+      "Provided filter character count is above global filter limit",
+    );
   return await WRITER`UPDATE instances SET custom_filter = ${filter} WHERE name = ${instance}`;
 };
 
