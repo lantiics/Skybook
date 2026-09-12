@@ -39,14 +39,6 @@ export const ipIsBlocked = async (ip: string, instance: string) => {
   return true;
 };
 
-export const localIpBlockInformation = async (ip: string, instance: string) => {
-  const ipHash = hashIp(ip);
-};
-
-export const globalIpBlockInformation = async (ip: string) => {
-  const ipHash = hashIp(ip);
-};
-
 // export const blockIpOnInstance = async (
 //   instance: string,
 //   ipHash: string,
