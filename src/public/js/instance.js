@@ -350,7 +350,7 @@ const submitEntry = async (identifier, fields) => {
       location.reload();
     } else if (res.status === 202) {
       createPopup(
-        "Your entry was filtered and will require manual approval before becoming visible.",
+        "Your entry was submitted and will be visible after being approved.",
         3000,
       );
     }
