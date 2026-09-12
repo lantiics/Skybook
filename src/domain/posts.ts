@@ -63,7 +63,7 @@ const validatedEntry = async (
   const instanceBlocks = await instanceIpBlocks(ctx.instance);
   const source = await ipSource(ctx.ip);
   if (instanceBlocks.proxy) {
-    if (source === "vpn") throw new UnauthorizedError("IP blocked");
+    if (source === "proxy") throw new UnauthorizedError("IP blocked");
   }
   if (instanceBlocks.vpn) {
     if (source === "vpn") throw new UnauthorizedError("IP blocked");
