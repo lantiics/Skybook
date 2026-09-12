@@ -223,7 +223,13 @@ router.post(
 
       return res.sendStatus(201);
     } catch (e) {
-      return res.sendStatus(errorStatus(e, req.ctx.elevated));
+      return res
+        .status(errorStatus(e, req.ctx.elevated))
+        .redirect(
+          (res.getHeader("referer") ?? config.skybook.subdomain_vanity)
+            ? "/"
+            : `/${req.ctx.instance}`,
+        );
     }
   },
 );
