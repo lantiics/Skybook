@@ -215,7 +215,10 @@ router.post(
       const response = await stream
         .pipe(csvParser())
 
-        .on("data", (data: Post) => r.push(data))
+        .on("data", (data: Post) => {
+          data.extra = JSON.parse(data.extra as any as string);
+          r.push(data);
+        })
         .on("end", async () => {
           const importResult = await importInstance(req.ctx.instance, r);
           return importResult;
