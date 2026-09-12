@@ -274,4 +274,3 @@ export const userCanPost = async (uuid: string): Promise<boolean> => {
   return (await READER`SELECT can_post FROM users WHERE identifier=${uuid}`)[0]
     .can_post;
 };
-const crypto = require("crypto");

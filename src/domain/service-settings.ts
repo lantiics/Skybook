@@ -34,7 +34,7 @@ export const toggleLogin = async (): Promise<void> => {
 };
 
 export const accountDeletionPossible = async (): Promise<boolean> => {
-  return await _getSpecifiedServiceStatus("account_deletion");
+  return await _getSpecifiedServiceStatus("account_deletion_enabled");
 };
 export const toggleAccountDeletion = async (): Promise<void> => {
   await _toggleSpecifiedServiceStatus("account_deletion_enabled");
