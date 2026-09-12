@@ -275,5 +275,3 @@ export const userCanPost = async (uuid: string): Promise<boolean> => {
     .can_post;
 };
 const crypto = require("crypto");
-
-const cookies = require("cookie-signature");
