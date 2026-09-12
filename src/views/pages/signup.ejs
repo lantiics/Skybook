@@ -1,6 +1,7 @@
 <!-- views/pages/signup.ejs -->
 
-<div>
+<div style="display:flex;flex-direction: column;place-items: center;">
+  <% if (signupEnabled) {%>
   <h1>sign up</h1>
-  <%- include('../partials/authentication-form') %>
+  <%- include('../partials/authentication-form') %> <% } else {%> <div class="information-box">signup is currently unavailable</div> <%}%>
 </div>
