@@ -146,7 +146,7 @@ export const loginUser = async (
     throw new LockedError("Attempted to log in as a user with login disabled");
   }
   if (userEntry.totp_secret) {
-    if (!otp || !verifyTotp(otp, userEntry.totp_secret)) {
+    if (!otp || !(await verifyTotp(userEntry.totp_secret, otp))) {
       throw new UnauthorizedError(
         "Invalid or missing one-time password while attempting to log in as a user with TOTP enabled",
       );
