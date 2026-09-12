@@ -316,7 +316,14 @@ const addEditListeners = () => {
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
         if (field.innerText != field.getAttribute("data-original-content")) {
-          await editPost(field.parentNode.parentNode, field);
+          if (!field.getAttribute("data-reply-to")) {
+            await editPost(field.parentNode.parentNode, field);
+          } else {
+            await reply(
+              field.parentNode.parentNode.parentNode,
+              field.innerText,
+            );
+          }
         }
       }
     });
@@ -349,9 +356,9 @@ const submitEntry = async (identifier, fields) => {
     }
   }
 };
-const reply = async (post) => {
+const reply = async (post, message = null) => {
   const identifier = post.getAttribute("data-identifier");
-  const prompt = window.prompt("message");
+  const prompt = message ?? window.prompt("message");
   if (prompt) {
     const message = prompt;
     // console.log(author, message);
