@@ -211,11 +211,11 @@ router.post(
     try {
       const r: Post[] = [];
       //@ts-expect-error
-      const stream = Readable.from(req.file!.buffer);
+      const stream = Readable.from([req.file.buffer]);
       const response = await stream
         .pipe(csvParser())
-        //@ts-expect-error
-        .on("data", (data: unknown) => r.push(data))
+
+        .on("data", (data: Post) => r.push(data))
         .on("end", async () => {
           const importResult = await importInstance(req.ctx.instance, r);
           return importResult;
