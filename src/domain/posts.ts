@@ -2,8 +2,8 @@ import { sql } from "bun";
 import {
   PUBLIC_COLUMN_NAMES,
   PRIVATE_COLUMN_NAMES,
-  ADMIN_COLUMN_NAMES,
   RESERVED_COLUMN_NAMES,
+  SYSTEM_COLUMN_NAMES,
 } from "../defaults.ts";
 import {
   UnauthorizedError,
@@ -211,7 +211,7 @@ export const createPost = async (
     ? [
         ...PRIVATE_COLUMN_NAMES,
         ...PUBLIC_COLUMN_NAMES,
-        ...ADMIN_COLUMN_NAMES,
+        ...SYSTEM_COLUMN_NAMES,
       ].join(",")
     : (ctx.elevated
         ? [...PRIVATE_COLUMN_NAMES]

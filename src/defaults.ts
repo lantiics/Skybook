@@ -25,11 +25,9 @@ export const PRIVATE_COLUMN_NAMES: Set<keyof Post> = new Set([
 
   "flag_count",
 ]);
-export const ADMIN_COLUMN_NAMES: Set<keyof Post> = new Set([]);
 export const SYSTEM_COLUMN_NAMES: Set<keyof Post> = new Set([
   ...PUBLIC_COLUMN_NAMES,
   ...PRIVATE_COLUMN_NAMES,
-  ...ADMIN_COLUMN_NAMES,
   "ip_hash",
 ]);
 export const RESERVED_COLUMN_NAMES: Set<keyof Post> = new Set([
