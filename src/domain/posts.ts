@@ -17,7 +17,6 @@ import { generateToken, entryTokenValid } from "./tokens.ts";
 import { READER, WRITER } from "../db.ts";
 import {
   flaggingEnabled,
-  // replyingEnabled,
   instanceQueuesFilteredPosts,
   compiledInstanceStatus,
   isVisible,
@@ -29,12 +28,7 @@ import {
   InstanceQueueFlaggedThreshold,
 } from "./instances.ts";
 import { Field, Post } from "../types/entities.ts";
-import {
-  blockIpOnInstance,
-  hashIp,
-  ipSource,
-  unblockIpOnInstance,
-} from "./ip.ts";
+import { hashIp, ipSource } from "./ip.ts";
 import { userCanBeBlocked, userCanPost } from "./users.ts";
 import { config } from "../config.ts";
 import { tryGlobalBlock } from "./enforcements.ts";
@@ -74,7 +68,6 @@ const validatedEntry = async (
   if (
     (await instanceHasRequesterBlocked(
       ctx.instance,
-
       hashIp(ctx.ip),
       ctx.user?.identifier,
     )) ||
@@ -188,6 +181,7 @@ const validatedEntry = async (
   console.timeEnd("Validated entry");
   return entry;
 };
+
 export const replyToPost = async (
   ctx: RequestContext,
   identifier: string,

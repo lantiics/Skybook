@@ -71,17 +71,6 @@ const temporarilyBlockUserPosting = async (
   });
 };
 
-// export const recordUserBlocked = async (name: string): Promise<void> => {
-//   const UUID = await userUUID(name);
-//   await WRITER`INSERT INTO user_enforcements (identifier, status, block_count) VALUES (${UUID},active,1)
-//     ON CONFLICT (identifier) DO UPDATE SET block_count = user_enforcements.block_count + 1`;
-// };
-
-// export const decrementUserBlockedInt = async (name: string): Promise<void> => {
-//   const UUID = await userUUID(name);
-//   await WRITER`UPDATE user_enforcements SET block_count = GREATEST (block_count - 1, 0) WHERE identifier = ${UUID}`;
-// };
-
 export const toggleUserLocked = async (
   details: string,
   UUID: string,

@@ -14,7 +14,7 @@ export const PUBLIC_COLUMN_NAMES: Set<keyof Post> = new Set([
   "is_pinned",
   "is_highlighted",
   "sys_lock",
-  "ip_hash",
+
   "is_visible",
   "is_queued",
 ]);
@@ -30,6 +30,7 @@ export const SYSTEM_COLUMN_NAMES: Set<keyof Post> = new Set([
   ...PUBLIC_COLUMN_NAMES,
   ...PRIVATE_COLUMN_NAMES,
   ...ADMIN_COLUMN_NAMES,
+  "ip_hash",
 ]);
 export const RESERVED_COLUMN_NAMES: Set<keyof Post> = new Set([
   ...PUBLIC_COLUMN_NAMES,

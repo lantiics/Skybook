@@ -9,7 +9,8 @@ header="Skybook is currently under development, stability can not be guaranteed.
 invitation_required=true
 username_max_length=15 # If altered, requires alteration of the `name` column in the `users` DB table, which defaults to VARCHAR(15)
 username_min_length=3
-
+[instances]
+max_global_filter_length=5000
 [captcha]
 implementation = "cloudflare"                                       # cap (trycap.dev) | cloudflare
 token_property_name = "cf-turnstile-response" # cap-token | cf-turnstile-response
@@ -27,8 +28,11 @@ expiration_grace_period_days = 7
 perPage = 15
 
 [fields]
+name_max_length=50
+max_count=10
 author_max_length = 50
 typical_max_length = 500
+max_filter_length=2500
 
 [rate_limits]
 auth_window_ms = 60000             # 1 minute

@@ -2,9 +2,13 @@ import { READER, WRITER } from "../db.ts";
 import { RequestContext } from "../types/context.ts";
 import { Field } from "../types/entities.ts";
 import { RESERVED_COLUMN_NAMES } from "../defaults.ts";
-import { ReservedError, UnauthorizedError } from "../errors.ts";
+import {
+  BadRequestError,
+  ReservedError,
+  UnauthorizedError,
+} from "../errors.ts";
+import { config } from "../config.ts";
 const allWritableFields = async (instance: string): Promise<Set<string>> => {
-  console.log("meoww");
   const dbFields = new Set(["content", "author"]);
   const additionalFields =
     await READER`SELECT instance,name,is_public,is_special,is_required,replacement,filter FROM fields WHERE instance = ${instance}`;
@@ -15,7 +19,6 @@ const allWritableFields = async (instance: string): Promise<Set<string>> => {
 
     return dbFields as Set<string>;
   }
-  console.log(dbFields);
   return dbFields;
 };
 export const allFieldsAreWritable = async (
@@ -55,46 +58,54 @@ export const getFieldData = async (instance: string): Promise<Field[]> => {
 const fieldNameAccepted = (name: string): boolean => {
   //
   //
-  return !RESERVED_COLUMN_NAMES.has(name as any);
+  if (
+    RESERVED_COLUMN_NAMES.has(name as any) ||
+    name.length > config.fields.name_max_length
+  )
+    return false;
+  return true;
 };
 export const setField = async (
   instance: string,
   field: Field,
 ): Promise<Field> => {
-  if (
-    field.name === "content" &&
-    (field.is_required || field.replacement) &&
-    !fieldNameAccepted(field.name)
-  ) {
-    throw new UnauthorizedError(
-      "Provided field name is reserved by the system",
+  if (field.name === "content" && (field.is_required || field.replacement)) {
+    throw new BadRequestError(
+      "Unable to alter required/replacement status for field 'content'",
     );
   }
-  // if (field.filter == "") {
-  //   field.filter = null;
-  // }
-  // if (field.replacement === "") {
-  //   field.replacement = null;
-  // }
-  const record = {
+  if (!fieldNameAccepted(field.name))
+    throw new BadRequestError("Provided field name is not accepted");
+  if ((await instanceFieldCount(instance)) > config.fields.max_count)
+    throw new BadRequestError("Maximum amount of fields reached");
+  const record: Partial<Field> = {
     instance: instance,
     name: field.name,
     is_required: field.is_required,
   };
   if (field.replacement) {
-    //@ts-expect-error
     record.replacement = field.replacement;
   }
   if (field.filter) {
-    //@ts-expect-error
+    if (field.filter.length > config.fields.max_filter_length)
+      throw new BadRequestError(
+        "Field filter is above maximum character length",
+      );
     record.filter = field.filter;
   }
-  console.log(field);
   return (
     await WRITER`INSERT INTO fields ${WRITER(record)}
   ON CONFLICT (instance, name) DO UPDATE SET ${WRITER(record)}
   RETURNING *`
   )[0];
+};
+export const instanceFieldCount = async (
+  instance: string,
+  DB = READER,
+): Promise<number> => {
+  const [count] =
+    await DB`SELECT COUNT(*) FROM fields WHERE instance = ${instance} AND name NOT IN ('content','author')`;
+  return count.count;
 };
 export const renameField = async (
   ctx: RequestContext,
@@ -102,9 +113,7 @@ export const renameField = async (
   newName: string,
 ) => {
   if (!fieldNameAccepted(newName)) {
-    throw new UnauthorizedError(
-      "Provided field name is reserved by the system",
-    );
+    throw new UnauthorizedError("Provided field name is not accepted");
   }
   return await WRITER.begin(async (tx) => {
     const [field] =
@@ -135,6 +144,10 @@ export const setFieldFilter = (
   if (!RegExp(filter)) {
     throw new SyntaxError("Provided regex is invalid");
   }
+  if (filter.toString().length > config.fields.max_filter_length)
+    throw new BadRequestError(
+      "Provided filter character length is above limit",
+    );
   WRITER`UPDATE FIELDS SET filter = ${filter} WHERE name = ${field} AND instance = ${
     ctx.instance
   }`;
@@ -149,100 +162,10 @@ export const getFieldFilters = (ctx: RequestContext) => {
 //
 //
 //
-//#region VERIFY
+
 const canAlterField = async (ctx: RequestContext, field: Field) => {
   if (field.name in RESERVED_COLUMN_NAMES) {
     throw new UnauthorizedError("Attempted to alter a reserved column");
   }
   return true;
 };
-
-// const validateFieldSafety = (name: string, field: Field): Field => {
-//   if (Object.keys(defaultFields).includes(name)) {
-//     const err = new Error("Attempted to alter default field");
-//     err.name = "UnsafeFieldError";
-//     throw err;
-//   }
-//   const allowedKeys = new Set([
-//     "name",
-//     "type",
-//     "public",
-//     "special",
-//     "required",
-//     "replacement",
-//     "filter",
-//   ]);
-
-//   if (Object.keys(field).filter((k) => !allowedKeys.has(k)).length > 0) {
-//     throw new Error(
-//       "Unauthorized keys inputted while attempting field creation",
-//     );
-//   }
-
-//   if (
-//     !isSafeSQLString(name) ||
-//     !isSafeSQLString(field.replacement ?? "UNSET")
-//   ) {
-//     throw new Error(
-//       "At least one string supplied for field alteration is unsafe",
-//     );
-//   }
-//   field.type = "TEXT";
-//   if (field.required) {
-//     field.type += " NOT NULL";
-//   }
-//   if (field.replacement) {
-//     field.type += " DEFAULT " + field.replacement;
-//   }
-//   field.special = false;
-//   field.public = true;
-//   field.name = name;
-//   return field;
-// };
-
-// Ensure all specified fields are able to be publicly inputted
-// const allFieldsAreAccepted = (
-//   providedFields: Record<string, string>,
-// ): boolean => {
-//   if (!allFieldsExist(Object.keys(providedFields))) {
-//     return false;
-//   }
-
-//   if (fieldsFiltered(providedFields, fields)) {
-//     return false;
-//   }
-
-//   const disallowedFields = Object.values(fields)
-//     .filter((field) => !field.public || field.special)
-//     .map((field) => field.name);
-
-//   return Object.keys(providedFields).every(
-//     (key) => !disallowedFields.includes(key),
-//   );
-// };
-
-// const allFieldsExist = (fields: string[]): boolean => {
-//   return [
-//     ...Object.values(PUBLIC_COLUMN_NAMES),
-//     ...Object.values(PRIVATE_COLUMN_NAMES),
-//     ...Object.values(SYSTEM_COLUMN_NAMES),
-//   ].every((field) => fields.includes(field));
-// };
-
-// Filter fields against their individual regex patterns
-// const fieldsFiltered = (
-//   providedFields: Record<string, string>,
-//   fields: Record<string, Field>,
-// ): boolean => {
-//   const filters = Object.entries(fields)
-//     .filter(
-//       (entry): entry is [string, Field & { filter: RegExp }] =>
-//         !!entry[1].filter,
-//     )
-//     .map(([name, config]) => ({ name, filter: config.filter }));
-//   console.log(filters, providedFields);
-//   return Object.entries(providedFields).every(([key, value]) => {
-//     const rule = filters.find(({ name }) => name === key);
-//     return !rule || value.match(rule.filter);
-//   });
-// };
