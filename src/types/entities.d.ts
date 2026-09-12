@@ -62,7 +62,7 @@ export interface Post {
   readonly added: string;
   author: string;
   content: string;
-  extra: Record<string, unknown>;
+  extra: Record<string, string>;
   readonly sys_lock: boolean;
 }
 export interface Field {
