@@ -115,4 +115,4 @@ CREATE TABLE service_settings (
   value BOOLEAN NOT NULL,
   message TEXT
 );
-INSERT INTO service_settings (name, value) VALUES ('signup_enabled', false), ('totp_enabled', true),('login_enabled',true),('account_deletion_enabled',true), ('signup_requires_invitation',false);
+INSERT INTO service_settings (name, value) VALUES ('signup_enabled', false), ('totp_enabled', true),('login_enabled',true), ('signup_requires_invitation',false);
