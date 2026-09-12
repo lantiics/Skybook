@@ -97,7 +97,7 @@ const validatedEntry = async (
   for (const [name, field] of Object.entries(fields)) {
     if (field === "") delete fields[name];
   }
-  const extraFields = fields.extra?.map((f) => f[0]) ?? [];
+  const extraFields = fields.extra?.map((f: [string, string][]) => f[0]) ?? [];
 
   const fieldFilter = await instanceSuppliedFilter(ctx.instance);
 
@@ -114,7 +114,7 @@ const validatedEntry = async (
   const validFields = new Set(Object.keys(instanceFields));
   console.log(validFields);
 
-  if (!extraFields.every((name) => validFields.has(name)))
+  if (!extraFields.every((name: string) => validFields.has(name)))
     throw new BadRequestError("At least one field specified does not exist");
 
   let entry: Partial<Post> = {

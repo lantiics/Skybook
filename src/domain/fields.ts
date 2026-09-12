@@ -67,7 +67,7 @@ const fieldNameAccepted = (name: string): boolean => {
 };
 export const setField = async (
   instance: string,
-  field: Field,
+  field: Partial<Field> & Required<Pick<Field, "name">>,
 ): Promise<Field> => {
   if (field.name === "content" && (field.is_required || field.replacement)) {
     throw new BadRequestError(
