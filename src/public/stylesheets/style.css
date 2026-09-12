@@ -15,7 +15,7 @@
   --on-informatory: black --danger: #da4040;
   --danger: #4d3434;
   --on-danger: #d2b0b0;
-  --caution: #c2af8e;
+  --caution: #ceac70;
   --on-caution: black;
   background-color: #070c28;
   --color: #fff;
@@ -33,6 +33,15 @@
 }
 
 .loading {
+}
+
+.information-box {
+  border: 2px groove var(--border-color);
+  padding: 6px;
+  border-radius: var(--secondary-brad);
+  background-color: var(--tertiary-container);
+  font-size: large;
+  font-weight: bold;
 }
 
 a {
