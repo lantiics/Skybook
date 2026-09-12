@@ -3,7 +3,7 @@
   <button onclick="actOnPost(this.parentNode.parentNode,this)" data-action="delete" class="danger" <% if (post.sys_lock && !ctx.superAdmin) {%> disabled="true" <% }%>>delete</button>
   <% if (ctx.elevated) { %>
 
-  <% if (post.authenticated_user_identifier !== ctx.user.identifier && post.ip_hash) {%><button onclick="actOnPost(this.parentNode.parentNode,this)" data-action="<% if(post.creator_blocked)  {%>unblock<% } else {%>block<%}%>" <% if (post.sys_lock && !ctx.superAdmin) {%> disabled=" true" <% }%>><% if(post.creator_blocked)  {%> unblock <% } else {%>block<%}%> </button> <%}%>
+  <% if (ctx.user && post.authenticated_user_identifier !== ctx.user.identifier && post.ip_hash) {%><button onclick="actOnPost(this.parentNode.parentNode,this)" data-action="<% if(post.creator_blocked)  {%>unblock<% } else {%>block<%}%>" <% if (post.sys_lock && !ctx.superAdmin) {%> disabled=" true" <% }%>><% if(post.creator_blocked)  {%> unblock <% } else {%>block<%}%> </button> <%}%>
     <button onclick="actOnPost(this.parentNode.parentNode,this)" data-action="visibility" <% if (post.sys_lock && !ctx.superAdmin) {%> disabled=" true" <% }%>><%=post.is_visible?"hide":"unhide"%></button>
     <button onclick="actOnPost(this.parentNode.parentNode,this)" data-action="highlight" <% if (post.sys_lock && !ctx.superAdmin) {%> disabled=" true" <% }%>><%=post.is_highlighted?"un-highlight":"highlight"%></button>
     <button onclick="actOnPost(this.parentNode.parentNode,this)" data-action="pin" <% if (post.sys_lock && !ctx.superAdmin) {%> disabled=" true" <% }%>><%=post.is_pinned?"unpin":"pin"%></button>
@@ -13,7 +13,7 @@
     <% } %>
     <button <%if (!post.reply){%>onclick="reply(this.parentNode.parentNode)" <%} else {%>onclick="deleteReply(this)" <%}%>><%=!post.reply?"reply":"delete reply"%></button>
       <% if (post.flag_count) {%><button onclick="actOnPost(this.parentNode.parentNode,this)" data-action="clear-flags">clear flags</button> <%}%>
-    <% if (!post.sys_lock&&ctx.elevated&&!post.postedByRequestor) {%><button onclick="actOnPost(this.parentNode.parentNode,this)" data-action="toggle-flagging" <% if(post.authenticated_user_identifier&&post.authenticated_user_identifier===ctx.user.identifier) {%>disabled <%}%>><%=post.can_flag?"disable flagging":"enable flagging"%></button><%} %>
+    <% if (!post.sys_lock&&ctx.elevated&&!post.postedByRequestor) {%><button onclick="actOnPost(this.parentNode.parentNode,this)" data-action="toggle-flagging" <% if(ctx.user&& post.authenticated_user_identifier&&post.authenticated_user_identifier===ctx.user.identifier) {%>disabled <%}%>><%=post.can_flag?"disable flagging":"enable flagging"%></button><%} %>
 
         <% } %>
         <% } %>
