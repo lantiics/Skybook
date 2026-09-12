@@ -192,6 +192,10 @@ router.get(
     if (!req.ctx.elevated) return res.sendStatus(403);
     try {
       const exportedData = await exportInstance(req.ctx);
+      res.set(
+        "Content-Disposition",
+        `attachment; filename="${req.ctx.instance}-export.csv"`,
+      );
       return res.status(200).send(exportedData);
     } catch (e) {
       return res.sendStatus(errorStatus(e, req.ctx.elevated));
