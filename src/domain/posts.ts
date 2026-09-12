@@ -77,14 +77,6 @@ const validatedEntry = async (
   }
 
   let instanceFields: Record<string, Omit<Field, "instance">> = {
-    parent: {
-      name: "parent",
-      is_special: false,
-      is_public: true,
-      is_required: false,
-      replacement: null,
-      filter: null,
-    },
     author: {
       name: "author",
       is_special: false,
@@ -175,7 +167,7 @@ const validatedEntry = async (
       throw new FilteredError("Field length is above limit");
     else if (content.length > config.fields.typical_max_length)
       throw new FilteredError("Field length is above limit");
-    if (!["author", "parent", "content"].includes(field)) {
+    if (!["author", "content"].includes(field)) {
       delete fields[field];
       extra[field] = content;
     }
@@ -492,12 +484,6 @@ export const togglePostVisibility = async (
 ) => {
   return await _updatePost(ctx, identifier, "is_visible = NOT is_visible");
 };
-export const togglePostReplying = async (
-  ctx: RequestContext,
-  identifier: string,
-) => {
-  return await _updatePost(ctx, identifier, "can_reply = NOT can_reply");
-};
 
 export const lockPostMethods = async (
   ctx: RequestContext,
@@ -550,48 +536,6 @@ export const getPosts = async (
       ${query}
     ${additionalRequirements}
     ORDER BY ${order} LIMIT ${perPage} OFFSET ${page * perPage}`;
-
-  // const pageToReturn = [...entries];
-  // const authorIds = [
-  //   ...new Set(
-  //     pageToReturn.map((p) => p.authenticated_user_identifier).filter(Boolean),
-  //   ),
-  // ];
-  // const authors = authorIds.length
-  //   ? await DB`SELECT identifier, name FROM users WHERE identifier IN ${DB(authorIds)}`
-  //   : [];
-  // const nameById = new Map(
-  //   authors.map((a: Record<string, string>) => [a.identifier, a.name]),
-  // );
-
-  // for (const post of pageToReturn) {
-  //   if (post.authenticated_user_identifier) {
-  //     post.authenticated_user_name = nameById.get(
-  //       post.authenticated_user_identifier,
-  //     );
-  //   }
-  // }
-  // const postsById = new Map();
-
-  // for (const post of pageToReturn) {
-  //   post.replies = [];
-  //   postsById.set(post.identifier, post);
-  // }
-
-  // const rootPosts = [];
-
-  // for (const post of pageToReturn) {
-  //   if (post.parent === null) {
-  //     rootPosts.push(post);
-  //   } else {
-  //     const parent = postsById.get(post.parent);
-  //     post.added = new Date(post.added).toUTCString();
-
-  //     if (parent) {
-  //       parent.replies.push(post);
-  //     }
-  //   }
-  // }
 
   return entries;
 };
