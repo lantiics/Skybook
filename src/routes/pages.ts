@@ -11,6 +11,7 @@ import {
 import { getFieldData } from "../domain/fields";
 import { config } from "../config";
 import { partials } from "./partials.ts";
+import { loginEnabled, signupEnabled } from "../domain/service-settings.ts";
 const router = Router();
 
 router.get("/", async (req: Request, res: Response) => {
@@ -29,6 +30,7 @@ router.get("/signup", async (req: Request, res: Response) => {
   try {
     res.locals.authAction = "signup";
     res.locals.captcha = config.captcha;
+    res.locals.signupEnabled = await signupEnabled();
     return renderWithLayout(req, res, "pages/signup", res.locals);
   } catch (e) {
     return res.sendStatus(500);
@@ -38,6 +40,7 @@ router.get("/login", async (req: Request, res: Response) => {
   try {
     res.locals.authAction = "login";
     res.locals.captcha = config.captcha;
+    res.locals.loginEnabled = await loginEnabled();
     return renderWithLayout(req, res, "pages/login", res.locals);
   } catch (e) {
     return res.sendStatus(500);

@@ -1,6 +1,7 @@
 <!-- views/pages/login.ejs -->
 
-<div>
+<div style="display:flex;flex-direction: column;place-items:center;">
+  <% if (loginEnabled ) {%>
   <h1>log in</h1>
-  <%- include('../partials/authentication-form') %>
+  <%- include('../partials/authentication-form') %><%} else {%> <div class="information-box">Login is currently disabled</div><%}%>
 </div>
