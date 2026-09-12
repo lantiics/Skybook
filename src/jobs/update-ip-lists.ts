@@ -171,7 +171,7 @@ const doTor = async () => {
 };
 
 const reindex = async () => {
-  await WRITER`REINDEX INDEX CONCURRENTLY idx_blocklist_range`;
+  await WRITER`REINDEX INDEX CONCURRENTLY idx_blocklist_ranges`;
 };
 
 // await doProxy();
