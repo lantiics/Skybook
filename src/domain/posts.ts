@@ -105,20 +105,24 @@ const validatedEntry = async (
   for (const [name, field] of Object.entries(fields)) {
     if (field === "") delete fields[name];
   }
+  const extraFields = fields.extra?.map((f) => f[0]) ?? [];
+
   const fieldFilter = await instanceSuppliedFilter(ctx.instance);
 
   const cF =
-    await READER`SELECT name, is_special, is_public, is_required, replacement, filter FROM fields WHERE instance = ${ctx.instance}`;
-  //@ts-expect-error
+    (await READER`SELECT name, is_special, is_public, is_required, replacement, filter FROM fields WHERE instance = ${ctx.instance}`) as Field[];
+
+  console.log(cF);
   const customFields = Object.fromEntries(cF.map((v) => [v.name, v]));
+  console.log(customFields, "custom fields");
 
   instanceFields = { ...instanceFields, ...customFields };
+  console.log(instanceFields, "yep");
+  console.log(fields, "actually da fields");
+  const validFields = new Set(Object.keys(instanceFields));
+  console.log(validFields);
 
-  if (
-    !Object.entries(fields).every(([name, _]) =>
-      Object.keys(instanceFields).includes(name),
-    )
-  )
+  if (!extraFields.every((name) => validFields.has(name)))
     throw new BadRequestError("At least one field specified does not exist");
 
   let entry: Partial<Post> = {
@@ -251,14 +255,17 @@ export const editPost = async (
       );
     }
   }
+  console.log(fields);
+  const extra: Record<string, string | undefined> = {};
+
   Object.keys(fields).forEach((key) => {
-    if (!["content", "parent", "author"].includes(key)) {
-      //@ts-expect-error
-      fields.extra = [[key, fields[key]]];
+    if (!["content", "author"].includes(key)) {
+      extra[key] = fields[key];
       delete fields[key];
     }
   });
-  await validatedEntry(ctx, fields, true);
+  console.log(fields.extra, "extra");
+  // await validatedEntry(ctx, fields, true);
   const columns = ctx.superAdmin
     ? `*`
     : (ctx.elevated
@@ -266,10 +273,27 @@ export const editPost = async (
         : [...PUBLIC_COLUMN_NAMES]
       ).join(",");
   fields.last_edited_by = ctx.user?.identifier;
-  const row =
-    await WRITER`UPDATE posts SET ${WRITER(fields)} WHERE identifier = ${identifier} AND instance = ${ctx.instance}  RETURNING ${WRITER.unsafe(columns)}`;
+  console.log(JSON.stringify(fields.extra));
+  // WRITER.
+  // if (fields.extra) {
+  // const row = await WRITER`
 
-  return row;
+  const hasExtra = Object.keys(extra).length > 0;
+  const hasFields = Object.keys(fields).length > 0;
+
+  const row = await WRITER`
+    UPDATE posts
+    SET ${hasFields ? WRITER(fields) : WRITER``}
+    ${hasFields && hasExtra ? WRITER`,` : WRITER``}
+    ${
+      hasExtra
+        ? WRITER`extra = COALESCE(extra, '{}'::jsonb) || ${extra}::jsonb`
+        : WRITER``
+    }
+    WHERE identifier = ${identifier} AND instance = ${ctx.instance}
+    RETURNING ${WRITER.unsafe(columns)}
+  `;
+  return;
 };
 export const deletePost = async (ctx: RequestContext, identifier: string) => {
   if (!ctx.elevated) {

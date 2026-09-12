@@ -280,9 +280,9 @@ const editPost = async (post, field) => {
     else msg = "Post returned " + res.status;
     throw new PostAlterationError("Failed to edit post: " + msg);
   } else {
-    const newContent = (await res.json())[0][fieldName];
-    field.innerText = newContent;
-    field.setAttribute("data-original-content", newContent);
+    // const newContent = (await res.json())[fieldName];
+    // field.innerText = field.innerText;
+    field.setAttribute("data-original-content", field.innerText);
   }
 };
 
