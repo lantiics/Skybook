@@ -90,7 +90,7 @@ export const toggleUserPosting = async (ctx: RequestContext, name: string) => {
 export const tryUserEnforcement = async (UUID: string, DB = READER) => {
   if (!config.skybook.user_enforcements_enabled) return;
   const history =
-    await DB`SELECT id,type,created_at,expires_at FROM user_enforcements WHERE user = ${UUID}`;
+    await DB`SELECT id,type,created_at,expires_at FROM user_enforcements WHERE user_identifier = ${UUID}`;
 
   const frequency: [string, string][] = []; // created,expires
   const [f] =
@@ -146,6 +146,6 @@ export const tryGlobalBlock = async (
 
 export const globalBlock = async (ipHash: string, DB = WRITER) => {
   await DB`
-    INSERT INTO global_ip_blocks (ip_hash, reason) VALUES (${ipHash}, ${DB`SYSTEM: Exceeded per-instance block threshold of ${config.ip_blocking.global_block_threshold}`}')
+    INSERT INTO global_ip_blocks (ip_hash, reason) VALUES (${ipHash}, ${DB`SYSTEM: Exceeded per-instance block threshold of ${config.ip_blocking.global_block_threshold}`})
     ON CONFLICT (ip_hash) DO NOTHING`;
 };
