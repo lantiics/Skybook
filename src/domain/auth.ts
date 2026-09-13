@@ -24,8 +24,10 @@ export const setupTwoFactor = async (user: string) => {
       light: "#202020ff",
     },
   };
-  //@ts-expect-error
-  const qrDataUrl = await (QRCode.toDataURL(uri, opts) as Promise<unknown>);
+  const qrDataUrl = await (QRCode.toDataURL(
+    uri,
+    opts as Partial<QRCode.QRCodeToDataURLOptions>,
+  ) as Promise<unknown>);
 
   return {
     secret,
