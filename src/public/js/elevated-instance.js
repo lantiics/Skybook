@@ -297,7 +297,10 @@ const deleteField = async (btn) => {
 //#region ENTRIES
 const deleteReply = async (btn) => {
   btn.disabled = true;
-  const identifier = btn.parentNode.parentNode.getAttribute("data-identifier");
+  const identifier =
+    btn.parentNode.parentNode.parentNode.parentNode.getAttribute(
+      "data-identifier",
+    );
   const res = await fetch(`/api/${instanceName()}/entry/${identifier}/reply`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -310,7 +313,7 @@ const deleteReply = async (btn) => {
   }
   btn.removeAttribute("disabled");
   btn.innerText = "reply";
-  btn.parentNode.parentNode.querySelector("div > div.reply").remove();
+  btn.parentNode.parentNode.remove();
   btn.setAttribute("data-action", "reply");
   btn.onclick = () => reply(btn.parentNode.parentNode);
 };
