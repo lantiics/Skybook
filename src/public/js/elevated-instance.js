@@ -15,7 +15,7 @@ const openTab = (btn, tabName) => {
   if (btn) btn.classList.add("active");
   else
     document.querySelector(`[data-tab='${tabName}']`).classList.add("active");
-  location.hash = tabName;
+  history.replaceState(null, "", `#${tabName}`);
 };
 // settings
 
