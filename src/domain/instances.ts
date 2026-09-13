@@ -72,6 +72,8 @@ export const _getSpecifiedInstanceStatus = async (
     status.locked = true;
   }
   // console.log(status, "status!!!!");
+
+  return status;
 };
 export const isVisible = async (instance: string): Promise<Status> => {
   const status = await _getSpecifiedInstanceStatus(instance, "is_visible");
