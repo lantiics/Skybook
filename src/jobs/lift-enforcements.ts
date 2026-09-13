@@ -34,6 +34,9 @@ const liftUserEnforcements = async () => {
 unblockLapsedIps();
 liftUserEnforcements();
 
-setInterval(() => {
-  (unblockLapsedIps(), liftUserEnforcements());
-}, config.jobs.lift_enforcements_interval_minutes);
+setInterval(
+  () => {
+    (unblockLapsedIps(), liftUserEnforcements());
+  },
+  config.jobs.lift_enforcements_interval_minutes * 60 * 1000,
+);
