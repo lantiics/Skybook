@@ -1,7 +1,7 @@
 require("dotenv");
 
 import { WRITER, READER } from "../db";
-import { Transform } from "node:stream";
+import { PipelineSource, Transform } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import {
   createReadStream,
