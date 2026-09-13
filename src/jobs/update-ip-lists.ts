@@ -69,8 +69,12 @@ const doProxy = async () => {
         }
         cb();
       },
-    }); //@ts-expect-error
-    await pipeline(res.body, transform, createWriteStream(tmpFile));
+    });
+    await pipeline(
+      res.body as PipelineSource<ReadableStream<string>>,
+      transform,
+      createWriteStream(tmpFile),
+    );
     const rl = createInterface({
       input: createReadStream(tmpFile),
       crlfDelay: Infinity,
