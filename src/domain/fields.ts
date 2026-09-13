@@ -47,11 +47,10 @@ export const getFieldData = async (instance: string): Promise<Field[]> => {
     { name: "content", is_required: true, replacement: null, filter: null },
   ];
   const merged = fields.concat(
-    //@ts-expect-error
     defaultFields.filter(
       (defaultField) =>
         !fields.some((field) => field.name === defaultField.name),
-    ),
+    ) as unknown as ConcatArray<Field>,
   );
   return merged;
 };
