@@ -86,12 +86,8 @@ instanceRouter.get(
               post.author.toLowerCase()
           )
             post.authentic = true;
-          post.creator_blocked = await instanceHasRequesterBlocked(
-            req.ctx.instance,
-
-            post.ip_hash,
-            post.user_identifier ?? "",
-          );
+          post.creator_blocked = (parseInt(post.block_count) ?? 0) > 0;
+          console.log(post);
           if (post.authenticated_user_identifier === req.ctx.user?.identifier) {
             post.postedByRequestor = true;
           } else {
@@ -159,12 +155,7 @@ instanceRouter.get("/embed", async (req: Request, res: Response) => {
             post.author.toLowerCase()
         )
           post.authentic = true;
-        post.creator_blocked = await instanceHasRequesterBlocked(
-          req.ctx.instance,
-
-          post.ip_hash,
-          post.user_identifier ?? "",
-        );
+        post.creator_blocked = (parseInt(post.block_count) ?? 0) > 0;
         if (post.authenticated_user_identifier === req.ctx.user?.identifier) {
           post.postedByRequestor = true;
         } else {
