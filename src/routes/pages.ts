@@ -73,81 +73,13 @@ router.get("/account", async (req: Request, res: Response) => {
     return res.sendStatus(500);
   }
 });
-
-export const instanceRouter = Router();
-instanceRouter.get(
-  "/",
-  async (req: Request, res: Response, next: NextFunction) => {
-    if (!req.ctx.instance) return next();
-    try {
-      let page;
-      page = Number(req.query?.p ?? 0);
-      if (page === undefined) page = 0;
-      const pages = await pageCount(req.ctx);
-      res.locals.pages = pages;
-      if (Math.sign(page) === -1) return res.redirect(`/${req.ctx.instance}`);
-      const status = await compiledInstanceStatus(req.ctx.instance);
-      res.locals.status = status;
-      if (status.is_visible.status || req.ctx.elevated) {
-        console.log(req.query.p);
-
-        const posts = await getPosts(req.ctx, page);
-        if (!posts[0] && page !== 0)
-          return res.redirect(`/${req.ctx.instance}?p=${pages}`);
-        for (const post of posts) {
-          post.added = new Date(post.added).toUTCString();
-          if (
-            post.authenticated_user_name &&
-            post.authenticated_user_name.toLowerCase().replace(/ /g, "") ===
-              post.author.toLowerCase()
-          )
-            post.authentic = true;
-          post.creator_blocked = (parseInt(post.block_count) ?? 0) > 0;
-          console.log(post);
-          if (post.authenticated_user_identifier === req.ctx.user?.identifier) {
-            post.postedByRequestor = true;
-          } else {
-            post.postedByRequestor = false;
-          }
-          if (post.extra == "{}" || !post.extra) {
-            post.extra = [];
-          } else {
-            post.extra = Object.entries(post.extra);
-          }
-
-          console.log(post.extra, "yea");
-        }
-        res.locals.posts = posts;
-      }
-      if (req.ctx.elevated) {
-        res.locals.blocks = await instanceIpBlocks(req.ctx.instance);
-        res.locals.blocks.global = {
-          proxy: config.ip_blocking.proxy_addresses_blocked,
-          vpn: config.ip_blocking.vpn_addresses_blocked,
-          tor: config.ip_blocking.tor_addresses_blocked,
-        };
-        (res.locals.filter = await instanceSuppliedFilter(req.ctx.instance)) ??
-          "";
-      }
-
-      res.locals.fields = await getFieldData(req.ctx.instance);
-      if (!res.locals.fields.author) {
-      }
-      if (!res.locals.fields.content) {
-        res.locals.fields.content = { is_required: true };
-      }
-      res.locals.captcha = config.captcha;
-      res.locals.page = page;
-      res.locals.title = `${req.ctx.instance}'s guestbook - Skybook`;
-      return renderWithLayout(req, res, "pages/instance", res.locals);
-    } catch (e) {
-      console.error(e, "error", req.ctx.instance);
-      return res.sendStatus(500);
-    }
-  },
-);
-
-instanceRouter.get("/embed", async (req: Request, res: Response) => {
+const instanceLogic = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+  embed: boolean = false,
+) => {
+  if (!req.ctx.instance) return next();
   try {
     let page;
     page = Number(req.query?.p ?? 0);
@@ -171,7 +103,8 @@ instanceRouter.get("/embed", async (req: Request, res: Response) => {
             post.author.toLowerCase()
         )
           post.authentic = true;
-        post.creator_blocked = (parseInt(post.block_count) ?? 0) > 0;
+        post.creator_blocked = (parseInt(post.block_count) || 0) > 0;
+        console.log(post);
         if (post.authenticated_user_identifier === req.ctx.user?.identifier) {
           post.postedByRequestor = true;
         } else {
@@ -182,6 +115,8 @@ instanceRouter.get("/embed", async (req: Request, res: Response) => {
         } else {
           post.extra = Object.entries(post.extra);
         }
+
+        console.log(post.extra, "yea");
       }
       res.locals.posts = posts;
     }
@@ -205,11 +140,31 @@ instanceRouter.get("/embed", async (req: Request, res: Response) => {
     res.locals.captcha = config.captcha;
     res.locals.page = page;
     res.locals.ctx = req.ctx;
-    return res.render("embeds/instance");
+
+    res.locals.title = `${req.ctx.instance}'s guestbook - Skybook`;
+    if (!embed) {
+      return renderWithLayout(req, res, "pages/instance", res.locals);
+    } else {
+      return res.render("embeds/instance");
+    }
   } catch (e) {
+    console.error(e, "error", req.ctx.instance);
     return res.sendStatus(500);
   }
-});
+};
+export const instanceRouter = Router();
+instanceRouter.get(
+  "/",
+  async (req: Request, res: Response, next: NextFunction) => {
+    return await instanceLogic(req, res, next, false);
+  },
+);
+instanceRouter.get(
+  "/embed",
+  async (req: Request, res: Response, next: NextFunction) => {
+    return await instanceLogic(req, res, next, true);
+  },
+);
 
 router.use("/partials", partials);
 
