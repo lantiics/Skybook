@@ -6,7 +6,6 @@ cloudflare = true
 user_enforcements_enabled=true
 domain="skybook.page"
 header="Skybook is currently under development, stability can not be guaranteed."
-invitation_required=true
 username_max_length=15 # If altered, requires alteration of the `name` column in the `users` DB table, which defaults to VARCHAR(15)
 username_min_length=3
 [instances]

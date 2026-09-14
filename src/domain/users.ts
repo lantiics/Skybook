@@ -29,6 +29,7 @@ import { userInformation } from "./enforcements.ts";
 import { randomBytes } from "node:crypto";
 import cookieParser from "cookie-parser";
 import { text } from "express";
+import { invitationIsValid } from "./invitations.ts";
 
 export const userUUID = async (name: string) => {
   const [user] =
@@ -77,11 +78,11 @@ export const createUser = async (
   if (password.length < 8) {
     throw new ForbiddenError("Password is too short");
   }
-  // if ((await signupInvitationRequired()) && !invite) {
-  //   throw new UnauthorizedError(
-  //     "No invitation required while signing up requires an invitation",
-  //   );
-  // }
+  if (await signupInvitationRequired()) {
+    if (!invite) throw new UnauthorizedError("No invitation provided");
+    if (!(await invitationIsValid(invite)))
+      throw new UnauthorizedError("Provided invitation token is invalid");
+  }
   try {
     password = await Bun.password.hash(password);
     const userIdentifier = generateToken();
