@@ -22,7 +22,7 @@
   <%}%>
                       <% if (post.flag_count) {%><button onclick="actOnPost(this.parentNode.parentNode,this)" title="Clear flags" class="clearFlagsBtn" data-action="clear-flags"></button>
   <%}%>
-                          <% if (!post.sys_lock&&ctx.elevated&&!post.postedByRequestor) {%><button onclick="actOnPost(this.parentNode.parentNode,this)" title="<%=post.can_flag?'Disable flaggong':'Enable flagging'%>" class="<%=post.can_flag?'flaggedBtn':'flagBtn'%>" data-action="toggle-flagging" <%
+                          <% if (!post.sys_lock&&ctx.elevated&&!post.postedByRequestor) {%><button onclick="actOnPost(this.parentNode.parentNode,this)" title="<%=post.can_flag?'Disable flagging':'Enable flagging'%>" class="<%=post.can_flag?'flaggedBtn':'flagBtn'%>" data-action="toggle-flagging" <%
                               if(ctx.user&&
                               post.authenticated_user_identifier&&post.authenticated_user_identifier===ctx.user.identifier)
                               {%>disabled <%}%>></button>
