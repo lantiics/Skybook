@@ -31,6 +31,7 @@ router.get("/signup", async (req: Request, res: Response) => {
     res.locals.authAction = "signup";
     res.locals.captcha = config.captcha;
     res.locals.signupEnabled = await signupEnabled();
+    res.locals.title = "Sign up - Skybook";
     return renderWithLayout(req, res, "pages/signup", res.locals);
   } catch (e) {
     return res.sendStatus(500);
@@ -41,6 +42,7 @@ router.get("/login", async (req: Request, res: Response) => {
     res.locals.authAction = "login";
     res.locals.captcha = config.captcha;
     res.locals.loginEnabled = await loginEnabled();
+    res.locals.title = "Log in - Skybook";
     return renderWithLayout(req, res, "pages/login", res.locals);
   } catch (e) {
     return res.sendStatus(500);
@@ -52,6 +54,7 @@ router.get("/account", async (req: Request, res: Response) => {
     return res.redirect("/login");
   }
   try {
+    res.locals.title = "My account - Skybook";
     renderWithLayout(req, res, "pages/account", res.locals);
   } catch (e) {
     return res.sendStatus(500);
@@ -122,7 +125,7 @@ instanceRouter.get(
       }
       res.locals.captcha = config.captcha;
       res.locals.page = page;
-
+      res.locals.title = `${req.ctx.instance}'s guestbook - Skybook`;
       return renderWithLayout(req, res, "pages/instance", res.locals);
     } catch (e) {
       console.error(e, "error", req.ctx.instance);
