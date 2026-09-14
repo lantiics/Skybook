@@ -12,6 +12,7 @@ Skybook is currently unfinished but in a very usable state.
    - OR: Vanity pages (skybook.page/yourname)
  - Optional blocking of proxy, VPN, and Tor IP addresses
  - Deletion, editing, hiding of entries
+ - Ability to reply to entries
  - Toggle submission, visibility of your guestbook
  - Optionally require approval for all entries before they become visible
  - The ability to block post creators
