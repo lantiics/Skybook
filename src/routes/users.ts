@@ -33,12 +33,7 @@ router.post("/signup", authLimiter, async (req: Request, res: Response) => {
     if (!req.ip) {
       throw new ForbiddenError("");
     }
-    if (config.skybook.invitation_required) {
-      if (!req.body.invitation)
-        throw new UnauthorizedError("No invitation provided");
-      if (!(await invitationIsValid(req.body.invitation)))
-        throw new UnauthorizedError("Provided invitation token is invalid");
-    }
+
     req.body.username = req.body.username.toLowerCase();
 
     const sessionKey = await createUser(

@@ -33,8 +33,7 @@ Skybook is currently unfinished but in a very usable state.
 
 
 ### Skybook Features:
- - Optionally, require an invitation code for creating an account
- - Ability to toggle signup, login, and account deletion*
+ - Ability to toggle signup, login, and require an invitation code for signup*
  - Captcha support: Both [Cap](https://trycap.dev) and Cloudflare Turnstile
  - Optional blocking of proxy, VPN, Tor IP addresses instance-wide
 
@@ -58,7 +57,6 @@ cloudflare = true
 user_enforcements_enabled=true
 domain="skybook.localhost"
 header="Skybook is currently under development, stability can not be guaranteed." # Set to null if not needed
-invitation_required=false
 username_max_length=15
 username_min_length=3
 [captcha]
