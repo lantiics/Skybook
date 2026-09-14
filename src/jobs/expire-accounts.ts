@@ -11,4 +11,7 @@ const expireOldAccounts = async (): Promise<void> => {
 };
 
 expireOldAccounts();
-setInterval(expireOldAccounts, config.jobs.expiration_sweep_interval_minutes);
+setInterval(
+  expireOldAccounts,
+  config.jobs.expiration_sweep_interval_minutes * 60 * 1000,
+);
