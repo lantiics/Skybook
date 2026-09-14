@@ -1,0 +1,35 @@
+<h1>Features</h1>
+
+<p>Skybook is a fully open-source guestbook hosting service which unintentionally grew out of a rewrite of a personal guestbook script.</p>
+<h3>Features</h3>
+<ul style="display:grid;gap:12px;">
+  <!-- MISC -->
+  <li><strong><a href="https://gitlab.com/lantics/skybook">Fully open-source</a></strong>.</li>
+  <li>Hashing and salting of <i>all</i> IP addresses before storage.</li>
+  <li><%=subdomain_vanity?`Vanity subdomains (yourname.${domain})`:`Vanity pages (${domain}/yourname)`%>.</li>
+  <li><strong>Ability for end-users to flag posts made on your guestbook</strong>.
+  <li style="list-style-type: circle;list-style-position: inside;">You can also set a threshold of flags at which a
+    post will be automatically queued. If you know a post is acceptable, you can disable flagging for that specific
+    post. Posts made by guestbook owners are never flaggable.</li>
+  </li>
+  <li>Ability to block post creators.
+  <li style="list-style-type: circle;list-style-position: inside;"><strong>This feeds into a global reputation database. If a creator is blocked too often, both their account and IP address are blocked from Skybook. Global blocks of IP addresses expire after 30 days, as IP addresses are not indefinite identifiers.</strong> </li>
+  </li>
+  <!-- FIELDS -->
+  <li>Create custom fields.</li>
+  <li>Optionally set a per-field filter, using regular expressions.</li>
+  <li>Ability to make a field required, and <strong>have a default value if a required field is not provided</strong>.</li>
+  <li>Ability to create a filter, using regular expressions, which applies to <i>all</i> fields on your guestbook.</li>
+  <li><strong>Choose between immediately discarding filtered entries, or requiring approval before they are visible</strong>.</li>
+  <!-- ENTRIES -->
+  <li>Optionally require entries to undergo manual approval before being visible on your guestbook.</li>
+  <li>Ability to edit, delete, and hide entries.</li>
+  <li>Ability to reply to entries.</li>
+
+  <li>Ability to block entries created by IP addresses linked to proxy, VPN, or Tor services, respectively.<br /> <sub>(Skybook instances can also block all traffic from each respective source individually, overriding your ability to disable this)</sub></li>
+  <!-- GUESTBOOKS -->
+  <li>Ability to toggle submission or visibility on your guestbook.</li>
+  <li>Easily export your guestbook</li>
+  <li>Easily import your guestbook <sub>(up to 1000 entries)</sub></li>
+  <li>Iframe embedding of your guestbook @ yourinstance/embed</li>
+</ul>
