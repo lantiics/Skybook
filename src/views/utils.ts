@@ -12,6 +12,7 @@ export const renderWithLayout = (
       console.error(err);
       return res.sendStatus(500);
     }
+
     res.render("layout", {
       title: locals.title ?? "Skybook",
       body: innerHtml,

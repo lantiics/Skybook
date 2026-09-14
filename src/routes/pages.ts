@@ -25,6 +25,19 @@ router.get("/", async (req: Request, res: Response) => {
     return res.sendStatus(500);
   }
 });
+router.get("/features", async (req: Request, res: Response) => {
+  try {
+    res.locals.subdomain_vanity = config.skybook.subdomain_vanity;
+    res.locals.domain = config.skybook.domain;
+    res.locals.user = req.ctx.user;
+    res.locals.authenticated = req.ctx.authenticated;
+    res.locals.title = "Features - Skybook";
+
+    return renderWithLayout(req, res, "pages/features", res.locals);
+  } catch (e) {
+    return res.sendStatus(500);
+  }
+});
 
 router.get("/signup", async (req: Request, res: Response) => {
   try {
