@@ -319,8 +319,8 @@ export const blockPostCreator = async (
     await READER`SELECT ip_hash,authenticated_user_identifier FROM posts WHERE identifier = ${identifier} AND instance = ${ctx.instance}`;
   await WRITER.begin(async (tx) => {
     await tx`INSERT INTO instance_blocks (instance, ip_hash, user_identifier, reason) VALUES (${ctx.instance},${postData.ip_hash},${postData.user_identifier},${reason})`;
-    const [blockCount] =
-      await tx`SELECT COUNT(*) FROM instance_blocks WHERE user_identifier IS NOT NULL`;
+    const [{ count: blockCount }] =
+      await tx`SELECT COUNT(*) FROM instance_blocks WHERE ip_hash = ${postData.ip_hash} OR user_identifier = ${postData.authenticated_user_identifier}`;
     await tryGlobalBlock(postData.ip_hash, blockCount, tx);
     // await tx``;
   });
@@ -393,7 +393,7 @@ export const flagPost = async (ctx: RequestContext, identifier: string) => {
     ).status;
     return await WRITER.begin(async (tx) => {
       await tx`INSERT INTO post_flags (instance, identifier, user_identifier, ip_hash) VALUES (${ctx.instance}, ${identifier}, ${ctx.user?.identifier}, ${hashIp(ctx.ip)});`;
-      const [flagCount] =
+      const [{ flag_count: flagCount }] =
         await tx`UPDATE posts SET flag_count = flag_count + 1 WHERE instance = ${ctx.instance} AND identifier = ${identifier} RETURNING flag_count`;
       if (flagCount >= queueFlagsThreshold) {
         await tx`UPDATE posts SET is_queued = true WHERE instance = ${ctx.instance} AND identifier = ${identifier}`;
