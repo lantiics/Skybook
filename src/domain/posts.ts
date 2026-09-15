@@ -131,14 +131,17 @@ const validatedEntry = async (
           );
         }
         fields[field.name] = field.replacement;
+      } else {
+        if ([null, ""].includes(fields[field.name])) {
+          if (!field.replacement)
+            throw new BadRequestError(
+              "Required field is not specified and has no default",
+            );
+          fields[field.name] = field.replacement;
+        }
       }
-    } else if (field.is_required && !fields[field.name] && isEdit) {
-      if (!field.replacement)
-        throw new BadRequestError(
-          "Required field is not specified and has no default",
-        );
-      fields[field.name] = field.replacement;
     }
+
     if (field["filter"] && fields[field.name]) {
       if (fieldIsFiltered(fields[field.name], new RegExp(field["filter"]))) {
         if (instanceStatus.queue_on_filtered.status) {
