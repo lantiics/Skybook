@@ -293,6 +293,19 @@ const deleteField = async (btn) => {
   }
 };
 
+const renameField = async (input) => {
+  await withDisabled(input, async () => {
+    const res = await fetch(
+      `/api/${instanceName()}/field/${input.parentNode.getAttribute("data-field-name")}`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ newName: input.innerText }),
+      },
+    );
+  });
+};
+
 //#endregion
 //#region ENTRIES
 const deleteReply = async (btn) => {
@@ -356,6 +369,18 @@ const initializeEventListeners = () => {
       updateGlobalFilter(globalFilterTextarea);
     }
   });
+  for (const field of existingFields) {
+    const em = document.querySelector(
+      `tr[data-field-name=${JSON.stringify(field)}] > th`,
+    );
+    console.log(em.getAttribute("contenteditable"), field);
+    if (!em.getAttribute("contenteditable")) continue;
+    em.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && !event.shiftKey) {
+        renameField(em);
+      }
+    });
+  }
 };
 const removeEventListeners = () => {
   const fieldReplacementElems = document.querySelectorAll(

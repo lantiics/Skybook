@@ -24,7 +24,14 @@ const errorStatus = (status) => {
   }
   return status ?? null;
 };
-
+const withDisabled = async (el, action, ms = 1500) => {
+  el.disabled = true;
+  try {
+    return await action();
+  } finally {
+    setTimeout(() => el.removeAttribute("disabled"), ms);
+  }
+};
 const popups = [];
 
 const createPopup = (text, duration = 1500) => {
