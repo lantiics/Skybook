@@ -2,15 +2,15 @@
 <div class="instance-switches">
   <div class="instance-switch-container">
     <span>Proxy addresses</span>
-    <input type="checkbox" class="instance-switch" name="visibility" id="instanceProxyBlocked" data-block="proxy" <% if (blocks.proxy||blocks.global.proxy) {%>checked <% } %> <% if(blocks.global.proxy) {%> disabled <% }%> onclick="blockAddresses(this,'proxy')">
+    <input type="checkbox" class="instance-switch" id="instanceProxyBlocked" data-block="proxy" <% if (blocks.proxy||blocks.global.proxy) {%>checked <% } %> <% if(blocks.global.proxy) {%> disabled <% }%> onclick="blockAddresses(this,'proxy')">
   </div>
   <div class="instance-switch-container">
     <span>VPN addresses</span>
-    <input type="checkbox" class="instance-switch" name="submission" id="instanceVPNBlocked" data-block="vpn" <% if (blocks.vpn||blocks.global.vpn) {%>checked <% } %> <% if(blocks.global.vpn) {%> disabled <% }%> onclick="blockAddresses(this,'vpn')">
+    <input type="checkbox" class="instance-switch" id="instanceVPNBlocked" data-block="vpn" <% if (blocks.vpn||blocks.global.vpn) {%>checked <% } %> <% if(blocks.global.vpn) {%> disabled <% }%> onclick="blockAddresses(this,'vpn')">
   </div>
   <div class="instance-switch-container">
     <span>Tor addresses</span>
-    <input type="checkbox" class="instance-switch" name="approval" id="instanceTorBlocked" data-block="tor" <% if (blocks.tor||blocks.global.tor) {%>checked <% } %> <% if(blocks.global.tor) {%> disabled <% }%> onclick="blockAddresses(this,'tor')">
+    <input type="checkbox" class="instance-switch" id="instanceTorBlocked" data-block="tor" <% if (blocks.tor||blocks.global.tor) {%>checked <% } %> <% if(blocks.global.tor) {%> disabled <% }%> onclick="blockAddresses(this,'tor')">
   </div>
 </div>
 
