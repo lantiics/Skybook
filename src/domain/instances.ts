@@ -54,6 +54,9 @@ export const _getSpecifiedInstanceStatus = async (
       "queue_on_filtered",
       "custom_filter",
       "queue_flags_threshold",
+      "blocklist_proxy_enabled",
+      "blocklist_vpn_enabled",
+      "blocklist_tor_enabled",
     ].includes(name)
   ) {
     throw new Error("Requested status is not permitted");
