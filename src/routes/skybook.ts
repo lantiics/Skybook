@@ -396,7 +396,7 @@ router
       try {
         const field = await renameField(
           req.ctx,
-          req.body.oldName,
+          req.params.field as string,
           req.body.newName,
         );
 

@@ -117,7 +117,7 @@ export const renameField = async (
   return await WRITER.begin(async (tx) => {
     const [field] =
       await tx`UPDATE fields SET name = ${newName} WHERE name = ${oldName} AND instance = ${ctx.instance}`;
-    await tx`UPDATE posts SET extra = extra - ${oldName} || jsonb_build_object(${newName}, extra -> ${oldName}) WHERE extra ? ${oldName} AND instance = ${ctx.instance}`;
+    await tx`UPDATE posts SET extra = extra - ${oldName} || jsonb_build_object(${newName}::text, extra -> ${oldName}) WHERE extra ? ${oldName} AND instance = ${ctx.instance}`;
     return field;
   });
 };
