@@ -324,9 +324,12 @@ export const exportInstance = async (ctx: RequestContext) => {
   return csv;
 };
 export const importInstance = async (instance: string, entries: Post[]) => {
-  console.log(entries, "import data");
+  // console.log(entries, "import data");
   entries = entries.slice(0, 1000);
   let extraKeys: Set<string> = new Set([]);
+  const currentFields =
+    await READER`SELECT name FROM fields WHERE instance = ${instance} AND name NOT IN ('author', 'content');`;
+  for (const { name: field } of currentFields) extraKeys.add(field);
   for (const entry of entries) {
     if ((entry.extra as unknown) == "{}") entry.extra = {};
     const inputFields = [
@@ -336,17 +339,11 @@ export const importInstance = async (instance: string, entries: Post[]) => {
       "reply",
       "added",
     ];
-    console.log(
-      entry.extra,
-      Object.keys(entry.extra),
-      Object.keys(entry.extra),
-      "all u need here bud",
-    );
 
     if (entry.extra) {
       for (const field of Object.keys(entry.extra)) {
-        console.log(field, "ahh");
         if (!extraKeys.has(field)) {
+          extraKeys.add(field);
           await setField(instance, { name: field, is_required: false });
         }
       }
