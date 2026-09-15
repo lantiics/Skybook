@@ -97,25 +97,15 @@ const validatedEntry = async (
   for (const [name, field] of Object.entries(fields)) {
     if (field === "") delete fields[name];
   }
-  const extraFields = fields.extra?.map((f: [string, string][]) => f[0]) ?? [];
 
   const fieldFilter = await instanceSuppliedFilter(ctx.instance);
 
   const cF =
     (await READER`SELECT name, is_special, is_public, is_required, replacement, filter FROM fields WHERE instance = ${ctx.instance}`) as Field[];
 
-  console.log(cF);
   const customFields = Object.fromEntries(cF.map((v) => [v.name, v]));
-  console.log(customFields, "custom fields");
 
   instanceFields = { ...instanceFields, ...customFields };
-  console.log(instanceFields, "yep");
-  console.log(fields, "actually da fields");
-  const validFields = new Set(Object.keys(instanceFields));
-  console.log(validFields);
-
-  if (!extraFields.every((name: string) => validFields.has(name)))
-    throw new BadRequestError("At least one field specified does not exist");
 
   let entry: Partial<Post> = {
     is_queued: instanceStatus.approval_required.status,
@@ -161,6 +151,7 @@ const validatedEntry = async (
       }
     }
   }
+  const validFields = new Set(Object.keys(instanceFields));
   let extra: Record<string, string> = {};
   for (const [field, content] of Object.entries(fields)) {
     if (field === "author" && content.length > config.fields.author_max_length)
@@ -168,6 +159,10 @@ const validatedEntry = async (
     else if (content.length > config.fields.typical_max_length)
       throw new FilteredError("Field length is above limit");
     if (!["author", "content"].includes(field)) {
+      if (!validFields.has(field))
+        throw new BadRequestError(
+          "At least one specified field does not exist",
+        );
       delete fields[field];
       extra[field] = content;
     }
