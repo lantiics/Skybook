@@ -67,6 +67,7 @@ app.use(function (req, res, next) {
 app.use(function (err, req, res, next) {
   res.locals.message = err.message;
   res.locals.error = err.status;
+  res.locals.title = err.status;
 
   // render the error page
   res.status(err.status || 500);
