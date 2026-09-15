@@ -21,8 +21,6 @@ import {
   compiledInstanceStatus,
   isVisible,
   instanceHasRequesterBlocked,
-  blockUser,
-  unblockUser,
   instanceIpBlocks,
   instanceSuppliedFilter,
   InstanceQueueFlaggedThreshold,
