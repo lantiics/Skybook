@@ -78,10 +78,12 @@ export const createUser = async (
   if (password.length < 8) {
     throw new ForbiddenError("Password is too short");
   }
+
   if (await signupInvitationRequired()) {
     if (!invite) throw new UnauthorizedError("No invitation provided");
-    if (!(await invitationIsValid(invite)))
+    if (!(await invitationIsValid(invite))) 
       throw new UnauthorizedError("Provided invitation token is invalid");
+    
   }
   try {
     password = await Bun.password.hash(password);
@@ -92,6 +94,7 @@ export const createUser = async (
         await tx`INSERT INTO users (name, identifier, password_hash, ip_hash) VALUES (${name},${userIdentifier},${password},${hashIp(ip)}) RETURNING name`;
       console.log("generating instance");
       await tx`INSERT INTO instances (name, user_identifier) VALUES (${name}, ${userIdentifier})`;
+
       return user;
     });
     console.log("generating session");
