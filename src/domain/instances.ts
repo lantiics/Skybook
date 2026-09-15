@@ -189,27 +189,6 @@ export const compiledInstanceStatus = async (
   return status;
 };
 
-export const blockUser = async (
-  instance: string,
-  uuid: string,
-  reason?: string,
-): Promise<void> => {
-  await WRITER.begin(async (tx) => {
-    await tx`INSERT INTO instance_user_blocks (instance, user_identifier, reason) VALUES (${instance},${uuid},${reason})`;
-    await tx`UPDATE posts AS t1 
-    SET creator_user_blocked_reason = t2.reason
-    FROM instance_user_blocks AS t2 
-    WHERE t1.authenticated_user_identifier = t2.user_identifier
-    AND t1.instance = ${instance}`;
-  }); //`INSERT INTO instance_user_blocks (instance,user_identifier,reason) VALUES (${instance},${uuid},${reason})`;
-};
-export const unblockUser = async (
-  instance: string,
-  uuid: string,
-): Promise<void> => {
-  await WRITER`DELETE FROM instance_user_blocks WHERE user_identifier = ${uuid} AND instance = ${instance};`;
-};
-
 export const instanceHasRequesterBlocked = async (
   instance: string,
 
