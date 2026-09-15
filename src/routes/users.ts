@@ -40,6 +40,7 @@ router.post("/signup", authLimiter, async (req: Request, res: Response) => {
       req.body.username,
       req.body.password,
       req.ip,
+      req.body?.invitation,
     );
     res.cookie("session", sessionKey, {
       signed: true,
