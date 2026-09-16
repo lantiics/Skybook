@@ -24,7 +24,7 @@ const _deleteOverride = async (ctx: RequestContext, status: string) => {
       "Invalid status specified while attempting to delete override",
     );
   }
-  await WRITER`DELETE FROM overrides WHERE name = ${status} AND instance ${ctx.instance ? WRITER(`= ${ctx.instance}`) : WRITER.unsafe("IS NULL")}`;
+  await WRITER`DELETE FROM overrides WHERE name = ${status} AND instance ${ctx.instance ? WRITER`= ${ctx.instance}` : WRITER.unsafe("IS NULL")}`;
 };
 // Convenience functions
 export const toggleApprovalOverride = async (ctx: RequestContext) => {
