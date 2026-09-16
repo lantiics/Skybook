@@ -36,9 +36,6 @@ max_filter_length=2500
 [rate_limits]
 auth_window_ms = 60000             # 1 minute
 auth_limit = 5
-entry_creation_window_ms = 60000   # 1 minute
-entry_creation_limit_anonymous = 2
-entry_creation_limit_elevated = 3
 alteration_window_ms = 10000       # 10 seconds
 alteration_limit_elevated = 8
 alteration_limit_anonymous = 3
