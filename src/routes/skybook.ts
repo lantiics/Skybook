@@ -216,7 +216,9 @@ router.post(
         .pipe(csvParser())
 
         .on("data", (data: Post) => {
-          data.extra = JSON.parse(data.extra as any as string);
+          if (data.extra) {
+            data.extra = JSON.parse(data.extra as any as string);
+          } else data.extra = {};
           r.push(data);
         })
         .on("end", async () => {
@@ -224,14 +226,19 @@ router.post(
           return importResult;
         });
 
-      return res.sendStatus(201);
+      return res
+        .status(201)
+        .redirect(
+          `${config.skybook.subdomain_vanity ? "http://" + req.ctx.instance + "." + config.skybook.domain : `/${req.ctx.instance}`}` +
+            `#pup:${btoa("Sucessfully imported posts")}`,
+        );
     } catch (e) {
       return res
         .status(errorStatus(e, req.ctx.elevated))
         .redirect(
           (res.getHeader("referer") ?? config.skybook.subdomain_vanity)
             ? "/"
-            : `/${req.ctx.instance}`,
+            : `/${req.ctx.instance}` + `#pup:${btoa("Failed to import posts")}`,
         );
     }
   },
