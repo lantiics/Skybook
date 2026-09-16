@@ -1,5 +1,4 @@
 require("dotenv");
-import { sql } from "bun";
 import { WRITER } from "../db";
 import { UserEnforcement } from "../types/entities";
 import { config } from "../config";

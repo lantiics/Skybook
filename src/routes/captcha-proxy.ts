@@ -1,8 +1,6 @@
 const express = require("express");
 const router = express.Router();
-import { NextFunction, Request, Response } from "express";
 import { config } from "../config";
-import { errorStatus } from "../errors";
 import { createProxyMiddleware, fixRequestBody } from "http-proxy-middleware";
 
 if (config.captcha.implementation === "cap") {

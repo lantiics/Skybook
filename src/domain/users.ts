@@ -81,9 +81,8 @@ export const createUser = async (
 
   if (await signupInvitationRequired()) {
     if (!invite) throw new UnauthorizedError("No invitation provided");
-    if (!(await invitationIsValid(invite))) 
+    if (!(await invitationIsValid(invite)))
       throw new UnauthorizedError("Provided invitation token is invalid");
-    
   }
   try {
     password = await Bun.password.hash(password);

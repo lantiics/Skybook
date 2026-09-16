@@ -1,15 +1,8 @@
 import { RequestContext } from "../types/context.ts";
-import { Field, Post } from "../types/entities.ts";
+import { Post } from "../types/entities.ts";
 import { READER, WRITER } from "../db.ts";
 import { BadRequestError, LockedError, UnauthorizedError } from "../errors.ts";
-import {
-  PUBLIC_COLUMN_NAMES,
-  PRIVATE_COLUMN_NAMES,
-  RESERVED_COLUMN_NAMES,
-} from "../defaults.ts";
 import { setField, allFieldsAreWritable } from "./fields.ts";
-import { sql } from "bun";
-import { hashIp } from "./ip.ts";
 import { config } from "../config.ts";
 
 const EXPORTABLE_COLUMN_NAMES = [
@@ -35,7 +28,6 @@ const _getInstanceOverride = async (instance: string, name: string) => {
   WHERE name = ${name} AND instance = ${instance}
   ORDER BY instance NULLS LAST
   LIMIT 1`;
-  // console.log(override, ":override", instance, name);
 
   return override?.value;
 };
@@ -43,7 +35,6 @@ export const _getSpecifiedInstanceStatus = async (
   instance: string,
   name: string,
 ): Promise<Status> => {
-  // console.log("woof");
   if (
     ![
       "is_visible",
@@ -74,7 +65,6 @@ export const _getSpecifiedInstanceStatus = async (
   if (override !== undefined) {
     status.locked = true;
   }
-  // console.log(status, "status!!!!");
 
   return status;
 };
@@ -89,14 +79,6 @@ export const submissionEnabled = async (instance: string): Promise<Status> => {
   );
   return status;
 };
-// export const replyingEnabled = async (instance: string): Promise<Status> => {
-//   const status = await _getSpecifiedInstanceStatus(
-//     instance,
-//     "replying_enabled",
-//   );
-//   console.log(status, "aa");
-//   return status;
-// };
 export const approvalRequired = async (instance: string): Promise<Status> => {
   const status = await _getSpecifiedInstanceStatus(
     instance,
@@ -182,7 +164,6 @@ export const compiledInstanceStatus = async (
   const status = {
     is_visible: await isVisible(instance),
     submission_enabled: await submissionEnabled(instance),
-    // replying_enabled: await replyingEnabled(instance),
     approval_required: await approvalRequired(instance),
     flagging_enabled: await flaggingEnabled(instance),
     queue_on_filtered: await instanceQueuesFilteredPosts(instance),
@@ -324,7 +305,6 @@ export const exportInstance = async (ctx: RequestContext) => {
   return csv;
 };
 export const importInstance = async (instance: string, entries: Post[]) => {
-  // console.log(entries, "import data");
   entries = entries.slice(0, 1000);
   let extraKeys: Set<string> = new Set([]);
   const currentFields =

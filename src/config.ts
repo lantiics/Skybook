@@ -1,4 +1,3 @@
-import { JwtSymmetricAlgorithmNotAllowed } from "hono/utils/jwt/types";
 import raw from "../config.toml";
 import pkg from "root/package.json";
 

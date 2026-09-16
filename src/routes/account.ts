@@ -9,15 +9,6 @@ import {
 import { verifyTotp } from "../domain/auth";
 
 const router = require("express").Router();
-
-//
-//
-//
-//
-//
-//
-//
-//
 router.post("/delete", async (req: Request, res: Response) => {
   try {
     const { password } = req.body;

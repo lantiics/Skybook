@@ -1,8 +1,6 @@
-import { sql } from "bun";
 import {
   PUBLIC_COLUMN_NAMES,
   PRIVATE_COLUMN_NAMES,
-  RESERVED_COLUMN_NAMES,
   SYSTEM_COLUMN_NAMES,
 } from "../defaults.ts";
 import {
@@ -17,7 +15,6 @@ import { generateToken, entryTokenValid } from "./tokens.ts";
 import { READER, WRITER } from "../db.ts";
 import {
   flaggingEnabled,
-  instanceQueuesFilteredPosts,
   compiledInstanceStatus,
   isVisible,
   instanceHasRequesterBlocked,
@@ -31,13 +28,6 @@ import { userCanBeBlocked, userCanPost } from "./users.ts";
 import { config } from "../config.ts";
 import { tryGlobalBlock } from "./enforcements.ts";
 
-const generateIdentifier = (): string => {
-  const data = crypto.randomUUID() + crypto.randomUUID();
-  const hasher = new Bun.CryptoHasher("sha512");
-  hasher.update(btoa(data));
-  const digest = hasher.digest("hex");
-  return digest.slice(0, digest.length / 2);
-};
 const fieldIsFiltered = (field: string, filter: RegExp): boolean => {
   if (filter.test(field)) return true;
   return false;
@@ -253,7 +243,6 @@ export const editPost = async (
     }
   });
   console.log(fields.extra, "extra");
-  // await validatedEntry(ctx, fields, true);
   const columns = ctx.superAdmin
     ? `*`
     : (ctx.elevated
@@ -262,9 +251,6 @@ export const editPost = async (
       ).join(",");
   fields.last_edited_by = ctx.user?.identifier;
   console.log(JSON.stringify(fields.extra));
-  // WRITER.
-  // if (fields.extra) {
-  // const row = await WRITER`
 
   const hasExtra = Object.keys(extra).length > 0;
   const hasFields = Object.keys(fields).length > 0;
@@ -318,16 +304,7 @@ export const blockPostCreator = async (
     const [{ count: blockCount }] =
       await tx`SELECT COUNT(*) FROM instance_blocks WHERE ip_hash = ${postData.ip_hash} OR user_identifier = ${postData.authenticated_user_identifier}`;
     await tryGlobalBlock(postData.ip_hash, blockCount, tx);
-    // await tx``;
   });
-  // if (postData.authenticated_user_identifier) {
-  //   await blockUser(
-  //     ctx.instance,
-  //     postData.authenticated_user_identifier,
-  //     reason,
-  //   );
-  // }
-  // await blockIpOnInstance(ctx.instance, postData.ip_hash, reason);
 };
 export const unblockPostCreator = async (
   ctx: RequestContext,

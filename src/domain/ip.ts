@@ -1,7 +1,6 @@
-import { READER, WRITER } from "../db.ts";
+import { READER } from "../db.ts";
 import { createHmac } from "crypto";
-import { config } from "../config";
-import { tryGlobalBlock } from "./enforcements.ts";
+
 export const hashIp = (ip: string): string => {
   return createHmac("sha256", process.env.IP_HASH_SECRET!)
     .update(ip)

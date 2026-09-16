@@ -12,7 +12,6 @@ import {
 const os = require("os");
 import path from "node:path";
 import { createInterface } from "node:readline";
-// this needs more efficiency
 
 // helpers
 const ipv4Regex = /\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b/;
@@ -40,7 +39,7 @@ const sourceElapsedMinutesUpdateThreshold = async (
 
 const proxyIpURL = "https://iplists.firehol.org/files/firehol_proxies.netset"; // Last checked: exclusively ipv4 (some subnets, some no subnets)
 const doProxy = async () => {
-  //if (await sourceElapsedMinutesUpdateThreshold("proxy", "280")) return; // 3 hours
+  if (await sourceElapsedMinutesUpdateThreshold("proxy", "280")) return; // 3 hours
   console.time("Updated proxies");
 
   const res = await fetch(proxyIpURL);
@@ -126,11 +125,6 @@ const doVpn = async () => {
     .split("\n")
     .map((l) => l.trim())
     .filter((l) => l.length > 0);
-  // const transform = new Transform({
-  //   transform(chunk,_enc,cb) {
-  //     const lines = chunk.toString().split("\n")
-  //   }
-  // })
   const ips: string[] = [];
   for (const cidr of ip4s) {
     ips.push(cidr);
@@ -176,21 +170,18 @@ const reindex = async () => {
   await WRITER`REINDEX INDEX CONCURRENTLY idx_blocklist_ranges`;
 };
 
-// await doProxy();
 (async () => {
   await doProxy();
   await doVpn();
   await doTor();
   await reindex();
 })();
-// doVpn();
-// doTor();
 
 setInterval(
-  () => {
-    doProxy();
-    doVpn();
-    doTor();
+  async () => {
+    await doProxy();
+    await doVpn();
+    await doTor();
   },
   30 * 60 * 1000,
 ); // 30 minutes

@@ -1,7 +1,6 @@
 import { READER, WRITER } from "../db.ts";
 import { UnauthorizedError } from "../errors.ts";
 import { RequestContext } from "../types/context";
-import { generateToken } from "./tokens.ts";
 import { randomBytes } from "node:crypto";
 import Bun from "bun";
 import { userInformation } from "./enforcements.ts";

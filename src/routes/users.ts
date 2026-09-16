@@ -1,28 +1,17 @@
 import { Router, Request, Response } from "express";
 import { config } from "../config.ts";
-import { limiter } from "../domain/rate-limit.ts";
-import {
-  changeUserPassword,
-  createUser,
-  enableUserMfa,
-  loginUser,
-  userPasswordIsValid,
-} from "../domain/users.ts";
+
+import { changeUserPassword, createUser, loginUser } from "../domain/users.ts";
 import { getSessionUser, revokeSession } from "../domain/sessions.ts";
-import {
-  BadRequestError,
-  errorStatus,
-  ForbiddenError,
-  UnauthorizedError,
-} from "../errors.ts";
+import { errorStatus, ForbiddenError, UnauthorizedError } from "../errors.ts";
 import { assertCaptchaTokenValid } from "../domain/captcha.ts";
-import { verifyTotp } from "../domain/auth.ts";
-import { invitationIsValid, newInvitation } from "../domain/invitations.ts";
+import { newInvitation } from "../domain/invitations.ts";
 import { authenticate } from "../middleware/authenticate.ts";
+import rateLimit from "express-rate-limit";
 
 const router = Router();
 export const users = router;
-const authLimiter = limiter({
+const authLimiter = rateLimit({
   windowMs: config.rate_limits.auth_window_ms,
   limit: config.rate_limits.auth_limit,
 });
