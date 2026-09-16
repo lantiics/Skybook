@@ -48,15 +48,14 @@ import { rateLimit } from "express-rate-limit";
 
 const alterationLimiter = rateLimit({
   windowMs: config.rate_limits.alteration_window_ms,
-  limit: config.rate_limits.alteration_limit_anonymous,
+  limit: (req) => {
+    if (req.ctx.elevated) return config.rate_limits.alteration_limit_elevated;
+    else return config.rate_limits.alteration_limit_anonymous;
+  },
 });
 const fetchLimiter = rateLimit({
   windowMs: config.rate_limits.fetch_window_ms,
   limit: config.rate_limits.fetch_limit,
-});
-const creationLimiter = rateLimit({
-  windowMs: config.rate_limits.entry_creation_window_ms,
-  limit: 1,
 });
 //#endregion HELPERS
 
