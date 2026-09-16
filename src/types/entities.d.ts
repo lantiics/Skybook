@@ -59,7 +59,7 @@ export interface Post {
   readonly is_highlighted: boolean;
   readonly can_flag: boolean;
   readonly flag_count: number;
-  readonly added: string;
+  added: string | Date;
   author: string;
   content: string;
   extra: Record<string, string>;

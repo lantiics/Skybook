@@ -162,9 +162,9 @@ export const getFieldFilters = (ctx: RequestContext) => {
 //
 //
 
-const canAlterField = async (ctx: RequestContext, field: Field) => {
-  if (field.name in RESERVED_COLUMN_NAMES) {
-    throw new UnauthorizedError("Attempted to alter a reserved column");
-  }
-  return true;
-};
+// const canAlterField = async (ctx: RequestContext, field: Field) => {
+//   if (field.name in RESERVED_COLUMN_NAMES) {
+//     throw new UnauthorizedError("Attempted to alter a reserved column");
+//   }
+//   return true;
+// };
