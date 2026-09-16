@@ -1,7 +1,6 @@
 import { config } from "./config.ts";
 require("./startup/inject-secrets.ts");
 import cookieParser from "cookie-parser";
-// require("./jobs/update-ip-lists.ts");
 import { authenticate } from "./middleware/authenticate.ts";
 import { resolveInstance } from "./middleware/resolve-instance.ts";
 import express from "express";
@@ -11,7 +10,6 @@ app.set("trust proxy", config.skybook.proxies_between);
 app.listen(process.env.PORT || 3000);
 var path = require("path");
 const api = express.Router();
-// app.use("/", async (req, res) => console.log(req.ip));
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -24,7 +22,6 @@ app.set("views", "./src/views");
 const createError = require("http-errors");
 
 app.use(express.static(path.join(__dirname, "public")));
-// app.use("/admin", express.static(path.join(__dirname, "admin")));
 const { router } = require("./routes/skybook.ts");
 const { users } = require("./routes/users");
 const { account } = require("./routes/account");
@@ -32,10 +29,6 @@ import { pagesRouter } from "./routes/pages";
 import { instanceRouter } from "./routes/pages";
 import vhost from "vhost";
 import { captchaProxy } from "./routes/captcha-proxy";
-
-import { ipSource } from "./domain/ip.ts";
-import { UnauthorizedError } from "./errors.ts";
-import { createServer } from "http";
 
 app.use("/api", api);
 api.use("/captcha", captchaProxy);
@@ -71,7 +64,6 @@ app.use(function (err, req, res, next) {
 
   // render the error page
   res.status(err.status || 500);
-  // console.log(err)
 
   res.render("error");
 });

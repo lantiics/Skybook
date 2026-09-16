@@ -1,7 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { config } from "../config.ts";
-import { limiter } from "../domain/rate-limit.ts";
-import { errorStatus, NotFoundError, UnauthorizedError } from "../errors.ts";
+import { errorStatus } from "../errors.ts";
 import {
   compiledInstanceStatus,
   toggleInstanceVisibility,
@@ -29,13 +28,11 @@ import {
   togglePostPin,
   togglePostVisibility,
   clearPostFlags,
-  lockPostMethods,
   blockPostCreator,
   unblockPostCreator,
   replyToPost,
 } from "../domain/posts.ts";
 import {
-  getFieldFilters,
   setFieldFilter,
   setField,
   renameField,
@@ -46,21 +43,18 @@ const { Readable } = require("stream");
 import { assertCaptchaTokenValid } from "../domain/captcha.ts";
 import csvParser from "csv-parser";
 import { Post } from "../types/entities";
-const path = require("path");
-const os = require("os");
-const fs = require("node:fs");
-
+import { rateLimit } from "express-rate-limit";
 //#region HELPERS
 
-const alterationLimiter = limiter({
+const alterationLimiter = rateLimit({
   windowMs: config.rate_limits.alteration_window_ms,
   limit: config.rate_limits.alteration_limit_anonymous,
 });
-const fetchLimiter = limiter({
+const fetchLimiter = rateLimit({
   windowMs: config.rate_limits.fetch_window_ms,
   limit: config.rate_limits.fetch_limit,
 });
-const creationLimiter = limiter({
+const creationLimiter = rateLimit({
   windowMs: config.rate_limits.entry_creation_window_ms,
   limit: 1,
 });

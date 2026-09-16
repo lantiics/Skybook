@@ -5,7 +5,7 @@ import { RequestContext } from "../types/context";
 import { userUUID } from "./users";
 import { config } from "../config.ts";
 export const userInformation = async (UUID: string) => {
-  const [uI] = //enforcements, enforcement_count
+  const [uI] =
     await READER`SELECT name, identifier, can_login, can_post, can_delete_account, created_at, last_seen, can_create_invitations, totp_secret FROM users WHERE identifier = ${UUID}`;
   if (uI === undefined) {
     throw new NotFoundError("Requested user could not be found");
@@ -27,8 +27,6 @@ const recordUserEnforcement = async (
   duration: number | null,
   DB = WRITER,
 ): Promise<void> => {
-  // const currentStatus = await userEnforcementStatus(UUID);
-
   const now = new Date().toISOString();
   const expires = duration ? new Date(Date.now() + duration) : null;
   const created = enforcementAction === "locked" ? `${now}` : null;
@@ -101,7 +99,6 @@ export const tryUserEnforcement = async (UUID: string, DB = READER) => {
   const userBlocks = f.count;
   let enforced = false;
   for (const enforcement of history) {
-    // const duration = enforcement.expires_at;
     frequency.push([enforcement.created_at, enforcement.expires_at]);
   }
   if (frequency.length >= 3) {

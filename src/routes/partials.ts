@@ -1,4 +1,3 @@
-import { resolve } from "bun";
 import { Request, Response, Router } from "express";
 import { setupTwoFactor, generateRecoveryCodes } from "../domain/auth";
 const router = Router();
@@ -22,5 +21,4 @@ router.get("/delete-account", async (req: Request, res: Response) => {
   res.locals.ctx = req.ctx;
   return res.render("partials/account/delete-account");
 });
-// const partials = router
 export const partials = router;

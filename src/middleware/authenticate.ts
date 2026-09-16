@@ -1,7 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { authenticateUser } from "../domain/users";
-import { NotFoundError, UnauthorizedError } from "../errors";
-import { instanceExists } from "../domain/instances";
+import { UnauthorizedError } from "../errors";
 import { config } from "../config";
 import { ipSource } from "../domain/ip";
 const assertIpIsBlocked = async (ip: string): Promise<void> => {

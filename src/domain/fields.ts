@@ -28,12 +28,6 @@ export const allFieldsAreWritable = async (
   const writableFields = await allWritableFields(instance);
   return writableFields.isSupersetOf(new Set(fields));
 };
-// const allFieldsAreAccepted = async (
-//   fields: Record<string, string | [string, string][]>,
-// ) => {
-//   for (const [name, content] of Object.entries(fields)) {
-//   }
-// };
 export const getFieldData = async (instance: string): Promise<Field[]> => {
   const fields: Field[] =
     await READER`SELECT name, is_required, replacement, filter FROM fields WHERE instance = ${instance} AND is_public`;
@@ -55,8 +49,6 @@ export const getFieldData = async (instance: string): Promise<Field[]> => {
   return merged;
 };
 const fieldNameAccepted = (name: string): boolean => {
-  //
-  //
   if (
     RESERVED_COLUMN_NAMES.has(name as any) ||
     name.length > config.fields.name_max_length
@@ -157,14 +149,3 @@ export const setFieldFilter = (
 export const getFieldFilters = (ctx: RequestContext) => {
   return READER`SELECT name, filter FROM fields WHERE instance = ${ctx.instance}`;
 };
-
-//
-//
-//
-
-// const canAlterField = async (ctx: RequestContext, field: Field) => {
-//   if (field.name in RESERVED_COLUMN_NAMES) {
-//     throw new UnauthorizedError("Attempted to alter a reserved column");
-//   }
-//   return true;
-// };

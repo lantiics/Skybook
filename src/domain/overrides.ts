@@ -1,4 +1,4 @@
-import { READER, WRITER } from "../db.ts";
+import { WRITER } from "../db.ts";
 import { RequestContext } from "../types/context";
 import { InvalidStatusError } from "../errors.ts";
 

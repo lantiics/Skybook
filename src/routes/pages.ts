@@ -1,10 +1,8 @@
 import { NextFunction, Request, Response, Router } from "express";
 import { renderWithLayout } from "../views/utils";
-import ejs from "ejs";
 import { countPosts, getPosts, pageCount } from "../domain/posts";
 import {
   compiledInstanceStatus,
-  instanceHasRequesterBlocked,
   instanceIpBlocks,
   instanceSuppliedFilter,
 } from "../domain/instances";
