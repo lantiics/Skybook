@@ -331,7 +331,10 @@ export const importInstance = async (instance: string, entries: Post[]) => {
     if (!entry.added) {
       entry.added = new Date(Date.now());
     } else {
-      entry.added = new Date(parseInt(entry.added as string));
+      const p = !isNaN(Number(entry.added))
+        ? new Date(Number(entry.added))
+        : new Date(entry.added as string);
+      entry.added = isNaN(p.getTime()) ? new Date() : p;
     }
     if (await allFieldsAreWritable(instance, Object.keys(entry.extra))) {
       const clearedEntry = {
