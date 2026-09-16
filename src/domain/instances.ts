@@ -348,10 +348,12 @@ export const importInstance = async (instance: string, entries: Post[]) => {
         }
       }
     }
-
-    console.log(inputFields);
+    if (!entry.added) {
+      entry.added = new Date(Date.now());
+    } else {
+      entry.added = new Date(parseInt(entry.added as string));
+    }
     if (await allFieldsAreWritable(instance, Object.keys(entry.extra))) {
-      console.log("continuing");
       const clearedEntry = {
         instance: instance,
         author: entry.author,
@@ -362,10 +364,10 @@ export const importInstance = async (instance: string, entries: Post[]) => {
         ip_hash: "Added via import",
         identifier: crypto.randomUUID(),
       };
-      const row =
-        await WRITER`INSERT INTO posts ${WRITER(clearedEntry)} RETURNING *`;
+
+      await WRITER`INSERT INTO posts ${WRITER(clearedEntry)}`;
     } else {
-      console.error("naw");
+      throw new BadRequestError("Not all fields are writable");
     }
   }
   return { ok: true };
