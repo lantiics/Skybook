@@ -26,12 +26,13 @@
   <div class="reply">
     <div class="reply-author"><%=ctx.instance%> replied</div>
     <div class="reply-content" data-reply-to="<%=post.identifier%>" contenteditable="<%=ctx.elevated%>"><%=post.reply%></div>
+    <% if (ctx.elevated) {%>
     <div class="reply-actions">
       <button class="deleteBtn" onclick="deleteReply(this)" title="Delete reply"></button>
-    </div>
+    </div> <%}%>
   </div>
 </div> <%}%>
-</div>
+  </div>
 
-<!--   <% if (post.replies) {%> <div class="replies"> <% for (post of post.replies) {%> <%-include('./post', {post:post, ctx:ctx})%><%}%></div><%}%>
+  <!--   <% if (post.replies) {%> <div class="replies"> <% for (post of post.replies) {%> <%-include('./post', {post:post, ctx:ctx})%><%}%></div><%}%>
   -->
