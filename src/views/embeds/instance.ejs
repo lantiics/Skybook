@@ -54,7 +54,7 @@
 <div style="display:flex;flex-direction: column;align-items: center;margin-block:1rem">
 
 
-  <% if(status.submission_enabled.status||ctx.elevated) {%><%- include('../partials/instances/entry-form')%> <% } else {%><div>Submission is currently unavailable</div> <%}%>
+  <% if(status.submission_enabled.status) {%><%- include('../partials/instances/entry-form')%> <% } else {%><div class="instance-information" style="margin-block:2rem;">Submission is currently unavailable</div><%}%>
 <!-- -->
 <div>
   <div class="entries" id="entries">
@@ -68,7 +68,7 @@
     <div>no entries</div>
   </div> <% } %>
   <% } else { %>
-  <div>Posts are currently not visible</div>
+  <div class="instance-information" style="margin-block:2rem;">Posts are currently not visible</div>
   <% } %>
 </div>
 </div>
