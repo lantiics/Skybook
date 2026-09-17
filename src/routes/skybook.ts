@@ -205,19 +205,28 @@ router.post(
       const r: Post[] = [];
       //@ts-expect-error
       const stream = Readable.from([req.file.buffer]);
-      const response = await stream
-        .pipe(csvParser())
-
-        .on("data", (data: Post) => {
-          if (data.extra) {
-            data.extra = JSON.parse(data.extra as any as string);
-          } else data.extra = {};
-          r.push(data);
-        })
-        .on("end", async () => {
-          const importResult = await importInstance(req.ctx.instance, r);
-          return importResult;
-        });
+      await new Promise<void>((resolve, reject) => {
+        stream
+          .pipe(csvParser())
+          .on("data", (data: Post) => {
+            let parsed: unknown = {};
+            if (data.extra) {
+              try {
+                parsed = JSON.parse(data.extra as any as string);
+              } catch {
+                parsed = {};
+              }
+            }
+            data.extra =
+              parsed && typeof parsed === "object" && !Array.isArray(parsed)
+                ? (parsed as Record<string, unknown>)
+                : {};
+            r.push(data);
+          })
+          .on("end", resolve)
+          .on("error", reject);
+      });
+      await importInstance(req.ctx.instance, r);
 
       return res
         .status(201)
