@@ -4,7 +4,9 @@ import cookieParser from "cookie-parser";
 import { authenticate } from "./middleware/authenticate.ts";
 import { resolveInstance } from "./middleware/resolve-instance.ts";
 import express from "express";
+const VERSION = hash("SHA1", Date.now().toString()).slice(0, 8);
 const app = express();
+app.locals.assetVersion = VERSION;
 app.set("trust proxy", config.skybook.proxies_between);
 
 app.listen(process.env.PORT || 3000);
@@ -29,6 +31,7 @@ import { pagesRouter } from "./routes/pages";
 import { instanceRouter } from "./routes/pages";
 import vhost from "vhost";
 import { captchaProxy } from "./routes/captcha-proxy";
+import { hash } from "crypto";
 
 app.use("/api", api);
 api.use("/captcha", captchaProxy);
