@@ -5,16 +5,16 @@
 <meta property="og:title" content="<%=ctx?.instance?ctx.instance+'\'s guestbook - Skybook':'Skybook'%>">
 <meta property="og:description" content="Skybook is a fully open source guestbook hosting service which can optionally be self-hosted with ease.">
 <meta property="og:site_name" content="Skybook">
-<link rel="stylesheet" href="/stylesheets/style.css" />
-<script src="/js/main.js"></script>
+<link rel="stylesheet" href="/stylesheets/style.css?v=<%=assetVersion%>" />
+<script src="/js/main.js?v=<%=assetVersion%>"></script>
 
 <% if (ctx && ctx.instance) { %>
 
-<link rel="stylesheet" href="/stylesheets/instance.css">
+<link rel="stylesheet" href="/stylesheets/instance.css?v=<%=assetVersion%>">
 <meta name="instance-name" content="<%=ctx.instance%>" />
-<script src="/js/instance.js"></script>
+<script src="/js/instance.js?v=<%=assetVersion%>"></script>
 
 <% if (ctx && ctx.elevated) {%>
-<link rel="stylesheet" href="/stylesheets/elevated-instance.css" /> <% }%>
+<link rel="stylesheet" href="/stylesheets/elevated-instance.css?v=<%=assetVersion%>" /> <% }%>
 
 <% }%>
