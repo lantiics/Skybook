@@ -1,6 +1,7 @@
 import { WRITER } from "../db.ts";
 import { RequestContext } from "../types/context";
 import { InvalidStatusError } from "../errors.ts";
+import { purgeInstanceCache } from "./cache.ts";
 
 const ACCEPTED_STATUSES = [
   "approval_required",
@@ -16,6 +17,8 @@ const _toggleOverride = async (ctx: RequestContext, status: string) => {
       "Invalid status specified while attempting to toggle override",
     );
   }
+  if (["is_visible", "submission_enabled", "flagging_enabled"].includes(status))
+    purgeInstanceCache(ctx.instance);
   await WRITER`INSERT INTO overrides (instance,name,value) VALUES (${ctx.instance ?? null},${status}, ${false}) ON CONFLICT ${ctx.instance ? WRITER.unsafe(`(instance, name) WHERE instance IS NOT NULL`) : WRITER.unsafe(`(name) WHERE instance IS NULL `)} DO UPDATE SET value = NOT overrides.value`;
 };
 const _deleteOverride = async (ctx: RequestContext, status: string) => {

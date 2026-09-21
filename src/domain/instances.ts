@@ -4,6 +4,7 @@ import { READER, WRITER } from "../db.ts";
 import { BadRequestError, LockedError, UnauthorizedError } from "../errors.ts";
 import { setField, allFieldsAreWritable } from "./fields.ts";
 import { config } from "../config.ts";
+import { purgeInstanceCache } from "./cache.ts";
 
 const EXPORTABLE_COLUMN_NAMES = [
   "author",
@@ -212,6 +213,7 @@ const _toggleSpecifiedInstanceStatus = async (
       "Invalid status name while attempting to toggle status",
     );
   }
+
   const override = await _getInstanceOverride(instance, name);
   if (override !== undefined) {
     throw new LockedError(
@@ -221,6 +223,8 @@ const _toggleSpecifiedInstanceStatus = async (
 
   const status =
     await WRITER`UPDATE instances SET ${WRITER(name)} = NOT ${WRITER(name)} WHERE name = ${instance} RETURNING ${WRITER(name)}`;
+  if (["is_visible", "submission_enabled", "flagging_enabled"].includes(name))
+    purgeInstanceCache(instance);
   return status;
 };
 

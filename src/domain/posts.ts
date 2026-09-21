@@ -27,6 +27,7 @@ import { hashIp, ipSource } from "./ip.ts";
 import { userCanBeBlocked, userCanPost } from "./users.ts";
 import { config } from "../config.ts";
 import { tryGlobalBlock } from "./enforcements.ts";
+import { purgeInstanceCache } from "./cache.ts";
 
 const fieldIsFiltered = (field: string, filter: RegExp): boolean => {
   if (filter.test(field)) return true;
@@ -170,6 +171,7 @@ export const replyToPost = async (
   message: string,
 ) => {
   await WRITER`UPDATE posts SET reply = ${message} WHERE identifier = ${identifier} AND instance = ${ctx.instance}`;
+  purgeInstanceCache(ctx.instance);
 };
 export const createPost = async (
   ctx: RequestContext,
@@ -213,6 +215,7 @@ export const createPost = async (
 `;
     return row;
   });
+  if (!entry.is_queued) purgeInstanceCache(ctx.instance);
   return { row, token: _token, wasQueued: entry.is_queued };
 };
 
@@ -267,6 +270,7 @@ export const editPost = async (
     WHERE identifier = ${identifier} AND instance = ${ctx.instance}
     RETURNING ${WRITER.unsafe(columns)}
   `;
+  if (!row.is_queued && row.is_visible) purgeInstanceCache(ctx.instance);
   return;
 };
 export const deletePost = async (ctx: RequestContext, identifier: string) => {
@@ -284,12 +288,37 @@ export const deletePost = async (ctx: RequestContext, identifier: string) => {
       );
     }
   }
-  await WRITER.begin(async (tx) => {
-    await tx`DELETE FROM posts WHERE identifier = ${identifier} AND instance = ${ctx.instance} `;
+  const post = await WRITER.begin(async (tx) => {
+    const [post] =
+      await tx`DELETE FROM posts WHERE identifier = ${identifier} AND instance = ${ctx.instance} RETURNING is_queued, is_visible`;
     await tx`DELETE FROM tokens WHERE identifier = ${identifier} AND instance = ${ctx.instance}`;
+    return post;
   });
+  if (!post.is_queued && post.is_visible) purgeInstanceCache(ctx.instance);
 };
 
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+/* 
+  TODO:
+        Queue every post made by the blocked creator. If using a user identifier, we don't use a time limit. If there is only
+        a hashed IP address attached, we queue every post made by that IP addresses within the past 60 days 
+        in order to to account for IP address changes.
+*/
 export const blockPostCreator = async (
   ctx: RequestContext,
   identifier: string,
@@ -341,6 +370,19 @@ export const _updatePost = async (
       );
     }
   }
+  if (
+    [
+      "is_visible",
+      "is_queued",
+      "flagging_enabled",
+      "is_pinned",
+      "is_highlighted",
+      "can_block",
+      "sys_lock",
+    ].includes(property)
+  ) {
+    purgeInstanceCache(ctx.instance);
+  }
   return (
     await WRITER`UPDATE posts SET ${WRITER.unsafe(property)} WHERE identifier = ${identifier} AND instance = ${ctx.instance} returning ${WRITER.unsafe(columns)}`
   )[0];
@@ -370,6 +412,7 @@ export const flagPost = async (ctx: RequestContext, identifier: string) => {
         await tx`UPDATE posts SET flag_count = flag_count + 1 WHERE instance = ${ctx.instance} AND identifier = ${identifier} RETURNING flag_count`;
       if (flagCount >= queueFlagsThreshold) {
         await tx`UPDATE posts SET is_queued = true WHERE instance = ${ctx.instance} AND identifier = ${identifier}`;
+        purgeInstanceCache(ctx.instance);
       }
     });
   }

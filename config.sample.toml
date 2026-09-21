@@ -8,6 +8,9 @@ domain="skybook.page"
 header="Skybook is currently under development, stability can not be guaranteed."
 username_max_length=15 # If altered, requires alteration of the `name` column in the `users` DB table, which defaults to VARCHAR(15)
 username_min_length=3
+[caching]
+purging=false     #
+purge_endpoint="https://api.cloudflare.com/client/v4/zones/$ZONE_ID/purge_cache" # We can purge cache facing anonymous users using Cloudflare to speed up Skybook
 [instances]
 max_global_filter_length=5000
 [captcha]
