@@ -38,6 +38,7 @@ router.post("/signup", authLimiter, async (req: Request, res: Response) => {
       sameSite: "strict",
       domain: config.skybook.domain,
     });
+
     return res
       .status(201)
       .setHeader(

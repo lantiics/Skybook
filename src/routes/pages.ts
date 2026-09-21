@@ -43,6 +43,7 @@ router.get("/signup", async (req: Request, res: Response) => {
     res.locals.captcha = config.captcha;
     res.locals.signupEnabled = await signupEnabled();
     res.locals.title = "Sign up - Skybook";
+    res.setHeader("Cache-Tag", "skybook-signup");
     return renderWithLayout(req, res, "pages/signup", res.locals);
   } catch (e) {
     return res.sendStatus(500);
@@ -54,6 +55,7 @@ router.get("/login", async (req: Request, res: Response) => {
     res.locals.captcha = config.captcha;
     res.locals.loginEnabled = await loginEnabled();
     res.locals.title = "Log in - Skybook";
+    res.setHeader("Cache-Tag", "skybook-login");
     return renderWithLayout(req, res, "pages/login", res.locals);
   } catch (e) {
     return res.sendStatus(500);
