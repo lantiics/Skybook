@@ -32,14 +32,6 @@ export const loginEnabled = async (): Promise<boolean> => {
 export const toggleLogin = async (): Promise<void> => {
   await _toggleSpecifiedServiceStatus("login_enabled");
 };
-
-export const accountDeletionPossible = async (): Promise<boolean> => {
-  return await _getSpecifiedServiceStatus("account_deletion_enabled");
-};
-export const toggleAccountDeletion = async (): Promise<void> => {
-  await _toggleSpecifiedServiceStatus("account_deletion_enabled");
-};
-
 // The following are not exported as they directly affect whether or not
 // people can use the service. If TOTP support is not desired
 // it is to be disabled immediately upon service deployment.
