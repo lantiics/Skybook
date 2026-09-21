@@ -140,6 +140,7 @@ const instanceLogic = async (
     res.locals.ctx = req.ctx;
 
     res.locals.title = `${req.ctx.instance}'s guestbook - Skybook`;
+    res.setHeader("Cache-Tag", `instance-${req.ctx.instance}`);
     if (!embed) {
       return renderWithLayout(req, res, "pages/instance", res.locals);
     } else {

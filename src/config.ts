@@ -13,6 +13,10 @@ const config = raw as {
     username_max_length: number;
     username_min_length: number;
   };
+  caching: {
+    purging: boolean;
+    purge_endpoint: string;
+  };
   instances: {
     max_global_filter_length: number;
   };
