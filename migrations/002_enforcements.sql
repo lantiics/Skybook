@@ -1,6 +1,6 @@
 -- IP address blocking
 CREATE TABLE instance_blocks (
-  instance TEXT NOT NULL REFERENCES instances(name) ON DELETE CASCADE,
+  instance TEXT NOT NULL REFERENCES instances(name) ON DELETE CASCADE ON UPDATE CASCADE,
   ip_hash TEXT NOT NULL,
   user_identifier UUID REFERENCES users(identifier) ON DELETE CASCADE,
   blocked_at TIMESTAMPTZ NOT NULL DEFAULT now(),

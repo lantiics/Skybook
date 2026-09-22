@@ -19,14 +19,14 @@ CREATE TABLE users (
   UNIQUE(identifier)
 );
 CREATE UNIQUE INDEX idx_username ON users (name);
+CREATE UNIQUE INDEX idx_users_identifier ON users(identifier);
 CREATE INDEX idx_users_pending_deletion ON users (delete_at) WHERE pending_deletion IS TRUE;
 
 CREATE TABLE instances (
   name TEXT PRIMARY KEY REFERENCES users(name) ON DELETE CASCADE ON UPDATE CASCADE,
-  user_identifier UUID UNIQUE NOT NULL REFERENCES users(identifier) ON DELETE CASCADE ON UPDATE CASCADE,
-  is_visible BOOLEAN NOT NULL DEFAULT TRUE, -- -- -- --  -- --
-  submission_enabled BOOLEAN NOT NULL DEFAULT TRUE, -- -- --
-  --replying_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+  user_identifier UUID UNIQUE NOT NULL REFERENCES users(identifier) ON DELETE CASCADE,
+  is_visible BOOLEAN NOT NULL DEFAULT TRUE,
+  submission_enabled BOOLEAN NOT NULL DEFAULT TRUE,
   approval_required BOOLEAN NOT NULL DEFAULT FALSE,
   flagging_enabled BOOLEAN NOT NULL DEFAULT TRUE,
   queue_on_filtered BOOLEAN NOT NULL DEFAULT TRUE,
@@ -67,14 +67,13 @@ CREATE TABLE posts (
   is_pinned BOOLEAN NOT NULL DEFAULT FALSE,
   is_highlighted BOOLEAN NOT NULL DEFAULT FALSE,
   added TIMESTAMPTZ NOT NULL DEFAULT now(),
-  --can_reply BOOLEAN NOT NULL DEFAULT TRUE,
   can_block BOOLEAN NOT NULL DEFAULT TRUE,
   sys_lock BOOLEAN NOT NULL DEFAULT FALSE, 
   UNIQUE (instance, identifier)
 );
 
 CREATE TABLE post_flags (
-  instance TEXT NOT NULL REFERENCES instances(name) ON DELETE CASCADE,
+  instance TEXT NOT NULL REFERENCES instances(name) ON DELETE CASCADE ON UPDATE CASCADE,
   identifier TEXT NOT NULL REFERENCES posts(identifier) ON DELETE CASCADE,
   user_identifier UUID REFERENCES users(identifier) ON DELETE SET NULL,
   ip_hash TEXT NOT NULL,
@@ -83,7 +82,7 @@ CREATE TABLE post_flags (
 CREATE UNIQUE INDEX post_flags_unique_ip ON post_flags (instance, identifier, ip_hash);
 CREATE UNIQUE INDEX post_flags_unique_user ON post_flags (instance, identifier, user_identifier) WHERE user_identifier IS NOT null;
 CREATE TABLE tokens (
-  instance TEXT NOT NULL,
+  instance TEXT NOT NULL REFERENCES instances(name) ON DELETE CASCADE ON UPDATE CASCADE,
   identifier TEXT NOT NULL,
   token TEXT NOT NULL,
   expires_at TIMESTAMPTZ NOT NULL,
@@ -100,7 +99,7 @@ CREATE TABLE invitations (
   UNIQUE (token)
 );
 CREATE TABLE overrides (
-  instance TEXT REFERENCES instances(name),
+  instance TEXT REFERENCES instances(name) ON DELETE CASCADE ON UPDATE CASCADE,
   name TEXT NOT NULL CHECK (name IN (
   'is_visible', 'submission_enabled', 'replying_enabled', 'approval_required', 'flagging_enabled', 'queue_on_filtered'
   )),
