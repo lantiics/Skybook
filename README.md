@@ -37,6 +37,7 @@ Skybook is currently unfinished but in a very usable state.
  - Ability to toggle signup, login, and require an invitation code for signup*
  - Captcha support: Both [Cap](https://trycap.dev) and Cloudflare Turnstile
  - Optional blocking of proxy, VPN, Tor IP addresses instance-wide
+ - Ability to automatically purge cache if using CloudFlare caching
 
 <small> *Currently requires manual database queries</small>
 
@@ -60,6 +61,11 @@ domain="skybook.localhost"
 header="Skybook is currently under development, stability can not be guaranteed." # Set to null if not needed
 username_max_length=15
 username_min_length=3
+
+[caching]
+purging=false     #
+purge_endpoint="https://api.cloudflare.com/client/v4/zones/$ZONE_ID/purge_cache" # We can purge cache facing anonymous users using Cloudflare to speed up Skybook
+
 [captcha]
 implementation = "cap"                                       # Available values: cap | cloudflare
 token_property_name = "cap-token" # Available values: cap-token | cf-turnstile-response
@@ -69,7 +75,7 @@ challenge_url = "http://localhost:9000/" # (Only required if using Cap): Set to 
 verification_url = "http://localhost:9000/a1b2c3d4/siteverify" # Set to the *absolute* URL of your site verification URL.
 ```
 
-In your `.env`, set `CAPTCHA_SECRET` to your captcha secret.
+In your `.env`, set `CAPTCHA_SECRET` to your captcha secret. If you are using CloudFlare and Skybook's cache purging, set `CACHE_CLEARING_TOKEN` to Skybook's CloudFlare API token for purging cache on your domain.
 
 ## Database setup
 Skybook uses two accounts for its database operations, `skybook_reader` and `skybook_writer`. Self explanatory, but assign skybook_reader only SELECT privileges, and skybook_writer both SELECT and WRITE privileges.
