@@ -37,7 +37,7 @@ Skybook is currently unfinished but in a very usable state.
  - Ability to toggle signup, login, and require an invitation code for signup*
  - Captcha support: Both [Cap](https://trycap.dev) and Cloudflare Turnstile
  - Optional blocking of proxy, VPN, Tor IP addresses instance-wide
- - Ability to automatically purge cache if using CloudFlare caching
+ - Ability to automatically purge cache if using CloudFlare caching (it is recommended to only enable caching if there is no 'session' cookie, as we do not cache anything for logged-in users)
 
 <small> *Currently requires manual database queries</small>
 
