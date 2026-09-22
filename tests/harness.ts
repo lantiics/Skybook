@@ -3,21 +3,24 @@ import { createSession, getSessionUser } from "@domain/sessions";
 import { WRITER } from "../src/db";
 import { RequestContext } from "root/src/types/context";
 import { hashIp } from "root/src/domain/ip";
-
-export const createUser = async (
+export const harnessUserPassword = "12345678";
+export const harnessUserName = "skybook-harness";
+export const harnessUserIP = "skybook-harness-ip";
+export const harnessUserIdentifier = "skybook-harness-identifier";
+const createUser = async (
   name: string,
   password: string,
   ip: string,
   DB = WRITER,
 ): Promise<string> => {
   password = await Bun.password.hash(password);
-  const userIdentifier = "skybook-harness";
+
   const user = await DB.begin(async (tx) => {
     console.log("generating user");
     const [user] =
-      await tx`INSERT INTO users (name, identifier, password_hash, ip_hash) VALUES (${name},${userIdentifier},${password},${hashIp(ip)}) RETURNING name`;
+      await tx`INSERT INTO users (name, identifier, password_hash, ip_hash) VALUES (${name},${harnessUserIdentifier},${password},${hashIp(ip)}) RETURNING name`;
     console.log("generating instance");
-    await tx`INSERT INTO instances (name, user_identifier) VALUES (${name}, ${userIdentifier})`;
+    await tx`INSERT INTO instances (name, user_identifier) VALUES (${name}, ${harnessUserIdentifier})`;
 
     return user;
   });
@@ -31,9 +34,9 @@ beforeAll(async () => {
   tx = await WRITER.reserve();
   await tx`BEGIN`;
   sessionToken = await createUser(
-    "test-harness",
-    "12345678",
-    "ip_address-TESTINGUSER",
+    harnessUserName,
+    harnessUserPassword,
+    harnessUserIP,
     tx,
   );
   userIdentifier = ((await getSessionUser(sessionToken)) as any).identifier;
@@ -53,21 +56,20 @@ afterEach(async () => {
   await tx`ROLLBACK TO SAVEPOINT test_start`;
 });
 
-export const instance = "test-harness";
-const baseCtx = { instance, elevated: false };
-const userCtx = { name: "test-harness", identifier: "skybook-harness" };
+const baseCtx = { instance: harnessUserName, elevated: false };
+const userCtx = { name: harnessUserName, identifier: harnessUserIdentifier };
 export let ctx = {
   anonymous: { ...baseCtx, ip: "anonIP" },
   authorized: {
     ...baseCtx,
     ...userCtx,
-    ip: "authorizedIP",
+    ip: `${harnessUserIP}-authorizedIP`,
   },
   elevated: {
     ...baseCtx,
     ...userCtx,
     elevated: true,
-    ip: "elevatedIP",
+    ip: `${harnessUserIP}-elevatedIP`,
   },
 };
 let sessionToken;
