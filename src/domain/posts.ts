@@ -190,13 +190,11 @@ export const createPost = async (
     identifier: identifier,
     instance: ctx.instance,
     ip_hash: hashIp(ctx.ip as string),
+    can_flag: !ctx.elevated,
   };
 
   if (ctx.user?.name) {
     entry.authenticated_user_identifier = ctx.user.identifier;
-    if (ctx.user.name === ctx.instance) {
-      entry.can_flag = false;
-    }
   }
 
   const columns = ctx.superAdmin
