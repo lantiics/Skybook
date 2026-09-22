@@ -1,8 +1,8 @@
 import { test, expect } from "bun:test";
-import { ctx, harnessUserName, tx } from "./harness";
+import { ctx, harnessUserName } from "./harness";
 import { setField, renameField, deleteField } from "@domain/fields";
-import { createPost } from "root/src/domain/posts";
-import { RequestContext } from "root/src/types/context";
+import { createPost } from "@/domain/posts";
+import { RequestContext } from "@/types/context";
 import { READER } from "@/db";
 
 test("Renaming a field migrates existing extra keys on posts", async () => {
