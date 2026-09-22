@@ -68,6 +68,7 @@ export const createUser = async (
   password: string,
   ip: string,
   invite?: string,
+  DB = WRITER,
 ): Promise<string> => {
   if (!(await signupEnabled())) {
     throw new UnavailableError(
@@ -87,7 +88,7 @@ export const createUser = async (
   try {
     password = await Bun.password.hash(password);
     const userIdentifier = generateToken();
-    const user = await WRITER.begin(async (tx) => {
+    const user = await DB.begin(async (tx) => {
       console.log("generating user");
       const [user] =
         await tx`INSERT INTO users (name, identifier, password_hash, ip_hash) VALUES (${name},${userIdentifier},${password},${hashIp(ip)}) RETURNING name`;
@@ -97,7 +98,7 @@ export const createUser = async (
       return user;
     });
     console.log("generating session");
-    const token = await createSession(name);
+    const token = await createSession(name, DB);
     return token;
   } catch (e) {
     console.error(e);

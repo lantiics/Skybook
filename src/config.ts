@@ -7,7 +7,7 @@ const config = raw as {
     proxies_between: number | boolean;
     subdomain_vanity: boolean;
     domain: string;
-    header: string | null;
+    header: string;
     user_enforcements_enabled: boolean;
     invitation_required: boolean;
     username_max_length: number;
@@ -77,6 +77,7 @@ const config = raw as {
   is_production: boolean;
 };
 config.is_production = process.env.NODE_ENV === "production";
+
 const version = pkg.version;
 config.skybook.version = version;
 export { config };
