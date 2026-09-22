@@ -18,7 +18,7 @@ test("Trying to sign up with signup disabled fails", async () => {
   ).rejects.toThrow(UnavailableError);
 });
 
-test("Trying to sign up with login disabled fails", async () => {
+test("Trying to log in with login disabled fails", async () => {
   const uName = harnessedUser();
   createUser(uName, "123123123123", "skybook-harness-ip-logindisabledtest");
   expect(
