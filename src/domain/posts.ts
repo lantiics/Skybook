@@ -192,7 +192,9 @@ export const createPost = async (
 
   if (ctx.user?.name) {
     entry.authenticated_user_identifier = ctx.user.identifier;
-    entry.can_flag = false; // //
+    if (ctx.user.name === ctx.instance) {
+      entry.can_flag = false;
+    }
   }
 
   const columns = ctx.superAdmin
