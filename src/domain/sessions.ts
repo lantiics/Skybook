@@ -14,12 +14,15 @@ export const userIdentifier = async (user: string): Promise<string> => {
     await READER`SELECT identifier FROM users WHERE name = ${user}`;
   return identifier.identifier;
 };
-export const createSession = async (user: string): Promise<string> => {
+export const createSession = async (
+  user: string,
+  DB = WRITER,
+): Promise<string> => {
   console.time("Generated session key");
   const token = await generateSessionKey();
   const tokenHash = new Bun.CryptoHasher("sha256").update(token).digest("hex");
   console.log(await userIdentifier(user));
-  await WRITER`INSERT INTO sessions (token, user_name, user_identifier) VALUES (${tokenHash}, ${user}, ${await userIdentifier(user)} )`;
+  await DB`INSERT INTO sessions (token, user_name, user_identifier) VALUES (${tokenHash}, ${user}, ${await userIdentifier(user)} )`;
   console.timeEnd("Generated session key");
   return token;
 };

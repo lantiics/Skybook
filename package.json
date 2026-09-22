@@ -14,16 +14,16 @@
     "ejs": "^6.0.1",
     "express": "^5.2.1",
     "express-rate-limit": "^8.7.0",
-    "hono": "^4.13.5",
+    "hono": "^4.13.8",
     "http-proxy-middleware": "^4.2.0",
-    "morgan": "^1.11.0",
-    "multer": "^2.3.0",
+    "morgan": "^1.12.1",
+    "multer": "^2.4.0",
     "otplib": "^13.5.0",
     "pm2": "^7.0.4",
     "qrcode": "^1.5.4",
     "vhost": "^3.0.2"
   },
   "devDependencies": {
-    "@types/bun": "^1.4.0"
+    "@types/bun": "^1.4.2"
   }
 }
