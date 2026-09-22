@@ -28,12 +28,12 @@
     "types": ["bun-types", "express"],
 
     "outDir": "dist",
-    "rootDir": "src",
+
 
     "resolveJsonModule": true,
     "isolatedModules": true,
     
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/app.js", "src/app.js", "src/app.js"],
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/app.js", "src/app.js", "src/app.js","tests/*.ts"],
   "exclude": ["node_modules", "dist"]
 }
