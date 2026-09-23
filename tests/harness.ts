@@ -18,23 +18,18 @@ const createUser = async (
   invite?: string,
   DB = WRITER,
 ): Promise<any> => {
-  try {
-    password = await Bun.password.hash(password);
-    const identifier = crypto.randomUUID();
-    const user = await DB.begin(async (tx) => {
-      const [user] =
-        await tx`INSERT INTO users (name, identifier, password_hash, ip_hash) VALUES (${name},${identifier},${password},${hashIp(ip)}) RETURNING name`;
-      await tx`INSERT INTO instances (name, user_identifier) VALUES (${name}, ${identifier})`;
+  password = await Bun.password.hash(password);
+  const identifier = crypto.randomUUID();
+  const user = await DB.begin(async (tx) => {
+    const [user] =
+      await tx`INSERT INTO users (name, identifier, password_hash, ip_hash) VALUES (${name},${identifier},${password},${hashIp(ip)}) RETURNING name`;
+    await tx`INSERT INTO instances (name, user_identifier) VALUES (${name}, ${identifier})`;
 
-      return user;
-    });
+    return user;
+  });
 
-    const token = await createSession(name, DB);
-    return { token, user, identifier };
-  } catch (e) {
-    console.error(e);
-    throw e;
-  }
+  const token = await createSession(name, DB);
+  return { token, user, identifier };
 };
 export const generateUser = async () => {
   const name = harnessedUser();
@@ -71,7 +66,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await WRITER`DELETE FROM sessions WHERE user_name LIKE 'harness-%'`;
-  await WRITER`DELETE FROM users WHERE name LIKE 'harness-%'`;
+  await WRITER`DELETE FROM users WHERE name  LIKE 'harness-%'`;
   await WRITER`DELETE FROM instances WHERE name LIKE 'harness-%'`;
   await WRITER`DELETE FROM overrides WHERE instance LIKE 'harness-%'`;
 });
