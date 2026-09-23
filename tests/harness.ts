@@ -71,7 +71,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await WRITER`DELETE FROM sessions WHERE user_name LIKE 'harness-%'`;
-  await WRITER`DELETE FROM users WHERE name  LIKE 'harness-%'`;
+  await WRITER`DELETE FROM users WHERE name LIKE 'harness-%'`;
   await WRITER`DELETE FROM instances WHERE name LIKE 'harness-%'`;
   await WRITER`DELETE FROM overrides WHERE instance LIKE 'harness-%'`;
 });
