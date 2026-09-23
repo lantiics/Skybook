@@ -41,7 +41,6 @@ export const generateUser = async () => {
 };
 export const baseUser = await generateUser();
 
-// export let baseUser;
 const btN = await generateUser();
 const btuM = await setupTwoFactor(btN.name);
 export const baseTOTPUser = {
@@ -50,11 +49,6 @@ export const baseTOTPUser = {
 };
 
 beforeAll(async () => {
-  // await WRITER`DELETE FROM sessions WHERE user_name LIKE 'harness-%'`;
-  // await WRITER`DELETE FROM users WHERE name LIKE 'harness-%'`;
-  // await WRITER`DELETE FROM instances WHERE name LIKE 'harness-%'`;
-  // await WRITER`DELETE FROM overrides WHERE instance LIKE 'harness-%'`;
-
   sessionToken = baseUser.token;
   await enableUserMfa(
     baseTOTPUser.identifier,
