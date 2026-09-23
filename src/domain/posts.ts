@@ -38,7 +38,7 @@ const validatedEntry = async (
   fields: Record<string, any>,
   isEdit: boolean = false,
 ): Promise<Record<string, unknown>> => {
-  console.time("Validated entry");
+  // console.time("Validated entry");
   const instanceStatus = await compiledInstanceStatus(ctx.instance);
   if (!instanceStatus.submission_enabled.status && !ctx.elevated)
     throw new UnauthorizedError("Submission is disabled");
@@ -163,7 +163,7 @@ const validatedEntry = async (
   }
   fields.extra = extra;
   entry = { ...entry, ...fields };
-  console.timeEnd("Validated entry");
+  // console.timeEnd("Validated entry");
   return entry;
 };
 
@@ -238,7 +238,7 @@ export const editPost = async (
       );
     }
   }
-  console.log(fields);
+
   const extra: Record<string, string | undefined> = {};
 
   Object.keys(fields).forEach((key) => {
@@ -247,7 +247,6 @@ export const editPost = async (
       delete fields[key];
     }
   });
-  console.log(fields.extra, "extra");
   const columns = ctx.superAdmin
     ? `*`
     : (ctx.elevated
@@ -255,7 +254,6 @@ export const editPost = async (
         : [...PUBLIC_COLUMN_NAMES]
       ).join(",");
   fields.last_edited_by = ctx.user?.identifier;
-  console.log(JSON.stringify(fields.extra));
 
   const hasExtra = Object.keys(extra).length > 0;
   const hasFields = Object.keys(fields).length > 0;
