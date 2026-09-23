@@ -1,5 +1,5 @@
 import { ctx } from "./harness";
-import { test, expect } from "bun:test";
+import { test, expect, describe } from "bun:test";
 import {
   createPost,
   deletePost,
@@ -55,30 +55,31 @@ test("Trying to post to an instance with submission disabled fails", async () =>
   ).rejects.toThrow(UnauthorizedError);
 });
 
-test("Trying to post to an instance with submission disabled as an elevated user succeeds", async () => {
-  expect(
-    withSubmissionDisabled(async () => await createElevatedPost()),
-  ).resolves.toBeDefined();
+describe("Post logic with elevated context", () => {
+  test("Trying to post to an instance with submission disabled as an elevated user succeeds", async () => {
+    expect(
+      withSubmissionDisabled(async () => await createElevatedPost()),
+    ).resolves.toBeDefined();
+  });
+
+  test("Trying to delete any post as an elevated user succeeds", async () => {
+    const identifier = (await createAnonymousPost()).row.identifier;
+
+    expect(
+      deletePost(ctx.elevated as RequestContext, identifier),
+    ).resolves.toBeUndefined();
+  });
+
+  test("Trying to alter any post as an elevated user succeeds", async () => {
+    const identifier = (await createAnonymousPost()).row.identifier;
+
+    expect(
+      editPost(ctx.elevated as RequestContext, identifier, {
+        content: "meow",
+      }),
+    ).resolves.toBeUndefined();
+  });
 });
-
-test("Trying to delete any post as an elevated user succeeds", async () => {
-  const identifier = (await createAnonymousPost()).row.identifier;
-
-  expect(
-    deletePost(ctx.elevated as RequestContext, identifier),
-  ).resolves.toBeUndefined();
-});
-
-test("Trying to alter any post as an elevated user succeeds", async () => {
-  const identifier = (await createAnonymousPost()).row.identifier;
-
-  expect(
-    editPost(ctx.elevated as RequestContext, identifier, {
-      content: "meow",
-    }),
-  ).resolves.toBeUndefined();
-});
-
 test("Trying to get posts on an invisible instance without an elevated context fails", async () => {
   expect(
     withVisibilityDisabled(async () => await getPosts(ctx.anonymous, 0)),
