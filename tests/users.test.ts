@@ -1,5 +1,5 @@
 import { test, expect, describe } from "bun:test";
-import { baseTOTPUser, harnessedUser } from "./harness";
+import { baseTOTPUser, baseUser, harnessedUser } from "./harness";
 import { createUser, loginUser } from "@/domain/users";
 import { UnauthorizedError, UnavailableError } from "@/errors";
 import { withLoginDisabled, withSignupDisabled } from "./skybook.test";
@@ -19,10 +19,10 @@ test("Trying to sign up with signup disabled fails", async () => {
 });
 
 test("Trying to log in with login disabled fails", async () => {
-  const uName = harnessedUser();
-  createUser(uName, "123123123123", "skybook-harness-ip-logindisabledtest");
   expect(
-    withLoginDisabled(async () => await loginUser(uName, "123123123123")),
+    withLoginDisabled(
+      async () => await loginUser(baseUser.name, baseUser.password),
+    ),
   ).rejects.toThrow(UnavailableError);
 });
 
