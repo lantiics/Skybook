@@ -22,7 +22,7 @@ export const createAnonymousPost = async () => {
 export const createElevatedPost = async () => {
   return await createPost(ctx.elevated as RequestContext, { content: "test" });
 };
-describe("Post logic without valid credentials/elevated context", () => {
+describe("Post logic without valid credentials", () => {
   test("Trying to delete a post with invalid credentials fails", async () => {
     const identifier = (await createAnonymousPost()).row.identifier;
 
@@ -59,6 +59,23 @@ describe("Post logic without valid credentials/elevated context", () => {
     expect(
       withSubmissionDisabled(async () => await createAnonymousPost()),
     ).rejects.toThrow(UnauthorizedError);
+  });
+});
+
+describe("Post logic with valid token", () => {
+  test("Trying to delete a post with a valid token succeeds", async () => {
+    const { row, token } = await createAnonymousPost();
+    const identifier = row.identifier;
+    const tokenCtx = { ...ctx.anonymous, token };
+    expect(deletePost(tokenCtx, identifier)).resolves.toBeUndefined();
+  });
+  test("Trying to alter a post with a valid token succeeds", async () => {
+    const { row, token } = await createAnonymousPost();
+    const identifier = row.identifier;
+    const tokenCtx = { ...ctx.anonymous, token };
+    expect(
+      editPost(tokenCtx, identifier, { content: "hello" }),
+    ).resolves.toBeUndefined();
   });
 });
 
