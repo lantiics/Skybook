@@ -1,4 +1,4 @@
-import { ctx, harnessUserName } from "./harness";
+import { ctx } from "./harness";
 import { test, expect } from "bun:test";
 import {
   createPost,
@@ -10,7 +10,7 @@ import {
 import { RequestContext } from "@/types/context";
 import { UnauthorizedError } from "@/errors";
 import { toggleInstanceSubmission } from "root/src/domain/instances";
-import { WRITER } from "root/src/db";
+import { READER, WRITER } from "root/src/db";
 import {
   withSubmissionDisabled,
   withVisibilityDisabled,
