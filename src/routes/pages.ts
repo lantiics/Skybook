@@ -163,6 +163,7 @@ instanceRouter.get(
 instanceRouter.get(
   "/embed",
   async (req: Request, res: Response, next: NextFunction) => {
+    res.setHeader("Content-Security-Policy", "frame-ancestors *;");
     return await instanceLogic(req, res, next, true);
   },
 );
