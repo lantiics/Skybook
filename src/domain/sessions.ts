@@ -18,12 +18,11 @@ export const createSession = async (
   user: string,
   DB = WRITER,
 ): Promise<string> => {
-  console.time("Generated session key");
   const token = await generateSessionKey();
   const tokenHash = new Bun.CryptoHasher("sha256").update(token).digest("hex");
-  console.log(await userIdentifier(user));
+
   await DB`INSERT INTO sessions (token, user_name, user_identifier) VALUES (${tokenHash}, ${user}, ${await userIdentifier(user)} )`;
-  console.timeEnd("Generated session key");
+
   return token;
 };
 
@@ -55,7 +54,6 @@ export const revokeAllSessions = async (
 ): Promise<void> => {
   const r =
     await DB`DELETE FROM sessions WHERE user_identifier = ${identifier}`;
-  console.log(r, "a");
 };
 export const clearExpiredSessions = async (): Promise<void> => {
   await WRITER`DELETE FROM sessions WHERE expires_at <= now()`;
