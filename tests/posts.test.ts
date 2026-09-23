@@ -9,7 +9,6 @@ import {
 } from "@domain/posts";
 import { RequestContext } from "@/types/context";
 import { UnauthorizedError } from "@/errors";
-import { toggleInstanceSubmission } from "root/src/domain/instances";
 import { READER, WRITER } from "root/src/db";
 import {
   withSubmissionDisabled,
