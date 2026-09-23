@@ -89,15 +89,14 @@ export const createUser = async (
     password = await Bun.password.hash(password);
     const userIdentifier = generateToken();
     const user = await DB.begin(async (tx) => {
-      console.log("generating user");
       const [user] =
         await tx`INSERT INTO users (name, identifier, password_hash, ip_hash) VALUES (${name},${userIdentifier},${password},${hashIp(ip)}) RETURNING name`;
-      console.log("generating instance");
+
       await tx`INSERT INTO instances (name, user_identifier) VALUES (${name}, ${userIdentifier})`;
 
       return user;
     });
-    console.log("generating session");
+
     const token = await createSession(name, DB);
     return token;
   } catch (e) {
@@ -134,6 +133,7 @@ export const loginUser = async (
   }
   const [userEntry] =
     await READER`SELECT name, identifier, totp_secret, can_login, password_hash FROM users WHERE name = ${name}`;
+
   if (!userEntry) {
     await Bun.password.verify(password, DUMMY_PASSWORD_HASH);
   }
