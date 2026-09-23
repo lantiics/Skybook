@@ -84,3 +84,12 @@ test("Trying to get posts on an invisible instance without an elevated context f
     withVisibilityDisabled(async () => await getPosts(ctx.anonymous, 0)),
   ).rejects.toThrow(UnauthorizedError);
 });
+
+test("Post flags exceeding flag threshold automatically queues a post", async () => {
+  const identifier = (await createAnonymousPost()).row.identifier;
+  await WRITER`UPDATE posts SET flag_count = 2 WHERE identifier = ${identifier}`;
+  await flagPost(ctx.anonymous, identifier);
+  const [post] =
+    await READER`SELECT is_queued FROM posts WHERE identifier = ${identifier}`;
+  expect(post.is_queued).toBeTrue();
+});
