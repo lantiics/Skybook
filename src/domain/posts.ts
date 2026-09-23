@@ -44,7 +44,7 @@ const validatedEntry = async (
     throw new UnauthorizedError("Submission is disabled");
 
   const instanceBlocks = await instanceIpBlocks(ctx.instance);
-  if (!ctx.ip.startsWith("skybook-harness")) {
+  if (!ctx.ip.startsWith("harness")) {
     const source = await ipSource(ctx.ip);
     if (instanceBlocks.proxy) {
       if (source === "proxy") throw new UnauthorizedError("IP blocked");
