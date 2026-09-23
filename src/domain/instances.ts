@@ -349,6 +349,7 @@ export const importInstance = async (instance: string, entries: Post[]) => {
         reply: entry.reply,
         added: entry.added,
         ip_hash: "Added via import",
+        can_flag: false,
         identifier: crypto.randomUUID(),
       };
 
