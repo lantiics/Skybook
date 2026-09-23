@@ -1,5 +1,5 @@
 import { beforeAll, afterAll } from "bun:test";
-import { createSession, getSessionUser } from "@domain/sessions";
+import { createSession } from "@domain/sessions";
 import { WRITER } from "../src/db";
 import { hashIp } from "@/domain/ip";
 
