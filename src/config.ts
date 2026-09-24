@@ -13,6 +13,7 @@ const config = raw as {
     username_max_length: number;
     username_min_length: number;
     instance_notifications: boolean;
+    instance_notification_proxy_url: string;
   };
   caching: {
     purging: boolean;
