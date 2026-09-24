@@ -32,6 +32,8 @@ CREATE TABLE instances (
   queue_on_filtered BOOLEAN NOT NULL DEFAULT TRUE,
   enforced_lock BOOLEAN NOT NULL DEFAULT FALSE,
   custom_filter TEXT,
+  notification_endpoint TEXT,
+  notification_service TEXT,
   queue_flags_threshold INTEGER NOT NULL DEFAULT 3,
   blocklist_proxy_enabled BOOLEAN NOT NULL DEFAULT FALSE,
   blocklist_vpn_enabled BOOLEAN NOT NULL DEFAULT FALSE,
