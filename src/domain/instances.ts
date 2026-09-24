@@ -1,10 +1,16 @@
 import { RequestContext } from "../types/context.ts";
 import { Post } from "../types/entities.ts";
 import { READER, WRITER } from "../db.ts";
-import { BadRequestError, LockedError, UnauthorizedError } from "../errors.ts";
+import {
+  BadRequestError,
+  LockedError,
+  UnauthorizedError,
+  UnavailableError,
+} from "../errors.ts";
 import { setField, allFieldsAreWritable } from "./fields.ts";
 import { config } from "../config.ts";
 import { purgeInstanceCache } from "./cache.ts";
+import { encryptedURL, notifyUser } from "./notifications.ts";
 
 const EXPORTABLE_COLUMN_NAMES = [
   "author",
@@ -287,6 +293,33 @@ export const toggleInstanceTorBlacklist = async (instance: string) => {
 };
 
 //#endregion TOGGLES
+
+export const enableInstanceNotifications = async (
+  instance: string,
+  url: string,
+  service: string,
+  DB = WRITER,
+) => {
+  if (!config.skybook.instance_notifications)
+    throw new UnavailableError("Instance notification sending is disabled");
+  if (!["ntfy"].includes(service))
+    throw new BadRequestError(
+      "Specified notification endpoint is not supported by Skybook",
+    );
+  url = encryptedURL(url);
+  await WRITER`INSERT INTO instances (notification_endpoint,notification_service) VALUES (${url}, ${service})`;
+  await notifyUser(
+    instance,
+    "Notifications will now be sent to you when an entry is created on your guestbook!",
+  );
+};
+export const disableInstanceNotifications = async (
+  instance: string,
+  DB = WRITER,
+) => {
+  await DB`UPDATE instances SET notification_endpoint=null,notification_service=null WHERE name=${instance}`;
+  return 0;
+};
 
 export const exportInstance = async (ctx: RequestContext) => {
   const entries =

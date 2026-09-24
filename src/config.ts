@@ -12,6 +12,7 @@ const config = raw as {
     invitation_required: boolean;
     username_max_length: number;
     username_min_length: number;
+    instance_notifications: boolean;
   };
   caching: {
     purging: boolean;
