@@ -9,6 +9,12 @@ header="Skybook is currently under development, stability can not be guaranteed.
 username_max_length=15 # If altered, requires alteration of the `name` column in the `users` DB table, which defaults to VARCHAR(15)
 username_min_length=3
 instance_notifications=false # Notify instance owners when they receive a new entry
+# Optionally specify a URL which forwards notification POST requests;
+# This will replace the user-specified endpoint and put it into the request body.
+# An example usage of this is a CloudFlare worker to proxy requests, hiding the origin server IP.
+# If behind cloudflare, we probably want to use this.
+instance_notification_proxy_url="" 
+
 [caching]
 purging=false     #
 purge_endpoint="https://api.cloudflare.com/client/v4/zones/$ZONE_ID/purge_cache" # We can purge cache facing anonymous users using Cloudflare to speed up Skybook

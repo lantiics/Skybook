@@ -32,18 +32,33 @@ export const notifyUser = async (
     notification_service: webhookService,
   } =
     await WRITER`SELECT notification_endpoint,notification_service FROM instances WHERE name = ${user}`;
-  const url = decryptURL(encryptedUrl);
+  const userUrl = decryptURL(encryptedUrl);
+  switch (webhookService) {
+    case "ntfy":
+      break;
+  }
+  const requestBody: any = {
+    method: "POST",
+    body:
+      config.skybook.instance_notification_proxy_url !== ""
+        ? JSON.stringify({
+            message,
+            url: config.skybook.instance_notification_proxy_url,
+          })
+        : message,
+    headers: { Title: "Skybook" },
+  };
+  const url =
+    config.skybook.instance_notification_proxy_url !== ""
+      ? config.skybook.instance_notification_proxy_url
+      : userUrl;
   switch (webhookService) {
     case "ntfy": {
-      await fetch(url, {
-        method: "POST",
-        body: message,
-        headers: {
-          Title: "Skybook",
-        },
-      });
-      break;
+      await fetch(url, requestBody);
+      return;
     }
   }
-  return 0;
+  throw new Error(
+    "THIS SHOULD NOT BE SEEN: No webhook service available could be used to notify instance owner upon new entry creation.",
+  );
 };
