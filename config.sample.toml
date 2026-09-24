@@ -13,6 +13,8 @@ instance_notifications=false # Notify instance owners when they receive a new en
 # This will replace the user-specified endpoint and put it into the request body.
 # An example usage of this is a CloudFlare worker to proxy requests, hiding the origin server IP.
 # If behind cloudflare, we probably want to use this.
+# Some services with rate limiting (during testing I had experienced problems with NTFY) will
+# block requests from cloudflare workers.
 instance_notification_proxy_url="" 
 
 [caching]

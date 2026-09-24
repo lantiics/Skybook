@@ -37,17 +37,21 @@ export const notifyUser = async (
     case "ntfy":
       break;
   }
+  const reqHeaders = { Title: "skybook" };
   const requestBody: any = {
     method: "POST",
     body:
       config.skybook.instance_notification_proxy_url !== ""
         ? JSON.stringify({
-            message,
-            url: config.skybook.instance_notification_proxy_url,
+            body: message,
+            endpointUrl: userUrl,
+            FORWARDHEADERS: reqHeaders,
           })
         : message,
-    headers: { Title: "Skybook" },
+    headers: reqHeaders,
   };
+
+  console.log(requestBody);
   const url =
     config.skybook.instance_notification_proxy_url !== ""
       ? config.skybook.instance_notification_proxy_url
