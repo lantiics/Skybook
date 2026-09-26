@@ -1,7 +1,10 @@
 import { READER, WRITER } from "../db.ts";
 import { NotFoundError, UnauthorizedError } from "../errors";
+import { Invitation, User } from "../types/entities";
 
-export const invitationIsValid = async (token: string): Promise<boolean> => {
+export const invitationIsValid = async (
+  token: Invitation["token"],
+): Promise<boolean> => {
   if (
     !(
       await READER`SELECT EXISTS(SELECT 1 FROM invitations WHERE token = ${token} AND uses < 3)`
@@ -12,11 +15,13 @@ export const invitationIsValid = async (token: string): Promise<boolean> => {
   await WRITER`UPDATE invitations SET uses = uses + 1, last_used = now() WHERE token = ${token}`;
   return true;
 };
-export const invalidateInvitation = async (token: string): Promise<void> => {
+export const invalidateInvitation = async (
+  token: Invitation["token"],
+): Promise<void> => {
   await WRITER`DELETE FROM invitations WHERE token = ${token}`;
 };
 export const newInvitation = async (
-  creatorIdentifier: string,
+  creatorIdentifier: User["identifier"],
 ): Promise<string> => {
   const [creator] =
     await READER`SELECT * FROM users WHERE identifier = ${creatorIdentifier}`;

@@ -1,5 +1,6 @@
 import { READER } from "../db.ts";
 import { createHmac } from "crypto";
+import { Instance } from "../types/entities";
 
 export const hashIp = (ip: string): string => {
   return createHmac("sha256", process.env.IP_HASH_SECRET!)
@@ -12,7 +13,10 @@ export const ipSource = async (ip: string) => {
 
   return m?.source;
 };
-const ipIsBlockedOnInstance = async (ip: string, instance: string) => {
+const ipIsBlockedOnInstance = async (
+  ip: string,
+  instance: Instance["name"],
+) => {
   const ipHash = hashIp(ip);
   const [block] =
     await READER`SELECT EXISTS(SELECT 1 FROM instance_blocks WHERE ip_hash = ${ipHash} AND instance = ${instance})`;
@@ -26,7 +30,7 @@ export const ipIsBlockedGlobally = async (ip: string) => {
   return block.exists;
 };
 
-export const ipIsBlocked = async (ip: string, instance: string) => {
+export const ipIsBlocked = async (ip: string, instance: Instance["name"]) => {
   const blockedLocally = await ipIsBlockedOnInstance(ip, instance);
   const blockedGlobally = await ipIsBlockedGlobally(ip);
   if (!blockedLocally) {

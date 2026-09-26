@@ -4,30 +4,31 @@ import { RequestContext } from "../types/context";
 import { randomBytes } from "node:crypto";
 import Bun from "bun";
 import { userInformation } from "./enforcements.ts";
+import { Session, User } from "../types/entities";
 const generateSessionKey = async (): Promise<string> => {
   const token = randomBytes(32).toString("hex");
   return token;
 };
 
-export const userIdentifier = async (user: string): Promise<string> => {
+export const userIdentifier = async (user: User["name"]): Promise<string> => {
   const [identifier] =
     await READER`SELECT identifier FROM users WHERE name = ${user}`;
   return identifier.identifier;
 };
 export const createSession = async (
-  user: string,
+  name: User["name"],
   DB = WRITER,
 ): Promise<string> => {
   const token = await generateSessionKey();
   const tokenHash = new Bun.CryptoHasher("sha256").update(token).digest("hex");
 
-  await DB`INSERT INTO sessions (token, user_name, user_identifier) VALUES (${tokenHash}, ${user}, ${await userIdentifier(user)} )`;
+  await DB`INSERT INTO sessions (token, user_name, user_identifier) VALUES (${tokenHash}, ${name}, ${await userIdentifier(name)} )`;
 
   return token;
 };
 
 export const getSessionUser = async (
-  token: string,
+  token: Session["token"],
 ): Promise<RequestContext["user"]> => {
   const [row] =
     await READER`SELECT user_name,user_identifier FROM sessions WHERE token = ${new Bun.CryptoHasher("sha256").update(token).digest("hex")} AND expires_at > now()`;
@@ -43,13 +44,13 @@ export const getSessionUser = async (
   };
 };
 
-export const revokeSession = async (token: string): Promise<void> => {
+export const revokeSession = async (token: Session["token"]): Promise<void> => {
   token = new Bun.CryptoHasher("sha256").update(token).digest("hex");
   const r = await WRITER`DELETE FROM sessions WHERE token = ${token}`;
   console.log(r, "a");
 };
 export const revokeAllSessions = async (
-  identifier: string,
+  identifier: User["identifier"],
   DB: any = WRITER,
 ): Promise<void> => {
   const r =

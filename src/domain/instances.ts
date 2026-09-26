@@ -1,5 +1,5 @@
 import { RequestContext } from "../types/context.ts";
-import { Mutable, Post } from "../types/entities.ts";
+import { Instance, Mutable, Post, User } from "../types/entities.ts";
 import { READER, WRITER } from "../db.ts";
 import {
   BadRequestError,
@@ -28,12 +28,15 @@ interface Status {
   locked?: boolean;
 }
 
-export const instanceExists = async (instance: string) => {
+export const instanceExists = async (instance: Instance["name"]) => {
   const [instanceExists] =
     await READER`SELECT EXISTS(SELECT 1 FROM instances WHERE name = ${instance})`;
   return instanceExists.exists;
 };
-const _getInstanceOverride = async (instance: string, name: string) => {
+const _getInstanceOverride = async (
+  instance: Instance["name"],
+  name: string,
+) => {
   const [override] = await READER`
   SELECT value FROM overrides
   WHERE name = ${name} AND instance = ${instance}
@@ -43,7 +46,7 @@ const _getInstanceOverride = async (instance: string, name: string) => {
   return override?.value;
 };
 export const _getSpecifiedInstanceStatus = async (
-  instance: string,
+  instance: Instance["name"],
   name: string,
 ): Promise<Status> => {
   if (
@@ -79,25 +82,33 @@ export const _getSpecifiedInstanceStatus = async (
 
   return status;
 };
-export const isVisible = async (instance: string): Promise<Status> => {
+export const isVisible = async (
+  instance: Instance["name"],
+): Promise<Status> => {
   const status = await _getSpecifiedInstanceStatus(instance, "is_visible");
   return status;
 };
-export const submissionEnabled = async (instance: string): Promise<Status> => {
+export const submissionEnabled = async (
+  instance: Instance["name"],
+): Promise<Status> => {
   const status = await _getSpecifiedInstanceStatus(
     instance,
     "submission_enabled",
   );
   return status;
 };
-export const approvalRequired = async (instance: string): Promise<Status> => {
+export const approvalRequired = async (
+  instance: Instance["name"],
+): Promise<Status> => {
   const status = await _getSpecifiedInstanceStatus(
     instance,
     "approval_required",
   );
   return status;
 };
-export const flaggingEnabled = async (instance: string): Promise<Status> => {
+export const flaggingEnabled = async (
+  instance: Instance["name"],
+): Promise<Status> => {
   const status = await _getSpecifiedInstanceStatus(
     instance,
     "flagging_enabled",
@@ -106,7 +117,7 @@ export const flaggingEnabled = async (instance: string): Promise<Status> => {
 };
 
 export const instanceQueuesFilteredPosts = async (
-  instance: string,
+  instance: Instance["name"],
 ): Promise<Status> => {
   const status = await _getSpecifiedInstanceStatus(
     instance,
@@ -116,7 +127,7 @@ export const instanceQueuesFilteredPosts = async (
 };
 
 export const InstanceQueueFlaggedThreshold = async (
-  instance: string,
+  instance: Instance["name"],
 ): Promise<Status> => {
   const status = await _getSpecifiedInstanceStatus(
     instance,
@@ -126,7 +137,7 @@ export const InstanceQueueFlaggedThreshold = async (
 };
 
 export const instanceSuppliedFilter = async (
-  instance: string,
+  instance: Instance["name"],
 ): Promise<string> => {
   return (
     await READER`SELECT custom_filter FROM instances WHERE name = ${instance}`
@@ -134,7 +145,7 @@ export const instanceSuppliedFilter = async (
 };
 
 export const instanceBlocksProxyAddresses = async (
-  instance: string,
+  instance: Instance["name"],
 ): Promise<Status> => {
   const status = await _getSpecifiedInstanceStatus(
     instance,
@@ -143,7 +154,7 @@ export const instanceBlocksProxyAddresses = async (
   return status;
 };
 export const instanceBlocksVPNAddresses = async (
-  instance: string,
+  instance: Instance["name"],
 ): Promise<Status> => {
   const status = await _getSpecifiedInstanceStatus(
     instance,
@@ -152,7 +163,7 @@ export const instanceBlocksVPNAddresses = async (
   return status;
 };
 export const instanceBlocksTorAddresses = async (
-  instance: string,
+  instance: Instance["name"],
 ): Promise<Status> => {
   const status = await _getSpecifiedInstanceStatus(
     instance,
@@ -162,7 +173,7 @@ export const instanceBlocksTorAddresses = async (
 };
 
 export const instanceIpBlocks = async (
-  instance: string,
+  instance: Instance["name"],
 ): Promise<Record<"proxy" | "vpn" | "tor", boolean>> => {
   return (
     await READER`SELECT blocklist_proxy_enabled AS proxy,blocklist_vpn_enabled AS vpn,blocklist_tor_enabled AS tor FROM instances WHERE name = ${instance}`
@@ -170,7 +181,7 @@ export const instanceIpBlocks = async (
 };
 
 export const compiledInstanceStatus = async (
-  instance: string,
+  instance: Instance["name"],
 ): Promise<Record<string, Status>> => {
   const status = {
     is_visible: await isVisible(instance),
@@ -185,10 +196,10 @@ export const compiledInstanceStatus = async (
 };
 
 export const instanceHasRequesterBlocked = async (
-  instance: string,
+  instance: Instance["name"],
 
   ipHash: string,
-  uuid?: string,
+  uuid?: User["identifier"],
 ) => {
   if (
     (
@@ -201,7 +212,7 @@ export const instanceHasRequesterBlocked = async (
 
 //#region TOGGLES
 const _toggleSpecifiedInstanceStatus = async (
-  instance: string,
+  instance: Instance["name"],
   name: string,
 ) => {
   if (
@@ -239,24 +250,26 @@ const _toggleSpecifiedInstanceStatus = async (
 };
 
 // Convenience functions
-export const toggleInstanceVisibility = async (instance: string) => {
+export const toggleInstanceVisibility = async (instance: Instance["name"]) => {
   return await _toggleSpecifiedInstanceStatus(instance, "is_visible");
 };
-export const toggleInstanceSubmission = async (instance: string) => {
+export const toggleInstanceSubmission = async (instance: Instance["name"]) => {
   return await _toggleSpecifiedInstanceStatus(instance, "submission_enabled");
 };
-export const toggleInstanceApproval = async (instance: string) => {
+export const toggleInstanceApproval = async (instance: Instance["name"]) => {
   return await _toggleSpecifiedInstanceStatus(instance, "approval_required");
 };
-export const toggleInstanceFlagging = async (instance: string) => {
+export const toggleInstanceFlagging = async (instance: Instance["name"]) => {
   return await _toggleSpecifiedInstanceStatus(instance, "flagging_enabled");
 };
-export const toggleInstanceQueueOnFiltered = async (instance: string) => {
+export const toggleInstanceQueueOnFiltered = async (
+  instance: Instance["name"],
+) => {
   return await _toggleSpecifiedInstanceStatus(instance, "queue_on_filtered");
 };
 
 export const updateInstanceSuppliedFilter = async (
-  instance: string,
+  instance: Instance["name"],
   filter: string,
 ) => {
   if (filter.length > config.instances.max_global_filter_length)
@@ -267,8 +280,8 @@ export const updateInstanceSuppliedFilter = async (
 };
 
 export const updateInstanceQueueFlaggedThreshold = async (
-  instance: string,
-  threshold: number,
+  instance: Instance["name"],
+  threshold: Instance["queue_flags_threshold"],
 ): Promise<void> => {
   if (Math.sign(threshold) === -1)
     throw new BadRequestError("Threshold must be positive");
@@ -276,20 +289,26 @@ export const updateInstanceQueueFlaggedThreshold = async (
 };
 
 // ip address blocking
-export const toggleInstanceProxyBlacklist = async (instance: string) => {
+export const toggleInstanceProxyBlacklist = async (
+  instance: Instance["name"],
+) => {
   return await _toggleSpecifiedInstanceStatus(
     instance,
     "blocklist_proxy_enabled",
   );
 };
-export const toggleInstanceVPNBlacklist = async (instance: string) => {
+export const toggleInstanceVPNBlacklist = async (
+  instance: Instance["name"],
+) => {
   return await _toggleSpecifiedInstanceStatus(
     instance,
     "blocklist_vpn_enabled",
   );
 };
 
-export const toggleInstanceTorBlacklist = async (instance: string) => {
+export const toggleInstanceTorBlacklist = async (
+  instance: Instance["name"],
+) => {
   return await _toggleSpecifiedInstanceStatus(
     instance,
     "blocklist_tor_enabled",
@@ -299,7 +318,7 @@ export const toggleInstanceTorBlacklist = async (instance: string) => {
 //#endregion TOGGLES
 
 export const enableInstanceNotifications = async (
-  instance: string,
+  instance: Instance["name"],
   url: string,
   service: string,
   DB = WRITER,
@@ -323,7 +342,7 @@ export const enableInstanceNotifications = async (
   );
 };
 export const disableInstanceNotifications = async (
-  instance: string,
+  instance: Instance["name"],
   DB = WRITER,
 ) => {
   await DB`UPDATE instances SET notification_endpoint=null,notification_service=null WHERE name=${instance}`;
@@ -331,7 +350,7 @@ export const disableInstanceNotifications = async (
 };
 
 export const instanceNotificationInfo = async (
-  instance: string,
+  instance: Instance["name"],
   DB = READER,
 ) => {
   const [info] =
@@ -359,7 +378,7 @@ export const exportInstance = async (ctx: RequestContext) => {
   return csv;
 };
 export const importInstance = async (
-  instance: string,
+  instance: Instance["name"],
   entries: Mutable<Post>[],
 ) => {
   entries = entries.slice(0, 1000);

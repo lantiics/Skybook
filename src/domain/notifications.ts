@@ -1,7 +1,7 @@
 import { config } from "../config";
 import { READER } from "../db";
 import crypto from "node:crypto";
-import { Post } from "../types/entities";
+import { Instance, Post } from "../types/entities";
 
 export const notificationUrlIsValidForService = (
   service: string,
@@ -40,7 +40,7 @@ export const decryptedURL = (url: string) => {
   return url.toString();
 };
 export const notifyUser = async (
-  instance: string,
+  instance: Instance["name"],
   post: Post | null = null,
   message: string = `A new entry has just been made on your guestbook at ${config.skybook.subdomain_vanity ? `${instance}.${config.skybook.domain}` : `${config.skybook.domain}/${instance}`}!`,
   DB = READER,

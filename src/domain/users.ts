@@ -20,7 +20,7 @@ import {
   signupInvitationRequired,
 } from "./service-settings.ts";
 import { READER, WRITER } from "../db.ts";
-import { User } from "../types/entities";
+import { Session, User } from "../types/entities";
 import { passwordIsSafe, verifyTotp } from "./auth.ts";
 import { config } from "../config.ts";
 import { hashIp } from "./ip.ts";
@@ -31,7 +31,7 @@ import cookieParser from "cookie-parser";
 import { text } from "express";
 import { invitationIsValid } from "./invitations.ts";
 
-export const userUUID = async (name: string) => {
+export const userUUID = async (name: User["name"]) => {
   const [user] =
     await READER`SELECT identifier FROM users WHERE name = ${name}`;
   if (!user.identifier) {
@@ -111,7 +111,7 @@ let DUMMY_PASSWORD_HASH: string;
   );
 })();
 export const userPasswordIsValid = async (
-  identifier: string,
+  identifier: User["identifier"],
   password: string,
 ): Promise<boolean> => {
   const [userEntry] =
@@ -122,7 +122,7 @@ export const userPasswordIsValid = async (
   else return false;
 };
 export const loginUser = async (
-  name: string,
+  name: User["name"],
   password: string,
   otp?: string,
 ): Promise<string> => {
@@ -166,11 +166,13 @@ export const loginUser = async (
   return await createSession(name);
 };
 
-const updateUserLastSeenTime = async (identifier: string): Promise<void> => {
+const updateUserLastSeenTime = async (
+  identifier: User["identifier"],
+): Promise<void> => {
   await WRITER`UPDATE users SET last_seen = now() WHERE identifier = ${identifier}`;
 };
 export const authenticateUser = async (
-  token: string,
+  token: Session["token"],
 ): Promise<RequestContext["user"]> => {
   if (!loginEnabled) {
     throw new UnavailableError(
@@ -187,7 +189,7 @@ export const authenticateUser = async (
 };
 
 export const enableUserMfa = async (
-  identifier: string,
+  identifier: User["identifier"],
   secret: string,
   recoveryCodes: string[],
 ): Promise<void> => {
@@ -201,19 +203,29 @@ export const enableUserMfa = async (
   return;
 };
 
-export const disableUserMfa = async (identifier: string): Promise<void> => {
+export const disableUserMfa = async (
+  identifier: User["identifier"],
+): Promise<void> => {
   await WRITER`UPDATE users SET totp_secret = NULL, mfa_recovery = NULL WHERE identifier = ${identifier}`;
   return;
 };
 
 export const changeUserPassword = async (
-  identifier: string,
+  identifier: User["identifier"],
   oldPassword: string,
   newPassword: string,
   otp?: string,
 ): Promise<void> => {
-  const [userEntry] =
-    await READER`SELECT name, identifier, totp_secret, can_change_password, password_hash FROM users WHERE identifier = ${identifier}`;
+  const userEntry = (
+    await READER`SELECT name, identifier, totp_secret, can_change_password, password_hash FROM users WHERE identifier = ${identifier}`
+  )[0] as Pick<
+    User,
+    | "name"
+    | "identifier"
+    | "totp_secret"
+    | "can_change_password"
+    | "password_hash"
+  >;
   console.log(userEntry);
   if (
     !userEntry.can_change_password ||
@@ -237,7 +249,7 @@ export const changeUserPassword = async (
     await revokeAllSessions(identifier, tx);
   });
 };
-export const resetUserPassword = async (identifier: string) => {
+export const resetUserPassword = async (identifier: User["identifier"]) => {
   const password = btoa(crypto.getRandomValues(new BigUint64Array(2)).join());
 
   await WRITER.begin(async (tx) => {
@@ -247,15 +259,16 @@ export const resetUserPassword = async (identifier: string) => {
   return password;
 };
 
-export const userIsPendingDeletion = async (identifier: string) => {
+export const userIsPendingDeletion = async (
+  identifier: User["identifier"],
+): Promise<Boolean> => {
   return (
     await READER`SELECT pending_deletion FROM users WHERE identifier = ${identifier}`
   )[0].pending_deletion;
 };
 
 export const deleteUser = async (
-  ctx: RequestContext,
-  identifier: string,
+  identifier: User["identifier"],
 ): Promise<void> => {
   await WRITER.begin(async (tx) => {
     await tx`UPDATE users SET pending_deletion = true, delete_at = (now() + INTERVAL '7 days') WHERE identifier = ${identifier}`;
@@ -263,14 +276,18 @@ export const deleteUser = async (
   });
 };
 
-export const cancelUserDeletion = async (identifier: string): Promise<void> => {
+export const cancelUserDeletion = async (
+  identifier: User["identifier"],
+): Promise<void> => {
   await WRITER`UPDATE users SET pending_deletion = false, delete_at = null WHERE identifier = ${identifier}`;
 };
 
 // Clear users who have not been seen for over one year
 export const clearUnseenUsers = async (): Promise<void> => {};
 
-export const userCanBeBlocked = async (uuid: string): Promise<boolean> => {
+export const userCanBeBlocked = async (
+  uuid: User["identifier"],
+): Promise<boolean> => {
   const [res] =
     await READER`SELECT can_be_blocked FROM users WHERE identifier = ${uuid}`;
   if (!res) {
@@ -278,7 +295,9 @@ export const userCanBeBlocked = async (uuid: string): Promise<boolean> => {
   }
   return res.can_be_blocked;
 };
-export const userCanPost = async (uuid: string): Promise<boolean> => {
+export const userCanPost = async (
+  uuid: User["identifier"],
+): Promise<boolean> => {
   return (await READER`SELECT can_post FROM users WHERE identifier=${uuid}`)[0]
     .can_post;
 };

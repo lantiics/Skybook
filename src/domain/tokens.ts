@@ -1,5 +1,6 @@
 import { READER, WRITER } from "../db.ts";
 import type { RequestContext } from "../types/context.ts";
+import { User } from "../types/entities";
 
 export const generateToken = (): string => {
   return crypto.randomUUID();
@@ -7,7 +8,7 @@ export const generateToken = (): string => {
 
 export const entryTokenValid = async (
   ctx: RequestContext,
-  identifier: string,
+  identifier: User["identifier"],
 ): Promise<boolean> => {
   if (ctx.elevated || ctx.superAdmin) return true;
   const [row] =
