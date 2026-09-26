@@ -16,7 +16,7 @@ router.post("/delete", async (req: Request, res: Response) => {
       throw new BadRequestError("Required credentials not specified");
     if (!(await userPasswordIsValid(req.ctx.user!.identifier, password)))
       throw new UnauthorizedError("Provided password is incorrect");
-    await deleteUser(req.ctx, req.ctx.user!.identifier);
+    await deleteUser(req.ctx.user!.identifier);
     return res.sendStatus(202);
   } catch (e) {
     if (e instanceof UnauthorizedError)
