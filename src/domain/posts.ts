@@ -256,7 +256,7 @@ export const editPost = async (
         : [...PUBLIC_COLUMN_NAMES]
       ).join(",");
   if (ctx.user) fields.last_edited_by = ctx.user.identifier;
-  const hasExtra = Object.keys(extra).length > 0;
+  const hasExtra = Object.keys(extra as Record<any, any>).length > 0;
   const hasFields = Object.keys(entry).length > 0;
   if (!hasExtra && !hasFields) throw new BadRequestError("No fields specified");
 
