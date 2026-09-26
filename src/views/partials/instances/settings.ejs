@@ -27,6 +27,6 @@
       <% for (service of skybook.instance_notification_services) {%><option value="<%=service%>"><%=service%></option> <%}%>
     </select>
     <label for="notification-service-url">URL:</label>
-    <input id="notification-service-url" placeholder="endpoint URL" <% if (notifications.enabled) {%> value="<%=notifications.url%>"<%}%>>
+    <input id="notification-service-url" placeholder="<%=notifications.enabled?'endpoint URL':'notifications unavailable'%>" <% if (notifications.enabled) {%> value="<%=notifications.url%>"<%}%>>
   </div>
 </div>

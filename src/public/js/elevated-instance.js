@@ -196,7 +196,10 @@ const enableEntryNotifications = async (inp) => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ service: service, url: URL }),
     });
-    if (!res.ok) createPopup("Failed to enable notifications");
+    if (!res.ok)
+      createPopup(
+        `${res.status !== 503 ? "Failed to enable notifications for new posts" : "Notifications are currently disabled"}`,
+      );
   });
   // validate start with http ss
 };
