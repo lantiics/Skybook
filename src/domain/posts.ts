@@ -99,7 +99,7 @@ const validatedEntry = async (
 
   instanceFields = { ...instanceFields, ...customFields };
 
-  let entry: Partial<Post> = {
+  let entry: Partial<Mutable<Post>> = {
     is_queued: instanceStatus.approval_required.status,
   };
   if (fieldFilter) {

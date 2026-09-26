@@ -10,10 +10,10 @@ export interface User {
   readonly can_change_password: boolean;
   readonly can_change_usernames: boolean;
   readonly can_create_invitations: boolean;
-  readonly created_at: string;
-  readonly last_seen: string;
+  readonly created_at: Date;
+  readonly last_seen: Date;
   readonly pending_deletion: boolean;
-  readonly delete_at: string;
+  readonly delete_at: Date;
   readonly can_be_blocked: boolean;
 }
 
@@ -21,8 +21,8 @@ export interface Session {
   readonly token: string;
   readonly user_name: string;
   readonly user_identifier: string;
-  readonly created_at: string;
-  readonly expires_at: string;
+  readonly created_at: Date;
+  readonly expires_at: Date;
 }
 
 export interface Instance {
@@ -70,7 +70,7 @@ export interface Post {
   readonly can_flag: boolean;
   readonly is_pinned: boolean;
   readonly is_highlighted: boolean;
-  readonly added: string;
+  readonly added: Date;
   readonly can_block: boolean;
   readonly sys_lock: boolean;
 }
@@ -80,22 +80,22 @@ export interface PostFlag {
   readonly identifier: string;
   readonly user_identifier: string;
   readonly ip_hash: string;
-  readonly created_at: string;
+  readonly created_at: Date;
 }
 
 export interface Token {
   readonly instance: string;
   readonly identifier: string;
   readonly token: string;
-  readonly expires_at: string;
-  readonly created_at: string;
+  readonly expires_at: Date;
+  readonly created_at: Date;
 }
 
 export interface Invitation {
   readonly token: string;
   readonly created_by: string;
-  readonly created_at: string;
-  readonly last_used?: string;
+  readonly created_at: Date;
+  readonly last_used?: Date;
   readonly uses: number;
 }
 
@@ -121,20 +121,20 @@ export interface InstanceBlock {
   readonly ip_hash: string;
   readonly ip_hash: string;
   readonly user_identifier: string;
-  readonly blocked_at: string;
+  readonly blocked_at: Date;
   readonly reason?: string;
 }
 
 export interface IpBlockStat {
   readonly ip_hash: string;
   readonly block_count: number;
-  readonly first_blocked_at: string;
-  readonly last_blocked_at: string;
+  readonly first_blocked_at: Date;
+  readonly last_blocked_at: Date;
 }
 
 export interface GlobalIpBlock {
   readonly ip_hash: string;
-  readonly blocked_at: string;
+  readonly blocked_at: Date;
   readonly reason?: string;
 }
 
@@ -143,12 +143,14 @@ export interface UserEnforcement {
   readonly user_identifier: string;
   readonly type: string;
   readonly details: string;
-  readonly created_at: string;
-  readonly expires_at?: string;
+  readonly created_at: Date;
+  readonly expires_at?: Date;
 }
 
 export interface BlocklistRange {
   readonly source: string;
   readonly range: string;
-  readonly added: string;
+  readonly added: Date;
 }
+
+export type Mutable<T> = { -readonly [P in keyof T]: T[P] };
