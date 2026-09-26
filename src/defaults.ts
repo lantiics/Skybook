@@ -36,10 +36,7 @@ export const RESERVED_COLUMN_NAMES: Set<keyof Post> = new Set([
   ...SYSTEM_COLUMN_NAMES,
 ]);
 
-export const DEFAULT_INSTANCE_STATUS: Omit<
-  Instance,
-  "name" | "queue_on_filtered"
-> = {
+export const DEFAULT_INSTANCE_STATUS: Partial<Instance> = {
   is_visible: true,
   submission_enabled: true,
   approval_required: false,
