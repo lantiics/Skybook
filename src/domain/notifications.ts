@@ -37,7 +37,9 @@ export const notifyUser = async (
     case "ntfy":
       break;
   }
-  const reqHeaders = { Title: "skybook" };
+  const reqHeaders = {
+    "User-Agent": `Skybook/${config.skybook.version} (instance-notifications; +https://${config.skybook.domain}; https://gitlab.com/lantics/skybook)`,
+  };
   const requestBody: any = {
     method: "POST",
     body:
