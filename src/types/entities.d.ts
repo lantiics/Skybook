@@ -1,109 +1,154 @@
-export interface UserEnforcement {
-  readonly reason: string;
-  readonly code: string;
-  readonly created_at: string;
-  readonly expires_at: string | false;
-}
-
 export interface User {
-  readonly name: string;
-  readonly password_hash: string;
   readonly identifier: string;
+  readonly name: string;
   readonly ip_hash: string;
+  readonly password_hash: string;
+  readonly totp_secret?: string;
+  readonly mfa_recovery?: string[];
   readonly can_login: boolean;
   readonly can_post: boolean;
+  readonly can_change_password: boolean;
+  readonly can_change_usernames: boolean;
+  readonly can_create_invitations: boolean;
   readonly created_at: string;
   readonly last_seen: string;
-  readonly totp_secret?: string;
+  readonly pending_deletion: boolean;
+  readonly delete_at: string;
+  readonly can_be_blocked: boolean;
 }
+
 export interface Session {
   readonly token: string;
-  readonly user: string;
+  readonly user_name: string;
+  readonly user_identifier: string;
   readonly created_at: string;
   readonly expires_at: string;
 }
 
 export interface Instance {
   readonly name: string;
+  readonly user_identifier: string;
   readonly is_visible: boolean;
   readonly submission_enabled: boolean;
   readonly approval_required: boolean;
   readonly flagging_enabled: boolean;
-  readonly queue_on_filtered: boolean; // If false we immediately discard filtered posts
+  readonly queue_on_filtered: boolean;
+  readonly enforced_lock: boolean;
+  readonly custom_filter?: string;
+  readonly notification_endpoint?: string;
+  readonly notification_service?: string;
+  readonly queue_flags_threshold: number;
+  readonly blocklist_proxy_enabled: boolean;
+  readonly blocklist_vpn_enabled: boolean;
+  readonly blocklist_tor_enabled: boolean;
 }
 
-export interface InstanceIpBlock {
+export interface Field {
   readonly instance: string;
-  readonly ip_hash: string;
-  readonly blocked_at: string;
-}
-
-export interface IpBlockStats {
-  readonly ip_hash: string;
-  readonly block_count: number;
-  readonly first_blocked_at: Date;
-  readonly last_blocked_at: string;
+  readonly name: string;
+  readonly is_public: boolean;
+  readonly is_special: boolean;
+  readonly is_required: boolean;
+  readonly replacement?: string;
+  readonly filter?: string;
 }
 
 export interface Post {
-  readonly seq: number;
+  readonly seq: bigint;
   readonly instance: string;
-  readonly identifier: string;
   readonly ip_hash: string;
-  readonly authenticated_user_identifier: string | null;
-  readonly last_edited_by: string | null;
-  reply: string | null;
+  readonly identifier: string;
+  readonly authenticated_user_identifier?: string;
+  readonly last_edited_by?: string;
+  readonly reply?: string;
+  readonly author: string;
+  readonly content: string;
+  readonly extra: Record<string, string>;
   readonly is_visible: boolean;
-  is_queued: boolean;
+  readonly is_queued: boolean;
+  readonly flag_count: number;
+  readonly can_flag: boolean;
   readonly is_pinned: boolean;
   readonly is_highlighted: boolean;
-  readonly can_flag: boolean;
-  readonly flag_count: number;
-  added: string | Date;
-  author: string;
-  content: string;
-  extra: Record<string, string>;
+  readonly added: string;
+  readonly can_block: boolean;
   readonly sys_lock: boolean;
 }
-export interface Field {
-  instance: string;
-  name: string;
-  is_public: boolean;
-  is_special: boolean;
-  is_required: boolean;
-  replacement: string | null;
-  filter: string | null;
+
+export interface PostFlag {
+  readonly instance: string;
+  readonly identifier: string;
+  readonly user_identifier: string;
+  readonly ip_hash: string;
+  readonly created_at: string;
 }
 
 export interface Token {
-  instance: string;
-  sub_instance: string;
-  identifier: string;
-  token: string;
-  expires_at: number;
+  readonly instance: string;
+  readonly identifier: string;
+  readonly token: string;
+  readonly expires_at: string;
+  readonly created_at: string;
 }
+
+export interface Invitation {
+  readonly token: string;
+  readonly created_by: string;
+  readonly created_at: string;
+  readonly last_used?: string;
+  readonly uses: number;
+}
+
 export interface Override {
-  instance: string | null;
-  name:
+  readonly instance: string;
+  readonly name:
     | "is_visible"
     | "submission_enabled"
-    | "requires_approval"
+    | "approval_required"
     | "flagging_enabled"
     | "queue_on_filtered";
-  value: boolean;
+  readonly value: boolean;
+}
+
+export interface ServiceSetting {
+  readonly name: string;
+  readonly value: boolean;
+  readonly message?: string;
+}
+
+export interface InstanceBlock {
+  readonly instance: string;
+  readonly ip_hash: string;
+  readonly ip_hash: string;
+  readonly user_identifier: string;
+  readonly blocked_at: string;
+  readonly reason?: string;
+}
+
+export interface IpBlockStat {
+  readonly ip_hash: string;
+  readonly block_count: number;
+  readonly first_blocked_at: string;
+  readonly last_blocked_at: string;
 }
 
 export interface GlobalIpBlock {
-  ip_hash: string;
-  blocked_at: string;
-  reason?: string;
+  readonly ip_hash: string;
+  readonly blocked_at: string;
+  readonly reason?: string;
 }
 
 export interface UserEnforcement {
-  id: string;
-  user: string;
-  type: "locked" | "posting_blocked";
-  details: string;
-  created_at: string;
-  expires_at: string | null;
+  readonly id: string;
+  readonly user_identifier: string;
+  readonly type: string;
+  readonly details: string;
+  readonly created_at: string;
+  readonly expires_at?: string;
+}
+
+export interface BlocklistRange {
+  readonly source: string;
+  readonly range: string;
+  readonly added: string;
 }
