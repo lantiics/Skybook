@@ -1,5 +1,5 @@
 import { config } from "../config";
-import { WRITER } from "../db";
+import { READER } from "../db";
 import crypto from "node:crypto";
 import { BadRequestError } from "../errors";
 
@@ -28,7 +28,7 @@ export const encryptedURL = (url: string) => {
   url += key.final("base64");
   return url;
 };
-export const decryptURL = (url: string) => {
+export const decryptedURL = (url: string) => {
   const key = crypto.createDecipheriv(
     "aes-256-gcm",
     Buffer.from(process.env.NOTIFICATION_URL_KEY as string, "hex"),
@@ -39,21 +39,20 @@ export const decryptURL = (url: string) => {
   return url.toString();
 };
 export const notifyUser = async (
-  user: string,
-  message: string = `A new entry has just been made on your guestbook at ${config.skybook.subdomain_vanity ? `${user}.${config.skybook.domain}` : `${config.skybook.domain}/${user}`}!`,
-  DB = WRITER,
+  instance: string,
+  message: string = `A new entry has just been made on your guestbook at ${config.skybook.subdomain_vanity ? `${instance}.${config.skybook.domain}` : `${config.skybook.domain}/${instance}`}!`,
+  DB = READER,
 ) => {
-  const {
-    notification_endpoint: encryptedUrl,
-    notification_service: webhookService,
-  } =
-    await WRITER`SELECT notification_endpoint,notification_service FROM instances WHERE name = ${user}`;
+  const [
+    {
+      notification_endpoint: encryptedUrl,
+      notification_service: webhookService,
+    },
+  ] =
+    await DB`SELECT notification_endpoint,notification_service FROM instances WHERE name = ${instance}`;
   if (!encryptedUrl || !webhookService) return;
-  const userUrl = decryptURL(encryptedUrl);
-  switch (webhookService) {
-    case "ntfy":
-      break;
-  }
+  const userUrl = decryptedURL(encryptedUrl);
+
   const reqHeaders = {
     "User-Agent": `Skybook/${config.skybook.version} (instance-notifications; +https://${config.skybook.domain}; https://gitlab.com/lantics/skybook)`,
   };
