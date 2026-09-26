@@ -1,7 +1,7 @@
 import { config } from "../config";
 import { READER } from "../db";
 import crypto from "node:crypto";
-import { BadRequestError } from "../errors";
+import { Post } from "../types/entities";
 
 export const notificationUrlIsValidForService = (
   service: string,
@@ -40,6 +40,7 @@ export const decryptedURL = (url: string) => {
 };
 export const notifyUser = async (
   instance: string,
+  post: Post | null = null,
   message: string = `A new entry has just been made on your guestbook at ${config.skybook.subdomain_vanity ? `${instance}.${config.skybook.domain}` : `${config.skybook.domain}/${instance}`}!`,
   DB = READER,
 ) => {
@@ -86,7 +87,34 @@ export const notifyUser = async (
       break;
     }
     case "discord": {
-      updateBody({ username: "Skybook", content: message });
+      updateBody({
+        username: "Skybook",
+        content: message + ` \n-# <t:${Math.floor(Date.now() / 1000)}:R>`,
+      });
+
+      /*
+
+      TBD whether we include post content in messages.
+      Main worry: Providing potentially excessive data
+      to third party services (in the event the entry is
+      not immediately visible to anyone who comes across the guestbook instance
+      )
+
+      // updateBody({
+      //   username: "Skybook",
+      //   embeds: [
+      //     {
+      //       author: { name: post!.author },
+      //       description: post!.content,
+      //       footer: {
+      //         text: `this post is ${post!.is_queued ? "queued" : "not queued"}`,
+      //       },
+      //     },
+      //   ],
+      // });
+
+
+      */
       requestBody.headers["Content-Type"] = "application/json";
       break;
     }
@@ -98,7 +126,8 @@ export const notifyUser = async (
       );
   }
   if (typeof requestBody.body == "object") {
-    requestBody.body.FORWARDHEADERS = requestBody.headers;
+    if (config.skybook.instance_notification_proxy_url !== "")
+      requestBody.body.FORWARDHEADERS = requestBody.headers;
     requestBody.body = JSON.stringify(requestBody.body);
   }
   if (process.env.NODE_ENV !== "test") {

@@ -216,10 +216,12 @@ export const createPost = async (
   INSERT INTO tokens (instance, identifier, token, created_at, expires_at)
   VALUES (${entry.instance},  ${row.identifier}, ${_token}, NOW(), (NOW() + INTERVAL '2 days'))
 `;
-    await notifyUser(ctx.instance);
+
     return row;
   });
+
   if (!entry.is_queued) purgeInstanceCache(ctx.instance);
+  await notifyUser(ctx.instance, row);
   return { row, token: _token, wasQueued: entry.is_queued };
 };
 
