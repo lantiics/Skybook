@@ -6,7 +6,6 @@ import { hashIp } from "@/domain/ip";
 import { setupTwoFactor } from "root/src/domain/auth";
 import { enableUserMfa } from "root/src/domain/users";
 
-export const harnessUserPassword = "12345678";
 export const harnessedUser = () => {
   return `harness-${crypto.randomUUID().slice(0, 8)}`;
 };
