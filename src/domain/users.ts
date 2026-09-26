@@ -131,8 +131,12 @@ export const loginUser = async (
       "Attempted to log in while logging in is globally disabled",
     );
   }
-  const [userEntry] =
-    await READER`SELECT name, identifier, totp_secret, can_login, password_hash FROM users WHERE name = ${name}`;
+  const userEntry = (
+    await READER`SELECT name, identifier, totp_secret, can_login, password_hash FROM users WHERE name = ${name}`
+  )[0] as Pick<
+    User,
+    "name" | "identifier" | "totp_secret" | "can_login" | "password_hash"
+  >;
 
   if (!userEntry) {
     await Bun.password.verify(password, DUMMY_PASSWORD_HASH);

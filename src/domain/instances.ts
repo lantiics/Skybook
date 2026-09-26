@@ -1,5 +1,5 @@
 import { RequestContext } from "../types/context.ts";
-import { Post } from "../types/entities.ts";
+import { Mutable, Post } from "../types/entities.ts";
 import { READER, WRITER } from "../db.ts";
 import {
   BadRequestError,
@@ -358,7 +358,10 @@ export const exportInstance = async (ctx: RequestContext) => {
     .join("\n");
   return csv;
 };
-export const importInstance = async (instance: string, entries: Post[]) => {
+export const importInstance = async (
+  instance: string,
+  entries: Mutable<Post>[],
+) => {
   entries = entries.slice(0, 1000);
   let extraKeys: Set<string> = new Set([]);
   const currentFields =
@@ -387,7 +390,7 @@ export const importInstance = async (instance: string, entries: Post[]) => {
     } else {
       const p = !isNaN(Number(entry.added))
         ? new Date(Number(entry.added))
-        : new Date(entry.added as string);
+        : new Date(entry.added);
       entry.added = isNaN(p.getTime()) ? new Date() : p;
     }
     if (await allFieldsAreWritable(instance, Object.keys(entry.extra))) {

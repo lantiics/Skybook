@@ -1,6 +1,6 @@
 import { READER, WRITER } from "../db.ts";
 import { RequestContext } from "../types/context.ts";
-import { Field } from "../types/entities.ts";
+import { Field, Mutable } from "../types/entities.ts";
 import { RESERVED_COLUMN_NAMES } from "../defaults.ts";
 import {
   BadRequestError,
@@ -72,7 +72,7 @@ export const setField = async (
     throw new BadRequestError("Provided field name is not accepted");
   if ((await instanceFieldCount(instance)) > config.fields.max_count)
     throw new BadRequestError("Maximum amount of fields reached");
-  const record: Partial<Field> = {
+  const record: Partial<Mutable<Field>> = {
     instance: instance,
     name: field.name,
     is_required: field.is_required,
