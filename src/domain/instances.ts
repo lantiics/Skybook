@@ -302,7 +302,7 @@ export const enableInstanceNotifications = async (
 ) => {
   if (!config.skybook.instance_notifications)
     throw new UnavailableError("Instance notification sending is disabled");
-  if (!["ntfy"].includes(service))
+  if (!config.skybook.instance_notification_services.includes(service))
     throw new BadRequestError(
       "Specified notification endpoint is not supported by Skybook",
     );
