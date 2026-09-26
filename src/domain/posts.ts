@@ -117,17 +117,22 @@ const validatedEntry = async (
 
   // throwing if required fields cannot be set
   for (const [_, field] of Object.entries(instanceFields)) {
+    if (fields[field.name])
+      fields[field.name] = fields[field.name].replace(/\r\n|\n|\r/g, "");
     if (
       field.is_required &&
       (!fields[field.name] ||
         ["", null, undefined].includes(fields[field.name]))
     ) {
-      if (["", null, undefined].includes(field.replacement)) {
-        throw new BadRequestError(
-          "Required field has no replacement and is not specified",
-        );
+      if (!isEdit || Object.keys(fields).includes(field.name)) {
+        if (["", null, undefined].includes(field.replacement)) {
+          throw new BadRequestError(
+            "Required field has no replacement and is not specified",
+          );
+        } else {
+          fields[field.name] = field.replacement;
+        }
       }
-      fields[field.name] = field.replacement;
     }
 
     if (field["filter"] && fields[field.name]) {
@@ -237,15 +242,10 @@ export const editPost = async (
     }
   }
 
-  const extra: Record<string, string | undefined> = {};
-  const entry = await validatedEntry(ctx, { ...fields, ...extra }, true);
-
-  Object.keys(fields).forEach((key) => {
-    if (!["content", "author"].includes(key)) {
-      extra[key] = fields[key];
-      delete fields[key];
-    }
-  });
+  const entry = await validatedEntry(ctx, fields, true);
+  delete entry.is_queued;
+  const extra = entry.extra;
+  delete entry.extra;
   const columns = ctx.superAdmin
     ? `*`
     : (ctx.elevated
@@ -255,6 +255,7 @@ export const editPost = async (
   if (ctx.user) fields.last_edited_by = ctx.user.identifier;
   const hasExtra = Object.keys(extra).length > 0;
   const hasFields = Object.keys(entry).length > 0;
+  if (!hasExtra && !hasFields) throw new BadRequestError("No fields specified");
 
   const row = await WRITER`
     UPDATE posts
