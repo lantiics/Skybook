@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { config } from "../config.ts";
-import { errorStatus } from "../errors.ts";
+import { BadRequestError, errorStatus, UnavailableError } from "../errors.ts";
 import {
   compiledInstanceStatus,
   toggleInstanceVisibility,
@@ -15,6 +15,8 @@ import {
   exportInstance,
   importInstance,
   updateInstanceQueueFlaggedThreshold,
+  disableInstanceNotifications,
+  enableInstanceNotifications,
 } from "../domain/instances.ts";
 import {
   getPosts,
@@ -375,6 +377,39 @@ router.patch(
     }
   },
 );
+//#region NOTIFICATIONS
+router
+  .route("/notifications")
+  .put(async (req: Request, res: Response) => {
+    if (!req.ctx.elevated) return res.sendStatus(403);
+    if (!config.skybook.instance_notifications)
+      throw new UnavailableError("Instance notifications cannot be enabled.");
+    try {
+      if (!req.body.url || !req.body.service)
+        throw new BadRequestError(
+          "Required fields were not provided while attempting to enable instance notifications",
+        );
+      await enableInstanceNotifications(
+        req.ctx.instance,
+        req.body.url,
+        req.body.service,
+      );
+      return res.sendStatus(201);
+    } catch (e) {
+      return res.sendStatus(errorStatus(e, req.ctx.elevated));
+    }
+  })
+  .delete(async (req: Request, res: Response) => {
+    if (!req.ctx.elevated) return res.sendStatus(403);
+    try {
+      await disableInstanceNotifications(req.ctx.instance);
+      return res.sendStatus(204);
+    } catch (e) {
+      return res.sendStatus(errorStatus(e, req.ctx.elevated));
+    }
+  });
+
+//#endregion NOTIFICATIONS
 
 //#endregion INSTANCE METHODS
 //#region FIELDS
