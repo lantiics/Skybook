@@ -45,6 +45,7 @@ export const notifyUser = async (
   message: string = `A new entry has just been made on your guestbook at ${config.skybook.subdomain_vanity ? `${instance}.${config.skybook.domain}` : `${config.skybook.domain}/${instance}`}!`,
   DB = READER,
 ) => {
+  if (!config.skybook.instance_notifications) return;
   const [
     {
       notification_endpoint: encryptedUrl,
