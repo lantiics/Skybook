@@ -131,7 +131,7 @@ test("Post flags exceeding flag threshold automatically queues a post", async ()
   await flagPost(ctx.anonymous, identifier);
   const [post] =
     await READER`SELECT is_queued FROM posts WHERE identifier = ${identifier}`;
-  expect(post.is_queued).toBeTrue();
+  expect(queued).toBeTrue();
 });
 
 test("Global blocks on one user do not affect all other users", async () => {
