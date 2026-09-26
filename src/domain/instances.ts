@@ -315,7 +315,7 @@ export const enableInstanceNotifications = async (
       "Specified URL is not valid for provided service while attempting to enable instance notifications",
     );
   url = encryptedURL(url);
-  await WRITER`INSERT INTO instances (notification_endpoint,notification_service) VALUES (${url}, ${service})`;
+  await WRITER`UPDATE instances SET notification_endpoint=${url},notification_service=${service} WHERE name=${instance}`;
   await notifyUser(
     instance,
     "Notifications will now be sent to you when an entry is created on your guestbook!",
