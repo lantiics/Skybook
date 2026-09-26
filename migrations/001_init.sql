@@ -7,7 +7,6 @@ CREATE TABLE users (
   mfa_recovery TEXT[],
   can_login BOOLEAN NOT NULL DEFAULT TRUE,
   can_post BOOLEAN NOT NULL DEFAULT TRUE,
-  can_delete_account BOOLEAN NOT NULL DEFAULT TRUE,
   can_change_password BOOLEAN NOT NULL DEFAULT TRUE,
   can_change_username BOOLEAN NOT NULL DEFAULT FALSE,
   can_create_invitations BOOLEAN NOT NULL DEFAULT TRUE,
