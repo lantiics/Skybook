@@ -318,6 +318,7 @@ export const enableInstanceNotifications = async (
   await WRITER`UPDATE instances SET notification_endpoint=${url},notification_service=${service} WHERE name=${instance}`;
   await notifyUser(
     instance,
+    null,
     "Notifications will now be sent to you when an entry is created on your guestbook!",
   );
 };
