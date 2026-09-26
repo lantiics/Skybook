@@ -22,7 +22,7 @@ import {
   instanceSuppliedFilter,
   InstanceQueueFlaggedThreshold,
 } from "./instances.ts";
-import { Field, Post } from "../types/entities.ts";
+import { Field, Mutable, Post } from "../types/entities.ts";
 import { hashIp, ipSource } from "./ip.ts";
 import { userCanBeBlocked, userCanPost } from "./users.ts";
 import { config } from "../config.ts";
@@ -75,15 +75,12 @@ const validatedEntry = async (
       is_public: true,
       is_required: true,
       replacement: "anonymous",
-      filter: null,
     },
     content: {
       name: "content",
       is_special: false,
       is_public: true,
       is_required: true,
-      replacement: null,
-      filter: null,
     },
   };
   for (const [name, field] of Object.entries(fields)) {
