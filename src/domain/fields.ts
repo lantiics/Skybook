@@ -1,6 +1,6 @@
 import { READER, WRITER } from "../db.ts";
 import { RequestContext } from "../types/context.ts";
-import { Field, Mutable } from "../types/entities.ts";
+import { Field, Instance, Mutable } from "../types/entities.ts";
 import { RESERVED_COLUMN_NAMES } from "../defaults.ts";
 import {
   BadRequestError,
@@ -8,7 +8,9 @@ import {
   UnauthorizedError,
 } from "../errors.ts";
 import { config } from "../config.ts";
-const allWritableFields = async (instance: string): Promise<Set<string>> => {
+const allWritableFields = async (
+  instance: Instance["name"],
+): Promise<Set<string>> => {
   const dbFields = new Set(["content", "author"]);
   const additionalFields =
     await READER`SELECT instance,name,is_public,is_special,is_required,replacement,filter FROM fields WHERE instance = ${instance}`;
@@ -22,13 +24,15 @@ const allWritableFields = async (instance: string): Promise<Set<string>> => {
   return dbFields;
 };
 export const allFieldsAreWritable = async (
-  instance: string,
+  instance: Instance["name"],
   fields: string[],
 ) => {
   const writableFields = await allWritableFields(instance);
   return writableFields.isSupersetOf(new Set(fields));
 };
-export const getFieldData = async (instance: string): Promise<Field[]> => {
+export const getFieldData = async (
+  instance: Instance["name"],
+): Promise<Field[]> => {
   const fields: Field[] =
     await READER`SELECT name, is_required, replacement, filter FROM fields WHERE instance = ${instance} AND is_public`;
   const defaultFields = [
@@ -57,7 +61,7 @@ const fieldNameAccepted = (name: string): boolean => {
   return true;
 };
 export const setField = async (
-  instance: string,
+  instance: Instance["name"],
   field: Partial<Field> & Required<Pick<Field, "name">>,
 ): Promise<Field> => {
   if (field.name === "content" && (field.is_required || field.replacement)) {
@@ -94,7 +98,7 @@ export const setField = async (
   )[0];
 };
 export const instanceFieldCount = async (
-  instance: string,
+  instance: Instance["name"],
   DB = READER,
 ): Promise<number> => {
   const [count] =
@@ -118,7 +122,7 @@ export const renameField = async (
 };
 
 export const deleteField = async (
-  instance: string,
+  instance: Instance["name"],
   name: string,
 ): Promise<void> => {
   if (RESERVED_COLUMN_NAMES.has(name as any)) {

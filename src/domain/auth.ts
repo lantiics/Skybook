@@ -6,6 +6,7 @@ import {
   generate,
 } from "otplib";
 import QRCode from "qrcode";
+import { User } from "../types/entities";
 const crypto = require("node:crypto");
 export const generateOTP = async (secret: string) => {
   return await generate({ secret });
@@ -14,7 +15,7 @@ export const passwordIsSafe = (password: string) => {
   return password.length > 8;
 };
 
-export const setupTwoFactor = async (user: string) => {
+export const setupTwoFactor = async (user: User["name"]) => {
   const secret = generateSecret();
 
   const uri = generateURI({
@@ -46,7 +47,7 @@ export const setupTwoFactor = async (user: string) => {
   };
 };
 
-export const generateRecoveryCodes = (): string[] => {
+export const generateRecoveryCodes = (): User["mfa_recovery"] => {
   const codes = [];
   for (let i = 0; i < 6; i++) {
     let code = new ScureBase32Plugin()

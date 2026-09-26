@@ -4,7 +4,8 @@ import { revokeAllSessions } from "./sessions";
 import { RequestContext } from "../types/context";
 import { userUUID } from "./users";
 import { config } from "../config.ts";
-export const userInformation = async (UUID: string) => {
+import { User } from "../types/entities";
+export const userInformation = async (UUID: User["identifier"]) => {
   const [uI] =
     await READER`SELECT name, identifier, can_login, can_post, can_delete_account, created_at, last_seen, can_create_invitations, totp_secret FROM users WHERE identifier = ${UUID}`;
   if (uI === undefined) {
@@ -13,7 +14,7 @@ export const userInformation = async (UUID: string) => {
   console.log(uI);
   return uI;
 };
-const userEnforcementStatus = async (name: string) => {
+const userEnforcementStatus = async (name: User["name"]) => {
   const UUID = await userUUID(name);
   const [user] =
     await READER`SELECT status FROM user_enforcements WHERE identifier = ${UUID}`;
@@ -21,7 +22,7 @@ const userEnforcementStatus = async (name: string) => {
   return user.status;
 };
 const recordUserEnforcement = async (
-  UUID: string,
+  UUID: User["identifier"],
   enforcementAction: "posting_blocked" | "locked",
   details: string = "No reason specified",
   duration: number | null,
@@ -41,7 +42,7 @@ const recordUserEnforcement = async (
  * @param duration - (In milliseconds): How long to keep this enforcement on a user
  */
 const temporarilyLockUser = async (
-  UUID: string,
+  UUID: User["identifier"],
   duration: number,
   details: string,
 ) => {
@@ -58,7 +59,7 @@ const temporarilyLockUser = async (
  * @param duration - (In milliseconds): How long to keep this enforcement on a user
  */
 const temporarilyBlockUserPosting = async (
-  UUID: string,
+  UUID: User["identifier"],
   duration: number,
   details: string,
 ) => {
@@ -71,7 +72,7 @@ const temporarilyBlockUserPosting = async (
 
 export const toggleUserLocked = async (
   details: string,
-  UUID: string,
+  UUID: User["identifier"],
   DB = WRITER,
 ) => {
   await DB.begin(async (tx) => {

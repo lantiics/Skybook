@@ -22,7 +22,7 @@ import {
   instanceSuppliedFilter,
   InstanceQueueFlaggedThreshold,
 } from "./instances.ts";
-import { Field, Mutable, Post } from "../types/entities.ts";
+import { Field, Instance, Mutable, Post } from "../types/entities.ts";
 import { hashIp, ipSource } from "./ip.ts";
 import { userCanBeBlocked, userCanPost } from "./users.ts";
 import { config } from "../config.ts";
@@ -30,7 +30,7 @@ import { tryGlobalBlock } from "./enforcements.ts";
 import { purgeInstanceCache } from "./cache.ts";
 import { notifyUser } from "./notifications.ts";
 
-const fieldIsFiltered = (field: string, filter: RegExp): boolean => {
+const fieldIsFiltered = (field: Field["name"], filter: RegExp): boolean => {
   if (filter.test(field)) return true;
   return false;
 };

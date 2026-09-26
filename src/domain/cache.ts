@@ -1,4 +1,5 @@
 import { config } from "../config";
+import { Instance } from "../types/entities";
 
 export const purgeCache = async (tag: string) => {
   if (!config.caching.purging) return;
@@ -18,7 +19,7 @@ export const purgeCache = async (tag: string) => {
   return res;
 };
 
-export const purgeInstanceCache = async (instance: string) => {
+export const purgeInstanceCache = async (instance: Instance["name"]) => {
   const res = await purgeCache(`instance-${instance}`);
   return 0;
 };
