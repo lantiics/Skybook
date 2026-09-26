@@ -1,4 +1,4 @@
-import { ctx } from "./harness";
+import { ctx, generateUser } from "./harness";
 import { test, expect, describe } from "bun:test";
 import {
   createPost,
@@ -14,8 +14,21 @@ import {
   withSubmissionDisabled,
   withVisibilityDisabled,
 } from "./instances.test";
+import { hashIp } from "root/src/domain/ip";
 export const createAnonymousPost = async () => {
   return await createPost(ctx.anonymous as RequestContext, {
+    content: "test",
+  });
+};
+export const createPostWithRandomizedIP = async () => {
+  const c = ctx.anonymous;
+  c.ip = crypto.randomUUID();
+  return await createPost(c as RequestContext, {
+    content: "test",
+  });
+};
+export const createAuthorizedPost = async () => {
+  return await createPost(ctx.authorized as RequestContext, {
     content: "test",
   });
 };
