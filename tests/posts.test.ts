@@ -120,3 +120,22 @@ test("Post flags exceeding flag threshold automatically queues a post", async ()
     await READER`SELECT is_queued FROM posts WHERE identifier = ${identifier}`;
   expect(post.is_queued).toBeTrue();
 });
+
+test("Global blocks on one user do not affect all other users", async () => {
+  const alice = await generateUser();
+  const bob = await generateUser();
+
+  await WRITER`INSERT INTO instance_blocks (instance, ip_hash, user_identifier) VALUES (${alice.name}, ${hashIp(alice.ip)}, ${alice.identifier})`;
+
+  const [{ count: aliceCount }] = await WRITER`
+    SELECT COUNT(*) FROM instance_blocks
+    WHERE ip_hash = ${hashIp(alice.ip)} OR user_identifier = ${alice.identifier}
+  `;
+  const [{ count: bobCount }] = await WRITER`
+    SELECT COUNT(*) FROM instance_blocks
+    WHERE ip_hash = ${hashIp(bob.ip)} OR user_identifier = ${bob.identifier}
+  `;
+
+  expect(Number(aliceCount)).toBe(1);
+  expect(Number(bobCount)).toBe(0);
+});
