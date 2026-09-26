@@ -47,7 +47,7 @@ describe("TOTP", async () => {
 
 describe("Signup with invitations enabled", async () => {
   await WRITER`UPDATE service_settings SET value=true WHERE name='signup_requires_invitation'`;
-  const code = await newInvitation(ctx.authorized.identifier);
+  const code = await newInvitation(ctx.authorized.identifier!);
 
   test("Signing up with invitation required and no invitation code specified is rejected", async () => {
     expect(

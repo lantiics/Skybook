@@ -53,7 +53,7 @@ beforeAll(async () => {
   await enableUserMfa(
     baseTOTPUser.identifier,
     baseTOTPUser.mfa.secret,
-    baseTOTPUser.mfa.codes,
+    baseTOTPUser.mfa.codes!,
   );
 });
 
