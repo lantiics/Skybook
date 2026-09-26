@@ -65,7 +65,10 @@ export const setField = async (
       "Unable to alter required/replacement status for field 'content'",
     );
   }
-  if (!fieldNameAccepted(field.name))
+  if (
+    !["content", "author"].includes(field.name) &&
+    !fieldNameAccepted(field.name)
+  )
     throw new BadRequestError("Provided field name is not accepted");
   if ((await instanceFieldCount(instance)) > config.fields.max_count)
     throw new BadRequestError("Maximum amount of fields reached");
