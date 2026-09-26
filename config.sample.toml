@@ -25,10 +25,10 @@ max_global_filter_length=5000
 [captcha]
 implementation = "cloudflare"                                       # cap (trycap.dev) | cloudflare
 token_property_name = "cf-turnstile-response" # cap-token | cf-turnstile-response
-site_key = "1x00000000000000000000AA" # 89a2b7836c
+site_key = "1x00000000000000000000AA" # cloudflare testing key | cap sitekey
 
 challenge_url = "http://localhost:9000/"
-verification_url = "https://challenges.cloudflare.com/turnstile/v0/siteverify" #https://challenges.cloudflare.com/turnstile/v0/siteverify
+verification_url = "https://challenges.cloudflare.com/turnstile/v0/siteverify" # https://challenges.cloudflare.com/turnstile/v0/siteverify | 127.0.0.1 (cap instance)
 
 [users]
 indefinite_locking_threshold = 3
