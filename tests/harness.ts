@@ -5,6 +5,7 @@ import { hashIp } from "@/domain/ip";
 
 import { setupTwoFactor } from "root/src/domain/auth";
 import { enableUserMfa } from "root/src/domain/users";
+import { RequestContext } from "root/src/types/context";
 
 export const harnessedUser = () => {
   return `harness-${crypto.randomUUID().slice(0, 8)}`;
@@ -70,7 +71,7 @@ const baseCtx = {
   authenticated: false,
 };
 const userCtx = { name: baseUser.name, identifier: baseUser.identifier };
-export let ctx = {
+export let ctx: Record<string, RequestContext> = {
   anonymous: { ...baseCtx, ip: `${baseUser.ip}-anonIP` },
   authorized: {
     ...baseCtx,
