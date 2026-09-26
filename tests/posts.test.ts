@@ -8,13 +8,14 @@ import {
   getPosts,
 } from "@domain/posts";
 import { RequestContext } from "@/types/context";
-import { UnauthorizedError } from "@/errors";
+import { BadRequestError, UnauthorizedError } from "@/errors";
 import { READER, WRITER } from "root/src/db";
 import {
   withSubmissionDisabled,
   withVisibilityDisabled,
 } from "./instances.test";
 import { hashIp } from "root/src/domain/ip";
+import { deleteField, setField } from "root/src/domain/fields";
 export const createAnonymousPost = async () => {
   return await createPost(ctx.anonymous as RequestContext, {
     content: "test",
@@ -151,4 +152,22 @@ test("Global blocks on one user do not affect all other users", async () => {
 
   expect(Number(aliceCount)).toBe(1);
   expect(Number(bobCount)).toBe(0);
+});
+
+test("Editing a post (removing a required field without a replacement) is rejected", async () => {
+  await setField(ctx.anonymous.instance, {
+    name: "requiredFieldEditClear",
+    is_required: true,
+  });
+  const post = await createPost(ctx.anonymous, {
+    content: "test",
+    requiredFieldEditClear: "test",
+  });
+  const c = ctx.anonymous;
+  //@ts-expect-error
+  c.token = post.token;
+  expect(
+    editPost(c, post.row.identifier, { requiredFieldEditClear: "" }),
+  ).rejects.toThrow(BadRequestError);
+  await deleteField(ctx.anonymous.instance, "requiredFieldEditClear");
 });
