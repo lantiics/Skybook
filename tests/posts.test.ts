@@ -129,7 +129,7 @@ test("Post flags exceeding flag threshold automatically queues a post", async ()
   const identifier = (await createAnonymousPost()).row.identifier;
   await WRITER`UPDATE posts SET flag_count = 2 WHERE identifier = ${identifier}`;
   await flagPost(ctx.anonymous, identifier);
-  const [post] =
+  const [{ is_queued: queued }] =
     await READER`SELECT is_queued FROM posts WHERE identifier = ${identifier}`;
   expect(queued).toBeTrue();
 });

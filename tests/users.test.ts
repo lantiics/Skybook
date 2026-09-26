@@ -1,9 +1,11 @@
-import { test, expect, describe } from "bun:test";
-import { baseTOTPUser, baseUser, harnessedUser } from "./harness";
+import { test, expect, describe, afterAll } from "bun:test";
+import { baseTOTPUser, baseUser, ctx, harnessedUser } from "./harness";
 import { createUser, loginUser } from "@/domain/users";
-import { UnauthorizedError, UnavailableError } from "@/errors";
+import { NotFoundError, UnauthorizedError, UnavailableError } from "@/errors";
 import { withLoginDisabled, withSignupDisabled } from "./skybook.test";
 import { generateOTP } from "root/src/domain/auth";
+import { WRITER } from "root/src/db";
+import { newInvitation } from "root/src/domain/invitations";
 
 test("Trying to sign up with signup disabled fails", async () => {
   expect(
@@ -40,5 +42,44 @@ describe("TOTP", async () => {
         await generateOTP(baseTOTPUser.mfa.secret),
       ),
     ).resolves.toBeTypeOf("string");
+  });
+});
+
+describe("Signup with invitations enabled", async () => {
+  await WRITER`UPDATE service_settings SET value=true WHERE name='signup_requires_invitation'`;
+  const code = await newInvitation(ctx.authorized.identifier);
+
+  test("Signing up with invitation required and no invitation code specified is rejected", async () => {
+    expect(
+      createUser(harnessedUser(), crypto.randomUUID(), crypto.randomUUID()),
+    ).rejects.toThrow(UnauthorizedError);
+  });
+  test("Signing up with a valid invitation code succeeds and increments invitation uses count", async () => {
+    expect(
+      createUser(
+        harnessedUser(),
+        crypto.randomUUID(),
+        crypto.randomUUID(),
+        code,
+      ),
+    ).resolves.toBeString();
+    const [{ uses: uses }] =
+      await WRITER`SELECT uses FROM invitations WHERE token=${code}`;
+    expect(uses).toBe(1);
+  });
+  test("Signing up with invitations at use limit rejects", async () => {
+    await WRITER`UPDATE invitations SET uses=3 WHERE token=${code}`;
+    expect(
+      createUser(
+        harnessedUser(),
+        crypto.randomUUID(),
+        crypto.randomUUID(),
+        code,
+      ),
+    ).rejects.toThrow(NotFoundError);
+  });
+
+  afterAll(async () => {
+    await WRITER`UPDATE service_settings SET value=false WHERE name='signup_requires_invitation'`;
   });
 });
