@@ -60,6 +60,7 @@ export const notifyUser = async (
       : userUrl;
   switch (webhookService) {
     case "ntfy": {
+      requestBody.headers.Title = "Skybook";
       await fetch(url, requestBody);
       return;
     }
