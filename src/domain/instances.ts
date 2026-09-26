@@ -329,6 +329,14 @@ export const disableInstanceNotifications = async (
   return 0;
 };
 
+export const instanceNotificationInfo = async (
+  instance: string,
+  DB = READER,
+) => {
+  const [info] =
+    await DB`SELECT notification_endpoint,notification_service FROM instances WHERE name = ${instance}`;
+  return info;
+};
 export const exportInstance = async (ctx: RequestContext) => {
   const entries =
     await READER`SELECT ${READER.unsafe(EXPORTABLE_COLUMN_NAMES.join(","))} FROM posts WHERE instance = ${ctx.instance}`;
