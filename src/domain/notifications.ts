@@ -1,6 +1,22 @@
 import { config } from "../config";
 import { WRITER } from "../db";
 import crypto from "node:crypto";
+import { BadRequestError } from "../errors";
+
+export const notificationUrlIsValidForService = (
+  service: string,
+  url: string,
+) => {
+  switch (service) {
+    case "ntfy":
+      break; // NTFY can be self-hosted.
+    case "custom":
+      break;
+    case "discord":
+      if (!url.startsWith("https://discord.com/api")) return false;
+  }
+  return true;
+};
 
 export const encryptedURL = (url: string) => {
   const key = crypto.createCipheriv(
