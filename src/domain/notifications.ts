@@ -62,7 +62,7 @@ export const notifyUser = async (
       config.skybook.instance_notification_proxy_url !== ""
         ? {
             body: message,
-            endpointUrl: userUrl,
+            endpointURL: userUrl,
             FORWARDHEADERS: reqHeaders,
           }
         : message,
@@ -76,7 +76,6 @@ export const notifyUser = async (
     }
   };
 
-  console.log(requestBody);
   const url =
     config.skybook.instance_notification_proxy_url !== ""
       ? config.skybook.instance_notification_proxy_url
@@ -88,6 +87,7 @@ export const notifyUser = async (
     }
     case "discord": {
       updateBody({ username: "Skybook", content: message });
+      requestBody.headers["Content-Type"] = "application/json";
       break;
     }
     case "custom":
@@ -97,7 +97,16 @@ export const notifyUser = async (
         "THIS SHOULD NOT BE SEEN: No webhook service available could be used to notify instance owner upon new entry creation.",
       );
   }
-  if (typeof requestBody.body === "object")
+  if (typeof requestBody.body == "object") {
+    requestBody.body.FORWARDHEADERS = requestBody.headers;
     requestBody.body = JSON.stringify(requestBody.body);
-  await fetch(url, requestBody);
+  }
+  fetch(url, requestBody).then((res) => {
+    if (!res.ok)
+      console.warn(
+        "Notification request failed, Notifications proxied:" +
+          config.skybook.instance_notification_proxy_url !==
+          "",
+      );
+  });
 };
