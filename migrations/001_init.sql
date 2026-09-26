@@ -102,7 +102,7 @@ CREATE TABLE invitations (
 CREATE TABLE overrides (
   instance TEXT REFERENCES instances(name) ON DELETE CASCADE ON UPDATE CASCADE,
   name TEXT NOT NULL CHECK (name IN (
-  'is_visible', 'submission_enabled', 'replying_enabled', 'approval_required', 'flagging_enabled', 'queue_on_filtered'
+  'is_visible', 'submission_enabled', 'approval_required', 'flagging_enabled', 'queue_on_filtered'
   )),
   value BOOLEAN NOT NULL,
   UNIQUE (instance, name)
