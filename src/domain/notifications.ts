@@ -7,6 +7,7 @@ export const notificationUrlIsValidForService = (
   service: string,
   url: string,
 ) => {
+  if (!url.startsWith("https://")) return false;
   switch (service) {
     case "ntfy":
       break; // NTFY can be self-hosted.
