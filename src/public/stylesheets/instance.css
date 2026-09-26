@@ -18,6 +18,7 @@ main {
 }
 
 .entry {
+  content-visibility: auto;
   display: flex;
   flex-direction: column;
   border: 1px groove;
