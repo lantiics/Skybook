@@ -4,12 +4,14 @@ import { countPosts, getPosts, pageCount } from "../domain/posts";
 import {
   compiledInstanceStatus,
   instanceIpBlocks,
+  instanceNotificationInfo,
   instanceSuppliedFilter,
 } from "../domain/instances";
 import { getFieldData } from "../domain/fields";
 import { config } from "../config";
 import { partials } from "./partials.ts";
 import { loginEnabled, signupEnabled } from "../domain/service-settings.ts";
+import { decryptedURL } from "../domain/notifications.ts";
 const router = Router();
 
 router.get("/", async (req: Request, res: Response) => {
@@ -129,6 +131,16 @@ const instanceLogic = async (
       };
       (res.locals.filter = await instanceSuppliedFilter(req.ctx.instance)) ??
         "";
+      const notificationInfo = await instanceNotificationInfo(req.ctx.instance);
+      console.log(notificationInfo);
+      res.locals.notifications = {
+        enabled: typeof notificationInfo.notification_endpoint == "string",
+        service: notificationInfo.notification_service,
+        url:
+          typeof notificationInfo.notification_endpoint == "string"
+            ? decryptedURL(notificationInfo.notification_endpoint)
+            : null,
+      };
     }
 
     res.locals.fields = await getFieldData(req.ctx.instance);

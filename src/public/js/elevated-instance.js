@@ -174,6 +174,33 @@ const blockAddresses = async (btn, service) => {
   }
 };
 
+const disableEntryNotifications = async (inp) => {
+  withDisabled(inp, async () => {
+    const res = await fetch(`/api/${instanceName()}/notifications`, {
+      method: "DELETE",
+    });
+    if (res.ok) {
+      createPopup("Successfully disabled new post notifications");
+    } else {
+      createPopup("Failed to disable notifications for new posts");
+    }
+  });
+};
+
+const enableEntryNotifications = async (inp) => {
+  const service = inp.parentNode.querySelector("select").value;
+  const URL = inp.value;
+  await withDisabled(inp, async () => {
+    const res = await fetch(`/api/${instanceName()}/notifications`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ service: service, url: URL }),
+    });
+    if (!res.ok) createPopup("Failed to enable notifications");
+  });
+  // validate start with http ss
+};
+
 //#region FIELDS
 
 const toggleFieldRequired = async (input) => {
@@ -381,6 +408,17 @@ const initializeEventListeners = () => {
       }
     });
   }
+  document
+    .getElementById("notification-service-url")
+    .addEventListener("keydown", async (e) => {
+      if (e.key == "Enter") {
+        if (e.target.value !== "") {
+          enableEntryNotifications(e.target);
+        } else {
+          disableEntryNotifications(e.target);
+        }
+      }
+    });
 };
 const removeEventListeners = () => {
   const fieldReplacementElems = document.querySelectorAll(
