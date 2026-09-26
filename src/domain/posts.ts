@@ -117,23 +117,17 @@ const validatedEntry = async (
 
   // throwing if required fields cannot be set
   for (const [_, field] of Object.entries(instanceFields)) {
-    if (field.is_required && !fields[field.name]) {
-      if (!isEdit) {
-        if (field.replacement === "") {
-          throw new BadRequestError(
-            "Required field has no replacement and is not specified",
-          );
-        }
-        fields[field.name] = field.replacement;
-      } else {
-        if ([null, ""].includes(fields[field.name])) {
-          if (!field.replacement)
-            throw new BadRequestError(
-              "Required field is not specified and has no default",
-            );
-          fields[field.name] = field.replacement;
-        }
+    if (
+      field.is_required &&
+      (!fields[field.name] ||
+        ["", null, undefined].includes(fields[field.name]))
+    ) {
+      if (["", null, undefined].includes(field.replacement)) {
+        throw new BadRequestError(
+          "Required field has no replacement and is not specified",
+        );
       }
+      fields[field.name] = field.replacement;
     }
 
     if (field["filter"] && fields[field.name]) {
@@ -151,7 +145,7 @@ const validatedEntry = async (
   for (const [field, content] of Object.entries(fields)) {
     if (field === "author" && content.length > config.fields.author_max_length)
       throw new FilteredError("Field length is above limit");
-    else if (content.length > config.fields.typical_max_length)
+    else if (content && content.length > config.fields.typical_max_length)
       throw new FilteredError("Field length is above limit");
     if (!["author", "content"].includes(field)) {
       if (!validFields.has(field))
@@ -244,6 +238,7 @@ export const editPost = async (
   }
 
   const extra: Record<string, string | undefined> = {};
+  const entry = await validatedEntry(ctx, { ...fields, ...extra }, true);
 
   Object.keys(fields).forEach((key) => {
     if (!["content", "author"].includes(key)) {
@@ -257,14 +252,13 @@ export const editPost = async (
         ? [...PRIVATE_COLUMN_NAMES]
         : [...PUBLIC_COLUMN_NAMES]
       ).join(",");
-  fields.last_edited_by = ctx.user?.identifier;
-
+  if (ctx.user) fields.last_edited_by = ctx.user.identifier;
   const hasExtra = Object.keys(extra).length > 0;
-  const hasFields = Object.keys(fields).length > 0;
+  const hasFields = Object.keys(entry).length > 0;
 
   const row = await WRITER`
     UPDATE posts
-    SET ${hasFields ? WRITER(fields) : WRITER``}
+    SET ${hasFields ? WRITER(entry) : WRITER``}
     ${hasFields && hasExtra ? WRITER`,` : WRITER``}
     ${
       hasExtra
