@@ -117,8 +117,11 @@ const validatedEntry = async (
 
   // throwing if required fields cannot be set
   for (const [_, field] of Object.entries(instanceFields)) {
-    if (fields[field.name])
+    if (fields[field.name]) {
       fields[field.name] = fields[field.name].replace(/\r\n|\n|\r/g, "");
+
+      if (fields[field.name].trim().length === 0) fields[field.name] = "";
+    }
     if (
       field.is_required &&
       (!fields[field.name] ||
