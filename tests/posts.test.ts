@@ -22,8 +22,7 @@ export const createAnonymousPost = async () => {
   });
 };
 export const createPostWithRandomizedIP = async () => {
-  const c = ctx.anonymous;
-  c.ip = crypto.randomUUID();
+  const c = { ...ctx.anonymous, ip: crypto.randomUUID() };
   return await createPost(c as RequestContext, {
     content: "test",
   });
@@ -163,9 +162,7 @@ test("Editing a post (removing a required field without a replacement) is reject
     content: "test",
     requiredFieldEditClear: "test",
   });
-  const c = ctx.anonymous;
-  //@ts-expect-error
-  c.token = post.token;
+  const c = { ...ctx.anonymous, token: post.token };
   expect(
     editPost(c, post.row.identifier, { requiredFieldEditClear: "" }),
   ).rejects.toThrow(BadRequestError);
