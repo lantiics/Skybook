@@ -70,7 +70,7 @@ export const authenticate = async (
   }
   let elevated = req.ctx.superAdmin ?? false;
   console.log(elevated, "elevated");
-  if (!elevated && user && user.name === req.ctx?.instance) {
+  if (!elevated && user && req.ctx.instance && user.name === req.ctx.instance) {
     elevated = true;
   }
 
