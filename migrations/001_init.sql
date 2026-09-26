@@ -21,6 +21,15 @@ CREATE UNIQUE INDEX idx_username ON users (name);
 CREATE UNIQUE INDEX idx_users_identifier ON users(identifier);
 CREATE INDEX idx_users_pending_deletion ON users (delete_at) WHERE pending_deletion IS TRUE;
 
+CREATE TABLE sessions (
+  token TEXT PRIMARY KEY,
+  user_name TEXT NOT NULL REFERENCES users(name) ON UPDATE CASCADE,
+  user_identifier UUID NOT NULL REFERENCES users(identifier) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  expires_at TIMESTAMPTZ NOT NULL DEFAULT (now() + INTERVAL '1 week')
+);
+CREATE INDEX CONCURRENTLY sessions_expires_at_idx ON sessions (expires_at);
+
 CREATE TABLE instances (
   name TEXT PRIMARY KEY REFERENCES users(name) ON DELETE CASCADE ON UPDATE CASCADE,
   user_identifier UUID UNIQUE NOT NULL REFERENCES users(identifier) ON DELETE CASCADE,
