@@ -48,6 +48,7 @@ export const notifyUser = async (
     notification_service: webhookService,
   } =
     await WRITER`SELECT notification_endpoint,notification_service FROM instances WHERE name = ${user}`;
+  if (!encryptedUrl || !webhookService) return;
   const userUrl = decryptURL(encryptedUrl);
   switch (webhookService) {
     case "ntfy":
@@ -101,12 +102,14 @@ export const notifyUser = async (
     requestBody.body.FORWARDHEADERS = requestBody.headers;
     requestBody.body = JSON.stringify(requestBody.body);
   }
-  fetch(url, requestBody).then((res) => {
-    if (!res.ok)
-      console.warn(
-        "Notification request failed, Notifications proxied:" +
-          config.skybook.instance_notification_proxy_url !==
-          "",
-      );
-  });
+  if (process.env.NODE_ENV !== "test") {
+    fetch(url, requestBody).then((res) => {
+      if (!res.ok)
+        console.warn(
+          "Notification request failed, Notifications proxied:" +
+            config.skybook.instance_notification_proxy_url !==
+            "",
+        );
+    });
+  }
 };
