@@ -382,8 +382,7 @@ router
   .route("/notifications")
   .put(async (req: Request, res: Response) => {
     if (!req.ctx.elevated) return res.sendStatus(403);
-    if (!config.skybook.instance_notifications)
-      throw new UnavailableError("Instance notifications cannot be enabled.");
+    if (!config.skybook.instance_notifications) return res.sendStatus(503);
     try {
       if (!req.body.url || !req.body.service)
         throw new BadRequestError(
