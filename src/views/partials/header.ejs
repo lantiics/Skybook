@@ -1,13 +1,14 @@
 </div>
 <nav>
   <div style="display:flex;flex-direction: row;gap:0.5rem"> <a <% if (skybook.subdomain_vanity) {%> href="http://<%=skybook.domain%>" <%} else {%> href="/" <%}%>>Skybook</a>
-  <a <% if (skybook.subdomain_vanity) {%> href="http://<%=skybook.domain%>/features" <%} else {%> href="/features" <%}%>>Features</a></div>
+    <a <% if (skybook.subdomain_vanity) {%> href="http://<%=skybook.domain%>/features" <%} else {%> href="/features" <%}%>>Features</a>
+  </div>
   <div class="auth-actions">
-    <% if (!ctx.authenticated) { %> <a <% if (skybook.subdomain_vanity) {%>href="http://<%=skybook.domain%>/login" <%} else {%> href="/login" <%}%>>Log in</a><a <% if (skybook.subdomain_vanity) {%>href="http://<%=skybook.domain%>/signup" <%} else {%> href="/signup" <%}%>>Sign up</a>
-  <% } else {%> <a <% if (skybook.subdomain_vanity) {%> href="http://<%=ctx.user.name%>.<%=skybook.domain%>" <%} else {%>href="/<%=ctx.user.name %>" <%}%>>my guestbook</a>
-  <div class="authenticated-user-header"><a <% if (skybook.subdomain_vanity) {%>href="http://<%=skybook.domain%>/account" <%} else {%> href="/account" <%}%>>
-      <%= (ctx.user?.name?ctx.user.name:"undefined")
-                            %> </a>&gt;</div> <button onclick="fetch('/api/auth/logout', {method: 'POST'}).then((req)=> {if (req.ok) location.reload()})">log
+    <% if (!ctx.authenticated) { %> <a class="button" <% if (skybook.subdomain_vanity) {%>href="http://<%=skybook.domain%>/login" <%} else {%> href="/login" <%}%>>Log in</a><a class="button" <% if (skybook.subdomain_vanity)
+        {%>href="http://<%=skybook.domain%>/signup" <%} else {%> href="/signup" <%}%>>Sign up</a>
+      <% } else {%> <a class="button" <% if (skybook.subdomain_vanity) {%> href="http://<%=ctx.user.name%>.<%=skybook.domain%>" <%} else {%>href="/<%=ctx.user.name %>" <%}%>>my guestbook</a>
+        <div class="authenticated-user-header"><a class="button" <% if (skybook.subdomain_vanity) {%>href="http://<%=skybook.domain%>/account" <%} else {%> href="/account" <%}%>>
+                  <%=(ctx.user?.name?ctx.user.name:"undefined") %> </a></div> <button onclick="fetch('/api/auth/logout', {method: 'POST'}).then((req)=> {if (req.ok) location.reload()})">log
     out</button>
   <% }%>
   </div>

@@ -6,8 +6,9 @@
 </head>
 
 <body class="container">
-  <% if (skybook.header) {%><div class="header-announcement"><%=skybook.header%></div> <%}%>
-  <header><%- include('./partials/header', ) %></header>
+
+  <header><% if (skybook.header) {%><div class="header-announcement"><%=skybook.header%></div> <%}%><%- include('./partials/header', ) %></header>
+
   <main><%-body %></main>
   <footer><%- include('./partials/footer') %></footer>
 

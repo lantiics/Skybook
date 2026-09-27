@@ -15,26 +15,26 @@
       }
     })()">Generate invitation</button>
   </div> <%}%>
-
+<hr />
   <h2>Account settings</h2>
   <div>
     <h3>2fa</h3>
     <%-include('../partials/account/2fa')%>
-  </div>
-  <div>
-    <h3>change password</h3>
-    <%-include('../partials/account/change-password')%>
-  </div>
+</div>
+<div>
+  <h3>change password</h3>
+  <%-include('../partials/account/change-password')%>
+</div>
 
 
-  <div style="margin-block: 1.5rem;margin-top: 3rem;">
-    <script>
-      const tryDeleteAccount = async (btn) => {
-        document.body.insertAdjacentHTML("beforebegin", await (await fetch(`/partials/delete-account`)).text())
-      }
-    </script>
-    <button class="danger" id="deleteAccountBtn" onclick="tryDeleteAccount(this)">delete account</button>
-  </div>
+<div style="margin-block: 1.5rem;margin-top: 3rem;">
+  <script>
+    const tryDeleteAccount = async (btn) => {
+      document.body.insertAdjacentHTML("beforebegin", await (await fetch(`/partials/delete-account`)).text())
+    }
+  </script>
+  <button class="danger" id="deleteAccountBtn" onclick="tryDeleteAccount(this)">delete account</button>
+</div>
 
 </div>
 <script>

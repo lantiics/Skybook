@@ -189,7 +189,7 @@ router.get(
       const exportedData = await exportInstance(req.ctx);
       res.set(
         "Content-Disposition",
-        `attachment; filename="${req.ctx.instance}-export.csv"`,
+        `attachment; filename="${req.ctx.instance}-export_${new Date(Date.now()).toISOString().replace(/T.+/, "")}.csv"`,
       );
       return res.status(200).send(exportedData);
     } catch (e) {
