@@ -1,6 +1,6 @@
 <h1>hello, <%=ctx.user.name %></h1>
 <div style="display: flex;flex-direction: column;place-items: center;gap: 1rem;text-align:center;">
-
+  <% if (skybook.signupRequiresInvitation) {%>
   <div>
     <button onclick="(async ()=> {
       this.disabled=true;
@@ -14,7 +14,7 @@
         this.innerText=`Your invitation code is ${body}, it has been copied to your clipboard. make sure you save it. It can only be used three times.`
       }
     })()">Generate invitation</button>
-  </div>
+  </div> <%}%>
 
   <h2>Account settings</h2>
   <div>
