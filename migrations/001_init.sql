@@ -1,6 +1,6 @@
 CREATE TABLE users (
   identifier UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
-  name VARCHAR(15) UNIQUE NOT NULL
+  name VARCHAR(20) UNIQUE NOT NULL,
   ip_hash TEXT NOT NULL,
   password_hash TEXT NOT NULL,
   totp_secret TEXT,

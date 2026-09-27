@@ -1,0 +1,27 @@
+default:
+  image: oven/bun:1
+  services:
+    - name: postgres:latest
+      alias: postgres
+variables:
+  POSTGRES_DB: "skybook"
+  POSTGRES_USER: "skybook"
+  POSTGRES_PASSWORD: "skybook"
+  READ_DB_URL: "postgres://skybook:skybook@postgres:5432/skybook"
+  WRITE_DB_URL: "postgres://skybook:skybook@postgres:5432/skybook"
+  IP_HASH_SECRET: "iphashsecret"
+  COOKIE_SIGNING_SECRET: "cookiesigningsecret"
+  NOTIFICATION_URL_KEY: "a3e1df35903c431ac811c3d4f1eba753950fc1ac4e758edf38309f9fa5c10086"
+  NOTIFICATION_URL_IV: "eb2199b617f31dabacc06de2"
+
+test:
+  before_script:
+    - apt-get update && apt-get install -y postgresql-client
+    - bun install
+    - cp config.sample.toml config.toml
+  script:
+    - until bash -c 'echo > /dev/tcp/postgres/5432' 2>/dev/null; do sleep 1; done
+    - PGPASSWORD=$POSTGRES_PASSWORD psql -h postgres -U $POSTGRES_USER -d $POSTGRES_DB -f migrations/000_reservations.sql
+    - PGPASSWORD=$POSTGRES_PASSWORD psql -h postgres -U $POSTGRES_USER -d $POSTGRES_DB -f migrations/001_init.sql
+    - PGPASSWORD=$POSTGRES_PASSWORD psql -h postgres -U $POSTGRES_USER -d $POSTGRES_DB -f migrations/002_enforcements.sql
+    - bun test
