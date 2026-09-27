@@ -10,7 +10,11 @@ import {
 import { getFieldData } from "../domain/fields";
 import { config } from "../config";
 import { partials } from "./partials.ts";
-import { loginEnabled, signupEnabled } from "../domain/service-settings.ts";
+import {
+  loginEnabled,
+  signupEnabled,
+  signupInvitationRequired,
+} from "../domain/service-settings.ts";
 import { decryptedURL } from "../domain/notifications.ts";
 const router = Router();
 
@@ -69,6 +73,9 @@ router.get("/account", async (req: Request, res: Response) => {
     return res.redirect("/login");
   }
   try {
+    res.locals.skybook = {
+      signupRequiresInvitation: await signupInvitationRequired(),
+    };
     res.locals.title = "My account - Skybook";
     renderWithLayout(req, res, "pages/account", res.locals);
   } catch (e) {
