@@ -276,6 +276,13 @@ export const updateInstanceSuppliedFilter = async (
     throw new BadRequestError(
       "Provided filter character count is above global filter limit",
     );
+  try {
+    new RegExp(filter);
+  } catch {
+    throw new BadRequestError(
+      "Provided regular expression for instance global filter is invalid",
+    );
+  }
   return await WRITER`UPDATE instances SET custom_filter = ${filter} WHERE name = ${instance}`;
 };
 
