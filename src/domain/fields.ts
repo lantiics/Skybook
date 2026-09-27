@@ -139,13 +139,17 @@ export const setFieldFilter = (
   field: string,
   filter: RegExp,
 ) => {
-  if (!RegExp(filter)) {
-    throw new SyntaxError("Provided regex is invalid");
-  }
   if (filter.toString().length > config.fields.max_filter_length)
     throw new BadRequestError(
       "Provided filter character length is above limit",
     );
+  try {
+    new RegExp(filter);
+  } catch {
+    throw new BadRequestError(
+      "Provided regular expression for field filter is invalid",
+    );
+  }
   WRITER`UPDATE FIELDS SET filter = ${filter} WHERE name = ${field} AND instance = ${
     ctx.instance
   }`;
