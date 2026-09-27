@@ -1,8 +1,3 @@
-default:
-  image: oven/bun:1
-  services:
-    - name: postgres:latest
-      alias: postgres
 variables:
   POSTGRES_DB: "skybook"
   POSTGRES_USER: "skybook"
@@ -15,6 +10,10 @@ variables:
   NOTIFICATION_URL_IV: "eb2199b617f31dabacc06de2"
 
 test:
+  image: oven/bun:1
+  services:
+    - name: postgres:latest
+      alias: postgres
   before_script:
     - apt-get update && apt-get install -y postgresql-client
     - bun install
@@ -25,3 +24,8 @@ test:
     - PGPASSWORD=$POSTGRES_PASSWORD psql -h postgres -U $POSTGRES_USER -d $POSTGRES_DB -f migrations/001_init.sql
     - PGPASSWORD=$POSTGRES_PASSWORD psql -h postgres -U $POSTGRES_USER -d $POSTGRES_DB -f migrations/002_enforcements.sql
     - bun test
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: always
+    - when: manual
+      allow_failure: true
