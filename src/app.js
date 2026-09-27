@@ -65,11 +65,17 @@ app.use(function (err, req, res, next) {
   res.locals.error = err.status;
   res.locals.title = err.status;
   if (
-    err.status === 404 &&
-    (req.host !== config.skybook.domain ||
-      (req.host === config.skybook.domain && req.path !== "/"))
+    err.status === 404
+    // (req.host !== config.skybook.domain ||
+    //   (req.host === config.skybook.domain && req.path !== "/"))
   ) {
-    return res.redirect(`http://${config.skybook.domain}`);
+    if (req.host !== config.skybook.domain && req.path == "/") {
+      return res.redirect(`http://${config.skybook.domain}`);
+    } else {
+      return res.redirect(
+        `http://${req.ctx.instance}.${config.skybook.domain}`,
+      );
+    }
   }
   // render the error page
   res.status(err.status || 500);
