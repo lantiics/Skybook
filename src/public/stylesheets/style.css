@@ -106,7 +106,7 @@ h2 {
 button,
 .button {
   border-radius: var(--secondary-brad);
-  --container-color: #191545;
+  --container-color: var(--secondary-container);
   --text-color: var(--on-secondary);
   border: 1px groove var(--border-color);
   background-color: var(--container-color);
