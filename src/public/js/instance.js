@@ -318,6 +318,7 @@ const addEditListeners = () => {
         if (field.innerText != field.getAttribute("data-original-content")) {
           if (!field.getAttribute("data-reply-to")) {
             await editPost(field.parentNode.parentNode, field);
+            field.blur()
           } else {
             await reply(
               field.parentNode.parentNode.parentNode,
