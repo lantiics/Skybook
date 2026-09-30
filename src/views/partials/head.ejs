@@ -56,7 +56,7 @@
     justify-content: space-around;
     border-bottom: 2px solid var(--important);
     border-radius: var(--primary-brad);
-    width: 100%;
+    /* width: 100%; */
     gap: 1rem;
     padding: 0.5rem;
     color: var(--color);
@@ -65,12 +65,16 @@
   header nav {
     display: flex;
     flex-direction: row;
-    justify-content: space-around;
-    align-items: center;
+    flex-wrap: wrap;
+    justify-content:space-around;
+    align-items: left;
     align-self: center;
     width: 90%;
+    gap:8px;
     color: var(--color);
+    
   }
+
 
   .auth-actions {
     display: flex;
