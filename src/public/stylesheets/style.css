@@ -37,7 +37,6 @@
 
 .danger {
   background-color: var(--danger);
-  border-color: var(--on-danger);
   color: var(--on-danger);
 }
 
@@ -133,7 +132,6 @@ button,
   &:is(.danger) {
     --container-color: var(--danger);
     --text-color: var(--on-danger);
-    border: 1px groove var(--on-danger);
   }
   &:is([disabled]) {
     filter: brightness(90%) saturate(60%);
@@ -216,8 +214,7 @@ input:is([type="submit"]) {
   }
   &:is(.danger) {
     background-color: var(--danger);
-    --text-color: var(--on-danger);
-    border: 1px groove var(--on-danger);
+    border: none;
   }
   &:disabled {
     filter: brightness(60%) saturate(60%);
