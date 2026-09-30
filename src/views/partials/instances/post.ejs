@@ -1,6 +1,7 @@
-<div class="entry <% if (post.is_highlighted) {%>highlighted<%}%>" data-identifier="<%=post.identifier%>" data-can-alter="<%=((post.authenticated_user_identifier==(ctx.user ? ctx.user.identifier:'not an identifier'))||ctx.elevated&&!post.sys_lock||ctx.superAdmin)%>">
-  <% if (post.is_queued||!post.is_visible) { %> <div><%=post.is_queued?!post.is_visible?"QUEUED | ":"QUEUED":""%><%=!post.is_visible?"HIDDEN":""%></div> <% } %>
-
+<div class="entry <% if (post.is_highlighted) {%>highlighted<%}%> " data-identifier="<%=post.identifier%>" data-can-alter="<%=((post.authenticated_user_identifier==(ctx.user ? ctx.user.identifier:'not an identifier'))||ctx.elevated&&!post.sys_lock||ctx.superAdmin)%>">
+  <div style="display:flex;flex-direction: row;">
+    <% if (post.is_queued) {%> <div title="queued" class="postqueued-indicator"></div><%}%>
+  <% if (!post.is_visible) {%> <div title="hidden" class="posthidden-indicator"></div> <%}%></div>
   <div class="entry-time" data-field="added-at">
     <%= post.added %>
     <% if (ctx.elevated && post.flag_count) {%> | flagged <%=post.flag_count%> times <%}%> <% if (ctx.elevated && post.creator_blocked && post.block_reason) {%> | blocked: <%=post.block_reason%> <%}%>
