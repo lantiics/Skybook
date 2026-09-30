@@ -174,7 +174,7 @@ input,
 textarea {
   padding: var(--secondary-padding);
   border: 1px groove;
-  border-color: var(--border-color);
+  border-color: color-mix(in hsl, var(--border-color) 90%, white 10%);
   border-radius: var(--secondary-brad);
   color: var(--on-secondary);
   background-color: var(--secondary-container);
@@ -186,10 +186,9 @@ textarea {
   width: fit-content;
   &:not([type="checkbox"])&:not(:disabled) {
     &:hover {
-      filter: brightness(120%);
+        border-color: color-mix(in hsl, var(--border-color) 80%, white 20%);
     }
-    &:focus {
-      filter: brightness(150%);
+    &:focus {border-color: color-mix(in hsl, var(--border-color) 70%, white 30%);
     }
   }
   &:disabled {
