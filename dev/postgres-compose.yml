@@ -1,0 +1,15 @@
+name: "skybook"
+
+
+services:
+  postgres:
+    image: postgres
+    restart: no
+    environment:
+      POSTGRES_DB: skybook
+      POSTGRES_USER: skybook
+      POSTGRES_PASSWORD: skybook
+    ports:
+      - 5432:5432
+    volumes:
+      - ./postgres_data:/var/lib/postgresql
