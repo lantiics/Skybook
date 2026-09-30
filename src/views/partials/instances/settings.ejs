@@ -19,8 +19,8 @@
     <span>Entry flagging</span>
     <input type="checkbox" class="instance-switch" name="entryFlagging" id="instanceEntryFlagging" data-action="entry-flagging" <% if (status.flagging_enabled.status) {%> checked <%}%> onclick="toggleStatus(this)">
   </div>
-</div>
-<label for="queueFlagThreshold">Number of times a post has to be flagged before being automatically placed into a queue:</label>
+</div><br/>
+<label for="queueFlagThreshold"><abbr title="Number of times a post has to be flagged before being automatically placed into a queue">?</abbr> Flag threshold</label>
 <input id="queueFlagThreshold" value="<%=status.queue_flags_threshold.status%>" type="number">
 <br />
 <div>
