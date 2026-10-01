@@ -120,6 +120,11 @@ export const notifyUser = async (
       requestBody.headers["Content-Type"] = "application/json";
       break;
     }
+    case "matrix": {
+      updateBody({text:message})
+      requestBody.headers['Content-Type']="application/json"
+      break;
+    }
     case "custom":
       break;
     default:
