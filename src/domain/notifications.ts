@@ -56,9 +56,10 @@ export const notifyUser = async (
   if (!encryptedUrl || !webhookService) return;
   const userUrl = decryptedURL(encryptedUrl);
 
-  const reqHeaders = {
+  let reqHeaders = {
     "User-Agent": `Skybook/${config.skybook.version} (instance-notifications; +https://${config.skybook.domain}; https://gitlab.com/lantics/skybook)`,
   };
+  if (process.env.NOTIFICATION_PROXY_HEADERS){reqHeaders={...reqHeaders,...JSON.parse(process.env.NOTIFICATION_PROXY_HEADERS)}}
   const requestBody: any = {
     method: "POST",
     body:
