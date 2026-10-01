@@ -12,7 +12,7 @@ instance_notifications=false # Notify instance owners when they receive a new en
 # Specify which notification endpoints to allow/disallow.
 # Currently, Skybook supports the following endpoints:
 # [ntfy, discord, custom]
-instance_notification_services=["ntfy","discord","custom"] 
+instance_notification_services=["ntfy","discord","matrix","custom"] 
 # Optionally specify a URL which forwards notification POST requests;
 # This will replace the user-specified endpoint and put it into the request body.
 # An example usage of this is a CloudFlare worker to proxy requests, hiding the origin server IP.
