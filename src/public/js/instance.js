@@ -414,6 +414,17 @@ document.addEventListener("DOMContentLoaded", () => {
         3000,
       );
     });
+  Object.keys(localStorage)
+    .filter(key => 
+      key.startsWith("ENTRY")
+    ).map(key => [key, localStorage.getItem(key)])
+    .forEach(([key, object]) => { 
+      object = JSON.parse(object);
+       if (new Date(object.expires) < new Date()) {
+         localStorage.removeItem(key) 
+        } 
+      }
+    )
   checkForAlterableEntries();
   addEditListeners();
 });
