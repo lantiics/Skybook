@@ -11,7 +11,7 @@ const additionalPostAlterationHeaders = (identifier) => {
 
   const additionalHeaders = {};
   if (postToken) {
-    additionalHeaders["authorization"] = "Bearer " + postToken;
+    additionalHeaders["authorization"] = "Bearer " + JSON.parse(postToken).token;
   }
   return additionalHeaders;
 };
@@ -263,7 +263,7 @@ const editPost = async (post, field) => {
 
   const additionalHeaders = {};
   if (postToken) {
-    additionalHeaders["authorization"] = "Bearer " + postToken;
+    additionalHeaders["authorization"] = "Bearer " + JSON.parse(postToken).token;
   }
   const res = await fetch(`/api/${instanceName()}/entry/${identifier}`, {
     method: "PATCH",

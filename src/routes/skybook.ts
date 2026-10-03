@@ -106,7 +106,7 @@ router.post(
       console.log(req.body, "aa");
       const createdEntry = await createPost(req.ctx, req.body);
       if (createdEntry.token) {
-        res.setHeader(`token`, createdEntry.token);
+        res.setHeader(`token`, JSON.stringify({token:createdEntry.token,expires:createdEntry.tokenExpires}));
       }
 
       return res
