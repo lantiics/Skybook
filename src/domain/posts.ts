@@ -211,17 +211,17 @@ export const createPost = async (
   const row = await WRITER.begin(async (tx) => {
     const [row] =
       await tx`INSERT INTO posts ${tx(entry)} RETURNING ${tx.unsafe(columns)}`;
-    await tx`
+    const [{expires_at: tokenExpiresIn}]=await tx`
   INSERT INTO tokens (instance, identifier, token, created_at, expires_at)
-  VALUES (${entry.instance},  ${row.identifier}, ${_token}, NOW(), (NOW() + INTERVAL '2 days'))
+  VALUES (${entry.instance},  ${row.identifier}, ${_token}, NOW(), (NOW() + INTERVAL '2 days')) RETURNING expires_at
 `;
 
-    return row;
+    return [row, tokenExpiresIn];
   });
 
   if (!entry.is_queued) purgeInstanceCache(ctx.instance);
-  await notifyUser(ctx.instance, row);
-  return { row, token: _token, wasQueued: entry.is_queued };
+  await notifyUser(ctx.instance, row[0]);
+  return { row: row[0], token: _token, tokenExpires:row[1], wasQueued: entry.is_queued };
 };
 
 export const editPost = async (
