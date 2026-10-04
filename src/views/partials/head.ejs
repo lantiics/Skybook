@@ -28,16 +28,21 @@
 
   .header-announcement {
     /* border: 1px groove var(--border-color); */
-    /* background-color: var(--important); */
-
+    
+    background-color: var(--important);
+    color:var(--on-important);
     border-radius: .5rem;
-    width: 50vw;
-    margin: 0 auto;
+    /* width: 50vw; */
+    margin-inline: 0.5rem;
+    padding-inline:6px;
+    width: fit-content;
+    place-self: center;
     text-align: center;
     place-content: center;
     font-weight: bold;
     min-height: 2rem;
-    position: relative;
+    /* position: relative; */
+    
   }
 
   .information-box {
@@ -49,36 +54,41 @@
     font-weight: bold;
     height: fit-content;
     text-overflow: clip;
-    ;
+    
     position: relative;
   }
 
   header {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-around;
-    /* align-items: center; */
+
 
     /* background-color: var(--important); */
-    border-bottom: 2px solid var(--important);
-    border-radius: var(--primary-brad);
-    /* width: 100%; */
-    gap: 1rem;
-    padding: 0.5rem;
+    border-bottom: 2px solid color-mix(in hsl, white 5%, transparent 95%);
+    /* border-radius: var(--primary-brad); */
+    width: 100%;
+    
+    
     /* height: 0px; */
     color: var(--color);
+  }
+  header .header-content {
+    display: flex;
+    flex-direction: column;
+    padding-block:0.9rem;
+    gap: 1rem;
+    
   }
 
   header nav {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
-    justify-content:space-around;
-    align-items: left;
+    justify-content:center;
+    align-items: center;
     align-self: center;
-    width: 90%;
+    width: 60%;
     gap:8px;
     color: var(--color);
+    @media only screen and (max-width:600px) {width:90%}
     
   }
 
@@ -107,12 +117,17 @@
   footer {
     content-visibility: auto;
     /* background-color: var(--border-color); */
-    border-radius: var(--secondary-brad);
+    /* border-radius: var(--secondary-brad); */
     display: flex;
+    border-top: 1px solid color-mix(in hsl, white 10%, transparent 90%) ;
+    width: fit-content;
+    
     justify-content: center;
-    padding: 0.5rem;
+    padding: 0.5rem;padding-inline: 3rem;
+    justify-self: center;
     margin-bottom: 1rem;
     margin-top: 1rem;
+    margin-inline:auto;
     /* height: 3rem; */
   }
 </style>

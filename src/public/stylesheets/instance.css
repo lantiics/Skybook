@@ -14,6 +14,7 @@ main {
 .entries {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 1rem;
 }
 
@@ -21,7 +22,7 @@ main {
   content-visibility: auto;
   display: flex;
   flex-direction: column;
-  border: 1px groove;
+  border: 1px solid;
   border-color: var(--border-color);
   background-color: var(--primary-container);
   border-radius: var(--secondary-brad);
@@ -31,6 +32,7 @@ main {
   gap: 0.4rem;
   font-size: small;
   overflow-wrap: anywhere;
+
   transition: border-color 75ms;
   button {
     --container-color: var(--tertiary-container);
@@ -52,9 +54,9 @@ main {
 .deleteBtn {
   position: relative;
   height: 1.5rem;
+  
   width: 1.5rem;
-  bottom: 0px;
-
+  
   background: var(--danger);
 
   mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><!--!Font Awesome Free v7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path d="M232.7 69.9L224 96L128 96C110.3 96 96 110.3 96 128C96 145.7 110.3 160 128 160L512 160C529.7 160 544 145.7 544 128C544 110.3 529.7 96 512 96L416 96L407.3 69.9C402.9 56.8 390.7 48 376.9 48L263.1 48C249.3 48 237.1 56.8 232.7 69.9zM512 208L128 208L149.1 531.1C150.7 556.4 171.7 576 197 576L443 576C468.3 576 489.3 556.4 490.9 531.1L512 208z"/></svg>');
@@ -183,14 +185,17 @@ main {
   mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><!--!Font Awesome Free v7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path d="M286 368C384.5 368 464.3 447.8 464.3 546.3C464.3 562.7 451 576 434.6 576L78 576C61.6 576 48.3 562.7 48.3 546.3C48.3 447.8 128.1 368 226.6 368L286 368zM585.7 169.9C593.5 159.2 608.5 156.8 619.2 164.6C629.9 172.4 632.3 187.4 624.5 198.1L522.1 338.9C517.9 344.6 511.4 348.3 504.4 348.7C497.4 349.1 490.4 346.5 485.5 341.4L439.1 293.4C429.9 283.9 430.1 268.7 439.7 259.5C449.2 250.3 464.4 250.6 473.6 260.1L500.1 287.5L585.7 169.8zM256.3 312C190 312 136.3 258.3 136.3 192C136.3 125.7 190 72 256.3 72C322.6 72 376.3 125.7 376.3 192C376.3 258.3 322.6 312 256.3 312z"/></svg>');
 }
 .entry.highlighted {
-  --border-color: color-mix(in hsl, var(--primary-container) 75%, white 25%);
-  border: 2px groove var(--border-color);
+  --border-color: color-mix(in hsl, var(--informatory) 75%, white 25%);
+  box-shadow: color-mix(in hsl, var(--informatory) 60%, transparent 40%) 0px 0px 6px;
+  /* --border-color:var(--informatory); */
+  
+  border: 1px solid var(--border-color);
 }
 .entry:hover {
-  border-color: color-mix(in hsl, var(--border-color) 70%, white 30%);
+  border-color: color-mix(in hsl, var(--border-color) 70%, black 30%);
 }
 .entry.queued {
-  outline: 1px solid var(--caution);
+  --border-color:var(--caution);
 }
 .postqueued-indicator {
   height: 1.3rem;
@@ -248,4 +253,15 @@ main {
       /* background-color: orange; */
     }
   }
+}
+
+.page-switcher {
+  display:flex;width:30vw;justify-content: space-between;
+  @media only screen and (max-width:600px) {width: 80vw}
+}
+
+form.entry-submission {
+  width: 30vw;margin-inline: auto;
+  @media only screen and (max-width:600px ) {width:80vw;margin-block:2rem;}
+  input:not(#content):not(#submit-entry) {padding:var(--tertiary-padding)}
 }

@@ -5,11 +5,11 @@
   <%- include('./partials/head') %>
 </head>
 
-<body class="container">
+<body>
 
-  <header><% if (skybook.header) {%><div class="header-announcement"><%=skybook.header%></div> <%}%><% if (!ctx.instance||ctx.instance&&ctx.authenticated) {%> <%- include('./partials/header', ) %><%}%></header>
+  <header><div class="header-content"><% if (skybook.header) {%><div class="header-announcement"><%=skybook.header%></div> <%}%><% if (!ctx.instance||ctx.instance&&ctx.authenticated) {%> <%- include('./partials/header', ) %><%}%></div></header>
 
-  <main><%-body %></main>
+  <main class="container"><%-body %></main>
     <footer><%- include('./partials/footer') %></footer>
 
 </body>
