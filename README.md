@@ -4,7 +4,7 @@ Skybook is a fully open-source, self-hostable guestbook host akin to [123Guestbo
 
 Skybook is currently unfinished but in a very usable state.
 
-
+The official hosted instance of Skybook is available at [skybook.page](https://skybook.page)
 
 ## Features:
  - Hashing of all stored IP addresses (alongside a salt)
