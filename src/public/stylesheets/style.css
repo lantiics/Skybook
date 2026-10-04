@@ -168,7 +168,8 @@ button,
   text-decoration: none;
   background-color: var(--secondary-container);
   padding: var(--secondary-padding);
-  border-radius: var(--secondary-brad);
+  padding-inline:var(--primary-padding);
+  border-radius: var(--primary-brad);
   color: var(--on-secondary);
   font-weight: bold;
   &:hover {
