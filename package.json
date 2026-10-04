@@ -1,6 +1,6 @@
 {
   "name": "Skybook",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "scripts": {
     "start": "pm2 start ecosystem.config.js"
   },
