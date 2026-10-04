@@ -7,6 +7,7 @@ import {
   userPasswordIsValid,
 } from "../domain/users";
 import { verifyTotp } from "../domain/auth";
+import { config } from "../config";
 
 const router = require("express").Router();
 router.post("/delete", async (req: Request, res: Response) => {
@@ -17,6 +18,9 @@ router.post("/delete", async (req: Request, res: Response) => {
     if (!(await userPasswordIsValid(req.ctx.user!.identifier, password)))
       throw new UnauthorizedError("Provided password is incorrect");
     await deleteUser(req.ctx.user!.identifier);
+    res.clearCookie("session", {
+      domain: config.skybook.domain,
+    });
     return res.sendStatus(202);
   } catch (e) {
     if (e instanceof UnauthorizedError)
@@ -48,6 +52,9 @@ router.post("/enable-totp", async (req: Request, res: Response) => {
       secret,
       JSON.parse(atob(codes)),
     );
+    res.clearCookie("session", {
+      domain: config.skybook.domain,
+    });
     return res.status(201).redirect("/login");
   } catch (e) {
     if (e instanceof UnauthorizedError)
