@@ -20,6 +20,8 @@
   --on-danger: hsl(0, 40%, 15%);
   --caution: #ceac70;
   --on-caution: black;
+  --success: hsl(133, 70%, 70%);
+  --on-success: hsl(133, 40%, 25%);
   background-color: #D7D5E1;
   --color: #2a2a34;
   color: #2a2a34;
@@ -31,10 +33,18 @@
 .danger {
   background-color: var(--danger);
   color: var(--on-danger);
-  box-shadow: var(--danger) 0px 0px 12px;
 }
 
 .caution {}
+
+.success {
+  background-color: var(--success);
+  /* color:var(--on-success); */
+  &:not(:disabled) {color:var(--on-success);
+    background-color: var(--success);
+    box-shadow: var(--success) 0px 0px 8px;
+  }
+}
 
 .loading {}
 
@@ -139,8 +149,11 @@ button,
   }
 
   &:is([disabled]) {
-    filter: brightness(90%) saturate(60%);
-  }
+  filter: brightness(90%) saturate(60%);
+    &:hover {
+      cursor: not-allowed;
+    }
+}
 
   &:is(.creation) {
     --container-color: var(--tertiary-container);
