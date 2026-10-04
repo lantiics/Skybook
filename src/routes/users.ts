@@ -54,9 +54,6 @@ router.post("/signup", authLimiter, async (req: Request, res: Response) => {
 });
 
 router.post("/login", authLimiter, async (req: Request, res: Response) => {
-  if (req.signedCookies.session) {
-    return res.sendStatus(401);
-  }
   try {
     await assertCaptchaTokenValid(req.body[config.captcha.token_property_name]);
     console.time("Logged in");

@@ -39,7 +39,7 @@ The official hosted instance of Skybook is available at [skybook.page](https://s
  - Optional blocking of proxy, VPN, Tor IP addresses instance-wide
  - Ability to automatically purge cache if using CloudFlare caching (it is recommended to only enable caching if there is no 'session' cookie, as we do not cache anything for logged-in users)
 
-<small> *Currently requires manual database queries</small>
+<small> *Currently requires server-side access</small>
 
 
 # Technical guide
