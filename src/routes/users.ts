@@ -119,7 +119,9 @@ router.post("/password", async (req: Request, res: Response) => {
     const { oldPassword, newPassword, otp } = req.body;
 
     await changeUserPassword(userIdentifier, oldPassword, newPassword, otp);
-    res.clearCookie("session");
+    res.clearCookie("session", {
+      domain: config.skybook.domain,
+    });
     const encodedPopupText = btoa("Password changed");
     return res.redirect("/login#pup:" + encodedPopupText);
   } catch (e) {
