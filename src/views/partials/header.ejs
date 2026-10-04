@@ -1,15 +1,15 @@
-</div>
+
 <nav>
-  <div style="display:flex;flex-direction: row;gap:0.5rem"> <a class="btn-href" <% if (skybook.subdomain_vanity) {%> href="http://<%=skybook.domain%>" <%} else {%> href="/" <%}%>>Skybook</a>
-    <a class="btn-href" <% if (skybook.subdomain_vanity) {%> href="http://<%=skybook.domain%>/features" <%} else {%> href="/features" <%}%>>Features</a>
+  <div style="display:flex;flex-direction: row;gap:0.5rem"> <a class="header-btn" <% if (skybook.subdomain_vanity) {%> href="http://<%=skybook.domain%>" <%} else {%> href="/" <%}%>>Skybook</a>
+    <a class="header-btn" <% if (skybook.subdomain_vanity) {%> href="http://<%=skybook.domain%>/features" <%} else {%> href="/features" <%}%>>Features</a>
   </div>
   <div class="auth-actions">
     
   </div>
-  <% if (!ctx.authenticated) { %> <a class="btn-href" <% if (skybook.subdomain_vanity) {%>href="http://<%=skybook.domain%>/login" <%} else {%> href="/login" <%}%>>Log in</a><a class="btn-href" <% if (skybook.subdomain_vanity)
+  <% if (!ctx.authenticated) { %> <a class="header-btn" <% if (skybook.subdomain_vanity) {%>href="http://<%=skybook.domain%>/login" <%} else {%> href="/login" <%}%>>Log in</a><a class="header-btn" <% if (skybook.subdomain_vanity)
         {%>href="http://<%=skybook.domain%>/signup" <%} else {%> href="/signup" <%}%>>Sign up</a>
-      <% } else {%> <a class="btn-href" <% if (skybook.subdomain_vanity) {%> href="http://<%=ctx.user.name%>.<%=skybook.domain%>" <%} else {%>href="/<%=ctx.user.name %>" <%}%>>guestbook</a>
-        <a class="btn-href" <% if (skybook.subdomain_vanity) {%>href="http://<%=skybook.domain%>/account" <%} else {%> href="/account" <%}%>><%=(ctx.user?.name?ctx.user.name:"undefined") %> </a> <button onclick="fetch('/api/auth/logout', {method: 'POST'}).then((req)=> {if (req.ok) location.reload()})">log
+      <% } else {%> <a class="header-btn" <% if (skybook.subdomain_vanity) {%> href="http://<%=ctx.user.name%>.<%=skybook.domain%>" <%} else {%>href="/<%=ctx.user.name %>" <%}%>>guestbook</a>
+        <a class="header-btn" <% if (skybook.subdomain_vanity) {%>href="http://<%=skybook.domain%>/account" <%} else {%> href="/account" <%}%>><%=(ctx.user?.name?ctx.user.name:"undefined") %> </a> <button class="header-btn" onclick="fetch('/api/auth/logout', {method: 'POST'}).then((req)=> {if (req.ok) location.reload()})">log
         out</button>
       <% }%>
 </nav>
