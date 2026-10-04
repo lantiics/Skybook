@@ -241,9 +241,8 @@ const addPostActionButtons = (post) => {
       className: "actions",
     });
   const deleteButton = Object.assign(document.createElement("button"), {
-    className: "danger",
+    className: "deleteBtn",
     onclick: () => actOnPost(post, deleteButton),
-    innerText: "delete",
   }); //  <button onclick="approvePost(this.parentNode.parentNode)" data-action="approve">approve</button>
   deleteButton.setAttribute("data-action", "delete");
   if (!actionRow.querySelector('[data-action="delete"]')) {
