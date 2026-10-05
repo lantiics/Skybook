@@ -1,6 +1,7 @@
 services:
   skybook:
     image: skybook:latest
+    restart: unless-stopped
     ports:
       - 3000:3000
     env_file: ./.env
@@ -9,16 +10,8 @@ services:
         target: /app/config.toml
   postgres:
     image: postgres
-    restart: no
+    restart: unless-stopped
     env_file: ./.env.postgres 
-
-# # # # # # # # # # # # # # # # # #
-#                                 #
-#   POSTGRES_USER: skybook        #
-#   POSTGRES_PASSWORD: skybook    #
-#                                 #
-# # # # # # # # # # # # # # # # # #
-
     environment:
       POSTGRES_DB: skybook
     ports:
