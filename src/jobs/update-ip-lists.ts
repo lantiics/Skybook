@@ -38,7 +38,7 @@ const sourceElapsedMinutesUpdateThreshold = async (
 // doProxy
 
 const proxyIpURL = "https://iplists.firehol.org/files/firehol_proxies.netset"; // Last checked: exclusively ipv4 (some subnets, some no subnets)
-const doProxy = async () => {
+export const doProxy = async () => {
   if (await sourceElapsedMinutesUpdateThreshold("proxy", "280")) return; // 3 hours
   console.time("Updated proxies");
 
@@ -115,7 +115,7 @@ const vpnipv4URL =
 const vpnipv6URL =
   "https://raw.githubusercontent.com/X4BNet/lists_vpn/refs/heads/main/output/vpn/ipv6.txt";
 
-const doVpn = async () => {
+export const doVpn = async () => {
   if (await sourceElapsedMinutesUpdateThreshold("vpn", "720")) return; // 12 hours
   const ip4s = (await (await fetch(vpnipv4URL)).text())
     .split("\n")
@@ -142,7 +142,7 @@ const doVpn = async () => {
 // If doing development, I recommend downloading the file locally and replacing the URL here
 // with a file:// URL.
 const TorDownloadURL = "https://www.dan.me.uk/torlist/?exit";
-const doTor = async () => {
+export const doTor = async () => {
   if (await sourceElapsedMinutesUpdateThreshold("tor", "30")) return;
   const res = await fetch(TorDownloadURL, {
     headers: {
@@ -166,24 +166,6 @@ const doTor = async () => {
   await WRITER`INSERT INTO blocklist_ranges (source, range) SELECT 'tor', unnest(${literal}::text[])::cidr ON CONFLICT DO NOTHING`;
 };
 
-const reindex = async () => {
+export const reindex = async () => {
   await WRITER`REINDEX INDEX CONCURRENTLY idx_blocklist_ranges`;
 };
-
-(async () => {
-  await doProxy();
-  await doVpn();
-  await doTor();
-  await reindex();
-})();
-
-setInterval(
-  async () => {
-    await doProxy();
-    await doVpn();
-    await doTor();
-  },
-  30 * 60 * 1000,
-); // 30 minutes
-
-setInterval(reindex, 12 * 60 * 60 * 1000); // 12 hours
