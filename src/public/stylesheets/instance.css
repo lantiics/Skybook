@@ -2,14 +2,6 @@ main {
   flex-direction: column;
   align-items: center;
 }
-.instance-information {
-  border: 2px groove var(--border-color);
-  padding: 6px;
-  border-radius: var(--secondary-brad);
-  background-color: var(--tertiary-container);
-  font-size: large;
-  font-weight: bold;
-}
 
 .entries {
   display: flex;
