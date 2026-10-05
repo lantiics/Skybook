@@ -3,7 +3,7 @@
 
 <% if (ctx.elevated) { %> <%- include('../partials/instances/elevated-interface', {fields: fields})%> <% } %>
 <% if (!ctx.elevated) {%>
-<% if(status.submission_enabled.status) {%><%- include('../partials/instances/entry-form')%> <% } else {%><div class="instance-information">Submission is currently unavailable</div> <%}%>
+<% if(status.submission_enabled.status) {%><%- include('../partials/instances/entry-form')%> <% } else {%><div class="information-box">Submission is currently unavailable</div> <%}%>
 <% } %>
 <!-- -->
 <div>
@@ -15,10 +15,10 @@
 
     <%- include('../partials/instances/posts', {posts:posts,ctx:ctx})%>
     <% } else { %> <div class="entry">
-      <div class="instance-information">no entries</div>
+      <div class="information-box">no entries</div>
     </div> <% } %>
     <% } else { %>
-    <div class="instance-information">Posts are currently not visible</div>
+    <div class="information-box">Posts are currently not visible</div>
     <% } %>
   </div>
 </div>
