@@ -48,6 +48,23 @@
 
 .loading {}
 
+.information-box {
+  /* border: 2px solid var(--border-color); */
+
+  padding: 6px;
+  border-radius: var(--secondary-brad);
+  background-color: var(--tertiary-container);
+  font-size: x-large;
+  font-weight: bold;
+  height: fit-content;
+  min-height: 4rem;
+  align-content: center;
+  justify-self: center;
+  text-overflow: clip;
+  text-align: center;
+  position: relative;
+}
+
 select,
 ::picker(select) {
   /* background-color: red; */
