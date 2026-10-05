@@ -3,8 +3,9 @@
 
 <% if (ctx.elevated) { %> <%- include('../partials/instances/elevated-interface', {fields: fields})%> <% } %>
 <% if (!ctx.elevated) {%>
-<% if(status.submission_enabled.status) {%><%- include('../partials/instances/entry-form')%> <% } else {%><div class="information-box">Submission is currently unavailable</div> <%}%>
-<% } %>
+<% if(status.submission_enabled.status) {%><%- include('../partials/instances/entry-form')%> <% }}%>
+
+<% if (!status.submission_enabled.status && !status.is_visible.status) {%> <div class="information-box"><div style="width:100%;border-top:2px solid var(--on-important);border-top-style:dashed;margin-bottom: 3rem;"></div>submission is disabled and posts are currently not visible on this guestbook<div style="width:100%;border-top:2px solid var(--on-important);border-top-style:dashed;margin-top:3rem;"></div></div> <%} else if (!status.submission_enabled.status) {%> <div class="information-box">submission is currently unavailable for this guestbook</div> <% }%>
 <!-- -->
 <div>
   <div class="entries" id="entries">
@@ -17,8 +18,7 @@
     <% } else { %> <div class="entry">
       <div class="information-box">no entries</div>
     </div> <% } %>
-    <% } else { %>
-    <div class="information-box">Posts are currently not visible</div>
-    <% } %>
+    <% } else { %><div class="information-box">entries are currently not visible</div>
+</div></div><%}%>
   </div>
 </div>
