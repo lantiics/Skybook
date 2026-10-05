@@ -10,7 +10,9 @@ const app = express();
 app.locals.assetVersion = VERSION;
 app.set("trust proxy", config.skybook.proxies_between);
 
-app.listen(process.env.PORT || 3000);
+const PORT = process.env.PORT||3000
+app.listen(PORT);
+console.log("Listening on port "+PORT)
 var path = require("path");
 const api = express.Router();
 
@@ -80,7 +82,7 @@ app.use(function (err, req, res, next) {
   }
   // render the error page
   res.status(err.status || 500);
-
+  console.error(err.status, err.message, err, process.env)
   res.render("error");
 });
 export default app;
