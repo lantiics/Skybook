@@ -4,6 +4,7 @@ import cookieParser from "cookie-parser";
 import { authenticate } from "./middleware/authenticate.ts";
 import { resolveInstance } from "./middleware/resolve-instance.ts";
 import express from "express";
+require("./jobs/cron.ts")
 const VERSION = hash("SHA1", Date.now().toString()).slice(0, 8);
 const app = express();
 app.locals.assetVersion = VERSION;
