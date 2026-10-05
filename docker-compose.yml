@@ -1,0 +1,32 @@
+services:
+  skybook:
+    image: skybook:latest
+    ports:
+      - 3000:3000
+    env_file: ./.env
+    configs:
+      - source: skybook_config
+        target: /app/config.toml
+  postgres:
+    image: postgres
+    restart: no
+    env_file: ./.env.postgres 
+
+# # # # # # # # # # # # # # # # # #
+#                                 #
+#   POSTGRES_USER: skybook        #
+#   POSTGRES_PASSWORD: skybook    #
+#                                 #
+# # # # # # # # # # # # # # # # # #
+
+    environment:
+      POSTGRES_DB: skybook
+    ports:
+      - 5432:5432
+    volumes:
+      - ./dev/postgres_data:/var/lib/postgresql
+      - ./migrations/combined.sql:/docker-entrypoint-initdb.d/schema.sql
+
+configs:
+  skybook_config:
+    file: ./config.toml
