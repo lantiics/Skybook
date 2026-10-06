@@ -18,7 +18,7 @@ services:
       - 5432:5432
     volumes:
       - ./postgres_data:/var/lib/postgresql
-      - ./migrations/combined.sql:/docker-entrypoint-initdb.d/schema.sql
+      - ./schema:/docker-entrypoint-initdb.d/
 
 configs:
   skybook_config:
