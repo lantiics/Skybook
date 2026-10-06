@@ -38,12 +38,36 @@ The official hosted instance of Skybook is available at [skybook.page](https://s
  - Captcha support: Both [Cap](https://trycap.dev) and Cloudflare Turnstile
  - Optional blocking of proxy, VPN, Tor IP addresses instance-wide
  - Ability to automatically purge cache if using CloudFlare caching (it is recommended to only enable caching if there is no 'session' cookie, as we do not cache anything for logged-in users)
+ - Docker support
 
 <small> *Currently requires server-side access</small>
 
 
-# Technical guide
+# Docker
 
+Skybook is available containerized using Docker, available at `lanticss/skybook`.
+
+We can use the [sample docker-compose.yml file](/docker-compose.yml) provided at the root of this repository as a starting point. This also contains most of the information necessary to dockerize Skybook.
+
+We can use the information shown in the technical guide to help with configuration. We put Skybook's .env & config.toml files into a directory under where your docker-compose.yml is located. This directory is to be named `skybook`.
+
+Create a directory named `postgres_data`, this is where Skybook's database will be mounted.
+
+We also need a .env.postgres file, to provide credentials for Postgres to initialize & manage Skybook's database. It is very simple:
+```
+POSTGRES_USER=user
+POSTGRES_PASSWORD=password
+```
+
+We can copy the files from [/migrations/](/migrations/) into a directory named `schema`. The schema directory is mounted as a volume, Postgres runs each script within while initializing Skybook's database.
+
+If we are using [Cap](https://trycap.dev), we need to add Skybook's container to Cap's Docker network. The lines needed to typically do so are commented out in our `docker-compose.yml`.
+
+If everything is correct, Skybook should now work when starting it's container.
+
+You are responsible for data safety. 
+
+# Technical guide
 ## Configuration
 Skybook supports captchas using either [Cap](https://trycap.dev) or Cloudflare Turnstile. Both are configured with Skybook in the same manner, but require manual setup. Skybook does not currently work without captchaing, as they are embedded in serverside endpoints.
 
@@ -77,7 +101,7 @@ verification_url = "http://localhost:9000/a1b2c3d4/siteverify" # Set to the *abs
 
 In your `.env`, set `CAPTCHA_SECRET` to your captcha secret. If you are using CloudFlare and Skybook's cache purging, set `CACHE_CLEARING_TOKEN` to Skybook's CloudFlare API token for purging cache on your domain.
 
-## Database setup
+### Database setup
 Skybook uses two accounts for its database operations, `skybook_reader` and `skybook_writer`. Self explanatory, but assign skybook_reader only SELECT privileges, and skybook_writer both SELECT and WRITE privileges.
 
 The `.env.example` in Skybook's repo root can be used for formatting.
@@ -86,4 +110,3 @@ To actually set up the database tables, we use the `migrations` directory. Defau
 
 We can configure username limits in our `config.toml`, but the `users` database table uses a default type of `VARCHAR(15)`, so if we decide to alter username length we have to alter the length limits specified here.
 
-**INCOMPLETE**
