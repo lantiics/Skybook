@@ -3,7 +3,7 @@ services:
     image: skybook:latest
     restart: unless-stopped
     networks:
-      - cap_default
+      # - cap_default
       - skybook_default
     ports:
       - 3000:3000
@@ -36,7 +36,7 @@ configs:
     file: ./config.toml
 
 networks:
-  cap_default:
-    external: true
+  # cap_default:
+  #   external: true
   skybook_default:
     driver: bridge
