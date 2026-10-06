@@ -23,3 +23,7 @@ services:
 configs:
   skybook_config:
     file: ./config.toml
+
+networks:
+  cap_default:
+    driver: bridge
