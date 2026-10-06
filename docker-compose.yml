@@ -2,6 +2,9 @@ services:
   skybook:
     image: skybook:latest
     restart: unless-stopped
+    networks:
+      - cap_default
+      - skybook_default
     ports:
       - 3000:3000
     volumes:
@@ -11,6 +14,8 @@ services:
     image: postgres
     restart: unless-stopped
     env_file: ./.env.postgres 
+    networks:
+      - skybook_default
     environment:
       POSTGRES_DB: skybook
     ports:
@@ -25,4 +30,6 @@ configs:
 
 networks:
   cap_default:
+    external: true
+  skybook_default:
     driver: bridge
