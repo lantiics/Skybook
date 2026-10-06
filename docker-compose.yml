@@ -4,10 +4,9 @@ services:
     restart: unless-stopped
     ports:
       - 3000:3000
-    env_file: ./.env
-    configs:
-      - source: skybook_config
-        target: /app/config.toml
+    volumes:
+      - ./.env:/app/.env
+      - ./config.toml:/app/config.toml
   postgres:
     image: postgres
     restart: unless-stopped
