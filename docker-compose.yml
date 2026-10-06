@@ -27,8 +27,6 @@ services:
       - skybook_default
     environment:
       POSTGRES_DB: skybook
-    ports:
-      - 5432:5432
     volumes:
       - ./postgres_data:/var/lib/postgresql
       - ./schema:/docker-entrypoint-initdb.d/
