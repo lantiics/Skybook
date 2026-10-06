@@ -8,8 +8,11 @@ services:
     ports:
       - 3000:3000
     volumes:
-      - ./.env:/app/.env
-      - ./config.toml:/app/config.toml
+      - ./skybook/.env:/app/.env
+      - ./skybook/config.toml:/app/config.toml
+    depends_on:
+      postgres:
+        condition: service_healthy
   postgres:
     image: postgres
     restart: unless-stopped
