@@ -133,8 +133,10 @@ export const doVpn = async () => {
     ips.push(cidr);
   }
   const literal = `{${ips.map((s) => `"${s.replace(/"/g, '\\"')}"`).join(",")}}`;
-  await WRITER`DELETE FROM blocklist_ranges WHERE source = 'vpn'`;
-  await WRITER`INSERT INTO blocklist_ranges (source, range) SELECT 'vpn', unnest(${literal}::text[])::cidr`;
+  await WRITER.begin(async (tx) => {
+    await tx`DELETE FROM blocklist_ranges WHERE source = 'vpn'`;
+    await tx`INSERT INTO blocklist_ranges (source, range) SELECT 'vpn', unnest(${literal}::text[])::cidr`;
+  })
 };
 
 // doTor
@@ -162,8 +164,10 @@ export const doTor = async () => {
     );
 
   const literal = `{${ips.map((s) => `"${s.replace(/"/g, '\\"')}"`).join(",")}}`;
-  await WRITER`DELETE FROM blocklist_ranges WHERE source = 'tor'`;
-  await WRITER`INSERT INTO blocklist_ranges (source, range) SELECT 'tor', unnest(${literal}::text[])::cidr ON CONFLICT DO NOTHING`;
+  await WRITER.begin(async (tx) => {
+    await tx`DELETE FROM blocklist_ranges WHERE source = 'tor'`;
+    await tx`INSERT INTO blocklist_ranges (source, range) SELECT 'tor', unnest(${literal}::text[])::cidr ON CONFLICT DO NOTHING`;
+  })
 };
 
 export const reindex = async () => {
