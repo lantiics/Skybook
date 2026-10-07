@@ -33,7 +33,7 @@ const recordUserEnforcement = async (
   const created = enforcementAction === "locked" ? `${now}` : null;
   const enforcementID = crypto.randomUUID();
   const [row] =
-    await DB`INSERT INTO user_enforcements (id, user_identifier, type, details,created_at, expires_at) VALUES (${enforcementID},${UUID},${enforcementAction},${details},${created},${expires})`;
+    await DB`INSERT INTO user_enforcements (id, user_identifier, type, details,created_at, expires_at, is_expired) VALUES (${enforcementID},${UUID},${enforcementAction},${details},${created},${expires}, false)`;
 };
 
 /**

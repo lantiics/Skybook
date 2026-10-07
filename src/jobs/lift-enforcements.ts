@@ -10,7 +10,7 @@ export const unblockLapsedIps = async (): Promise<void> => {
 
 export const liftUserEnforcements = async () => {
   const expiredEnforcements =
-    await WRITER`SELECT user_identifier,type FROM user_enforcements WHERE expires_at < NOW()`;
+    await WRITER`SELECT user_identifier,type FROM user_enforcements WHERE expires_at IS NOT NULL AND expires_at < NOW() AND NOT is_expired`;
 
   for (const enforcement of Object.values(
     expiredEnforcements,
@@ -26,6 +26,8 @@ export const liftUserEnforcements = async () => {
       default:
         continue;
     }
+
+    await WRITER`UPDATE user_enforcements SET is_expired = true WHERE id = ${enforcement.id}`
     await WRITER`UPDATE users SET ${WRITER.unsafe($QUERY)} WHERE identifier = ${enforcement.user_identifier}`;
   }
 };
