@@ -174,7 +174,7 @@ const updateUserLastSeenTime = async (
 export const authenticateUser = async (
   token: Session["token"],
 ): Promise<RequestContext["user"]> => {
-  if (!loginEnabled) {
+  if (!(await loginEnabled())) {
     throw new UnavailableError(
       "Attempted to login while logging in is disabled",
     );
