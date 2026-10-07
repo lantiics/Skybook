@@ -12,7 +12,7 @@ export const entryTokenValid = async (
 ): Promise<boolean> => {
   if (ctx.elevated || ctx.superAdmin) return true;
   const [row] =
-    await READER`SELECT EXISTS(SELECT 1 FROM tokens WHERE instance = ${ctx.instance} AND identifier = ${identifier} AND token = ${ctx.token ?? ""} AND created_at > NOW() - INTERVAL '1 day')`;
+    await READER`SELECT EXISTS(SELECT 1 FROM tokens WHERE instance = ${ctx.instance} AND identifier = ${identifier} AND token = ${ctx.token ?? ""} AND created_at > NOW() - make_interval(hours => ${config.tokens.expiry_hours}))`;
   return row.exists;
 };
 
