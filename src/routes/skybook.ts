@@ -200,7 +200,13 @@ router.get(
 router.post(
   "/import",
   alterationLimiter,
-  multer({ storage: multer.memoryStorage() }).single("file"),
+  multer({
+    storage: multer.memoryStorage({
+      limits: {
+        fileSize: 250 * 1024
+      }
+    })
+  }).single("file"),
   async (req: Request, res: Response, next: NextFunction) => {
     if (!req.ctx.elevated) return res.sendStatus(403);
     try {
