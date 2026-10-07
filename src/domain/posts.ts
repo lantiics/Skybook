@@ -517,7 +517,7 @@ export const lockPostMethods = async (
 export const getPosts = async (
   ctx: RequestContext,
   page: number,
-  perPage: number = 15,
+  perPage: number = config.posts.perPage,
 ) => {
   if (!ctx.elevated && !(await isVisible(ctx.instance)).status) {
     throw new UnauthorizedError("This instance is not visible");
