@@ -148,6 +148,7 @@ const instanceLogic = async (
             ? decryptedURL(notificationInfo.notification_endpoint)
             : null,
       };
+      res.setHeader("Cache-Control", "private")
     }
 
     res.locals.fields = await getFieldData(req.ctx.instance);
