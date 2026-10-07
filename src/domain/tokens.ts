@@ -1,3 +1,4 @@
+import { config } from "../config.ts";
 import { READER, WRITER } from "../db.ts";
 import type { RequestContext } from "../types/context.ts";
 import { User } from "../types/entities";

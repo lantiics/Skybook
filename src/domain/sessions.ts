@@ -5,6 +5,7 @@ import { randomBytes } from "node:crypto";
 import Bun from "bun";
 import { userInformation } from "./enforcements.ts";
 import { Session, User } from "../types/entities";
+import { config } from "../config.ts";
 const generateSessionKey = async (): Promise<string> => {
   const token = randomBytes(32).toString("hex");
   return token;
