@@ -180,6 +180,9 @@ export const createPost = async (
   fields: Record<string, string>,
 ) => {
   let entry = await validatedEntry(ctx, fields);
+  if (ctx.elevated) {
+    entry.is_queued = false
+  }
 
   const _token = generateToken();
   const identifier = crypto.randomUUID();
