@@ -17,7 +17,7 @@ services:
       # - cap_default
       - skybook_default
     ports:
-      - 3000:3000
+      - 127.0.0.1:3000:3000
     volumes:
       - ./skybook/.env:/app/.env
       - ./skybook/config.toml:/app/config.toml
