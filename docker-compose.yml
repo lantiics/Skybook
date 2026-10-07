@@ -11,7 +11,7 @@
 
 services:
   skybook:
-    image: skybook:latest
+    image: lanticss/skybook:latest
     restart: unless-stopped
     networks:
       # - cap_default
@@ -41,6 +41,7 @@ services:
     volumes:
       - ./postgres_data:/var/lib/postgresql
       - ./schema:/docker-entrypoint-initdb.d/
+      - ./scripts:/scripts
 
 configs:
   skybook_config:
