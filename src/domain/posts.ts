@@ -101,7 +101,7 @@ const validatedEntry = async (
   };
   if (fieldFilter) {
     const filter = new RegExp(fieldFilter, "ig");
-    if (Object.values(fields).some((field) => filter.test(field))) {
+    if (Object.values(fields).some((field) => filter.test(field.replace(/\r\n|\n|\r/g, "")))) {
       if (instanceStatus.queue_on_filtered.status) {
         entry.is_queued = true;
       } else {
