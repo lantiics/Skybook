@@ -216,7 +216,7 @@ export const createPost = async (
       await tx`INSERT INTO posts ${tx(entry)} RETURNING ${tx.unsafe(columns)}`;
     const [{expires_at: tokenExpiresIn}]=await tx`
   INSERT INTO tokens (instance, identifier, token, created_at, expires_at)
-  VALUES (${entry.instance},  ${row.identifier}, ${_token}, NOW(), (NOW() + INTERVAL '2 days')) RETURNING expires_at
+  VALUES (${entry.instance},  ${row.identifier}, ${_token}, NOW(), (NOW() + make_interval(hours => ${config.tokens.expiry_hours}))) RETURNING expires_at
 `;
 
     return [row, tokenExpiresIn];
