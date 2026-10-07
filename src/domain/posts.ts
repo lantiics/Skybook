@@ -333,7 +333,7 @@ export const blockPostCreator = async (
   const [postData] =
     await READER`SELECT ip_hash,authenticated_user_identifier FROM posts WHERE identifier = ${identifier} AND instance = ${ctx.instance}`;
   await WRITER.begin(async (tx) => {
-    await tx`INSERT INTO instance_blocks (instance, ip_hash, user_identifier, reason) VALUES (${ctx.instance},${postData.ip_hash},${postData.user_identifier},${reason})`;
+    await tx`INSERT INTO instance_blocks (instance, ip_hash, user_identifier, reason) VALUES (${ctx.instance},${postData.ip_hash},${postData.authenticated_user_identifier},${reason})`;
     const [{ count: blockCount }] =
       await tx`SELECT COUNT(*) FROM instance_blocks WHERE ip_hash = ${postData.ip_hash} OR user_identifier = ${postData.authenticated_user_identifier}`;
     await tryGlobalBlock(postData.ip_hash, blockCount, tx);
@@ -345,7 +345,7 @@ export const unblockPostCreator = async (
 ) => {
   const [postData] =
     await READER`SELECT ip_hash,authenticated_user_identifier FROM posts WHERE identifier = ${identifier} AND instance = ${ctx.instance}`;
-  await WRITER`DELETE FROM instance_blocks WHERE instance = ${ctx.instance} AND (user_identifier = ${postData.identifier} OR ip_hash = ${postData.ip_hash})`;
+  await WRITER`DELETE FROM instance_blocks WHERE instance = ${ctx.instance} AND (user_identifier = ${postData.authenticated_user_identifier} OR ip_hash = ${postData.ip_hash})`;
 };
 export const _getPostStatus = async (
   instance: string,
