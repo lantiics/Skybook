@@ -29,7 +29,8 @@ CREATE TABLE user_enforcements (
     type TEXT NOT NULL,
     details TEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL,
-    expires_at TIMESTAMPTZ
+    expires_at TIMESTAMPTZ,
+    is_expired BOOLEAN DEFAULT FALSE
 );
 CREATE INDEX idx_user_enforcements_user_expires_at ON user_enforcements (user_identifier, expires_at) WHERE expires_at IS NOT NULL;
 
