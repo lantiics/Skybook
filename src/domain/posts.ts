@@ -136,7 +136,7 @@ const validatedEntry = async (
     }
 
     if (field["filter"] && fields[field.name]) {
-      if (fieldIsFiltered(fields[field.name], new RegExp(field["filter"]))) {
+      if (fieldIsFiltered(fields[field.name], new RegExp(field["filter"], "ig"))) {
         if (instanceStatus.queue_on_filtered.status) {
           entry.is_queued = true;
         } else {
