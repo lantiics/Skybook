@@ -39,7 +39,7 @@ const sourceElapsedMinutesUpdateThreshold = async (
 
 const proxyIpURL = "https://iplists.firehol.org/files/firehol_proxies.netset"; // Last checked: exclusively ipv4 (some subnets, some no subnets)
 export const doProxy = async () => {
-  if (await sourceElapsedMinutesUpdateThreshold("proxy", "280")) return; // 3 hours
+  if (!(await sourceElapsedMinutesUpdateThreshold("proxy", "280"))) return; // 3 hours
   console.time("Updated proxies");
 
   const res = await fetch(proxyIpURL);
@@ -116,7 +116,7 @@ const vpnipv6URL =
   "https://raw.githubusercontent.com/X4BNet/lists_vpn/refs/heads/main/output/vpn/ipv6.txt";
 
 export const doVpn = async () => {
-  if (await sourceElapsedMinutesUpdateThreshold("vpn", "720")) return; // 12 hours
+  if (!(await sourceElapsedMinutesUpdateThreshold("vpn", "720"))) return; // 12 hours
   const ip4s = (await (await fetch(vpnipv4URL)).text())
     .split("\n")
     .map((l) => l.trim())
@@ -145,7 +145,7 @@ export const doVpn = async () => {
 // with a file:// URL.
 const TorDownloadURL = "https://www.dan.me.uk/torlist/?exit";
 export const doTor = async () => {
-  if (await sourceElapsedMinutesUpdateThreshold("tor", "30")) return;
+  if (!(await sourceElapsedMinutesUpdateThreshold("tor", "30"))) return;
   const res = await fetch(TorDownloadURL, {
     headers: {
       "User-Agent": "Skybook IP blocklist updating (gitlab:lantics/skybook)",
