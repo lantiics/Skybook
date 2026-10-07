@@ -105,8 +105,10 @@ export const tryUserEnforcement = async (UUID: string, DB = READER) => {
     await toggleUserLocked("SYSTEM: Exceeded enforcement threshold", UUID);
     enforced = true;
   }
+  const intBlocks = parseInt(userBlocks)
+  const intLongBlocks = parseInt(longUserBlocks)
   if (!enforced) {
-    switch (userBlocks) {
+    switch (intBlocks) {
       case 3:
         await temporarilyBlockUserPosting(
           UUID,
@@ -122,7 +124,7 @@ export const tryUserEnforcement = async (UUID: string, DB = READER) => {
         );
         break;
     }
-    if (userBlocks >= 6 || longUserBlocks >= 9)
+    if (intBlocks >= 6 || intLongBlocks >= 9)
       await toggleUserLocked("SYSTEM: Exceeded block threshold", UUID);
   }
   return;
