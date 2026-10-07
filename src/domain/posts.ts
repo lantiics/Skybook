@@ -243,7 +243,9 @@ export const editPost = async (
   }
 
   const entry = await validatedEntry(ctx, fields, true);
-  delete entry.is_queued;
+  if (ctx.elevated) {
+    delete entry.is_queued;
+  }
   const extra = entry.extra;
   delete entry.extra;
   const columns = ctx.superAdmin
