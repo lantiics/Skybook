@@ -12,7 +12,7 @@ export const generateOTP = async (secret: string) => {
   return await generate({ secret });
 };
 export const passwordIsSafe = (password: string) => {
-  return password.length > 8;
+  return password.length >= 8;
 };
 
 export const setupTwoFactor = async (user: User["name"]) => {
