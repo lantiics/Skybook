@@ -76,7 +76,7 @@ export const toggleUserLocked = async (
   DB = WRITER,
 ) => {
   await DB.begin(async (tx) => {
-    await tx`UPDATE users SET can_login = NOT can_login WHERE name = ${UUID}`;
+    await tx`UPDATE users SET can_login = NOT can_login WHERE user_identifier = ${UUID}`;
     await tx`UPDATE instances SET submission_enabled = false, is_visible = false WHERE user_identifier = ${UUID}`;
     await recordUserEnforcement(UUID, "locked", details, null, DB);
   });
