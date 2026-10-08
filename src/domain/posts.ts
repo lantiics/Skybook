@@ -29,6 +29,7 @@ import { config } from "../config.ts";
 import { tryGlobalBlock, tryUserEnforcement } from "./enforcements.ts";
 import { purgeInstanceCache } from "./cache.ts";
 import { notifyUser } from "./notifications.ts";
+import { RE2JS } from "re2js";
 
 const fieldIsFiltered = (field: Field["name"], filter: RegExp): boolean => {
   if (filter.test(field)) return true;
@@ -97,7 +98,7 @@ const validatedEntry = async (
     is_queued: instanceStatus.approval_required.status,
   };
   if (fieldFilter) {
-    const filter = new RegExp(fieldFilter, "ig");
+    const filter = RE2JS.compile(fieldFilter, RE2JS.CASE_INSENSITIVE)
     if (Object.values(fields).some((field) => filter.test(field.replace(/\r\n|\n|\r/g, "")))) {
       if (instanceStatus.queue_on_filtered.status) {
         entry.is_queued = true;

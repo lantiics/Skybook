@@ -22,6 +22,7 @@
     "multer": "^2.4.0",
     "otplib": "^13.5.0",
     "qrcode": "^1.5.4",
+    "re2js": "^2.8.6",
     "vhost": "^3.0.2"
   },
   "devDependencies": {
