@@ -522,9 +522,16 @@ export const lockPostMethods = async (
   return await _updatePost(ctx, identifier, "sys_lock = NOT sys_lock");
 };
 
+/**
+ * 
+ * @param returnsPublic - Whether the returned data will be directly accessible
+ *  (e.g, via API)
+ */
+
 export const getPosts = async (
   ctx: RequestContext,
   page: number,
+  returnsPublic: boolean = true,
   perPage: number = config.posts.perPage,
 ) => {
   if (!ctx.elevated && !(await isVisible(ctx.instance)).status) {
@@ -542,9 +549,12 @@ export const getPosts = async (
   let columnList = ctx.superAdmin
     ? "*"
     : (ctx.elevated
-        ? [...PRIVATE_COLUMN_NAMES]
-        : [...PUBLIC_COLUMN_NAMES]
-      ).join(",");
+      ? [...PRIVATE_COLUMN_NAMES]
+      : [...PUBLIC_COLUMN_NAMES]
+    ).join(",");
+  if (returnsPublic) {
+    columnList = columnList.replace(/,authenticated_user_identifier/, "")
+  }
   if (ctx.elevated) {
     columnList = columnList.replace("ip_hash", "posts.ip_hash");
     columnList = columnList.replace("instance", "posts.instance");
