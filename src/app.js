@@ -74,7 +74,7 @@ app.use(function (err, req, res, next) {
       return res.redirect(`http://${config.skybook.domain}`);
     } else {
       return res.redirect(
-        `http://${req.ctx.instance}.${config.skybook.domain}`,
+        `http://${req.ctx.instance ? req.ctx.instance + "." : ""}${config.skybook.domain}`,
       );
     }
   }
