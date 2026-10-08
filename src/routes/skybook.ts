@@ -85,7 +85,7 @@ router.get(
       return res.sendStatus(400);
     }
     try {
-      const posts = await getPosts(req.ctx, Number(req.query.p));
+      const posts = await getPosts(req.ctx, Number(req.query.p), true);
       return res.send(posts);
     } catch (e) {
       return res.sendStatus(errorStatus(e, req.ctx.elevated));

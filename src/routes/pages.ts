@@ -101,7 +101,7 @@ const instanceLogic = async (
     if (status.is_visible.status || req.ctx.elevated) {
       console.log(req.query.p);
 
-      const posts = await getPosts(req.ctx, page);
+      const posts = await getPosts(req.ctx, page, false);
       if (!posts[0] && page !== 0)
         return res.redirect(`/${req.ctx.instance}?p=${pages}`);
       for (const post of posts) {
