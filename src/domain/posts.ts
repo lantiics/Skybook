@@ -83,9 +83,6 @@ const validatedEntry = async (
       is_required: true,
     },
   };
-  for (const [name, field] of Object.entries(fields)) {
-    if (field === "") delete fields[name];
-  }
 
   const fieldFilter = await instanceSuppliedFilter(ctx.instance);
 
@@ -246,10 +243,10 @@ export const editPost = async (
   }
 
   const entry = await validatedEntry(ctx, fields, true);
-  if (ctx.elevated) {
+  if (ctx.elevated || !entry.is_queued) {
     delete entry.is_queued;
   }
-  const extra = entry.extra;
+  let extra: Record<string, string> = entry.extra as Record<string, string>;
   delete entry.extra;
   const columns = ctx.superAdmin
     ? `*`
@@ -262,13 +259,24 @@ export const editPost = async (
   const hasFields = Object.keys(entry).length > 0;
   if (!hasExtra && !hasFields) throw new BadRequestError("No fields specified");
 
+  let toDelete: String[] = []
+  Object.entries(extra).forEach(([k, v]) => {
+
+    if (v.trim() == "") {
+      toDelete.push(k as string);
+      delete extra[k]
+
+    }
+  }); console.log("extra: ", extra, "fields: ", entry, toDelete)
+  // convert array of fields to be deleted into a postgres-compatible array
+  const literal = `{${toDelete.map((s) => `"${s.replace(/"/g, '\\"')}"`).join(",")}}`;
+
   const row = await WRITER`
     UPDATE posts
     SET ${hasFields ? WRITER(entry) : WRITER``}
     ${hasFields && hasExtra ? WRITER`,` : WRITER``}
-    ${
-      hasExtra
-        ? WRITER`extra = COALESCE(extra, '{}'::jsonb) || ${extra}::jsonb`
+    ${hasExtra
+      ? WRITER`extra = COALESCE(extra, '{}'::jsonb) - ${literal}::text[] || ${extra}::jsonb`
         : WRITER``
     }
     WHERE identifier = ${identifier} AND instance = ${ctx.instance}
