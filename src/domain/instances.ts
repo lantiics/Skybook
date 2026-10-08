@@ -340,7 +340,7 @@ export const enableInstanceNotifications = async (
     throw new BadRequestError(
       "Specified URL is not valid for provided service while attempting to enable instance notifications",
     );
-  url = encryptedURL(url);
+  url = encryptedURL(url, instance);
   await WRITER`UPDATE instances SET notification_endpoint=${url},notification_service=${service} WHERE name=${instance}`;
   await notifyUser(
     instance,

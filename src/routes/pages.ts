@@ -145,7 +145,7 @@ const instanceLogic = async (
         service: notificationInfo.notification_service,
         url:
           typeof notificationInfo.notification_endpoint == "string"
-            ? decryptedURL(notificationInfo.notification_endpoint)
+            ? decryptedURL(notificationInfo.notification_endpoint, req.ctx.instance)
             : null,
       };
       res.setHeader("Cache-Control", "private")
