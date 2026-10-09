@@ -4,7 +4,7 @@ import { WRITER } from "../src/db";
 import { hashIp } from "@/domain/ip";
 
 import { setupTwoFactor } from "root/src/domain/auth";
-import { enableUserMfa } from "root/src/domain/users";
+import { enableUserMfa, initUserMfa } from "root/src/domain/users";
 import { RequestContext } from "root/src/types/context";
 
 export const harnessedUser = () => {
@@ -50,10 +50,15 @@ export const baseTOTPUser = {
 
 beforeAll(async () => {
   sessionToken = baseUser.token;
+  await initUserMfa(
+    baseTOTPUser.identifier,
+    baseTOTPUser.mfa.secret,
+    baseTOTPUser.mfa.hashedCodes,
+  );
   await enableUserMfa(
     baseTOTPUser.identifier,
     baseTOTPUser.mfa.secret,
-    baseTOTPUser.mfa.codes!,
+    baseTOTPUser.mfa.hashedCodes,
   );
 });
 
