@@ -8,7 +8,7 @@
     <input type="password" name="password" id="password" placeholder="password" minlength="8" required />
     <% if (authAction==='signup') {%><% if (skybook.invitation_required) {%> <input type="text" name="invitation" placeholder="invitation code" required> <%} }%>
     <% if (authAction === 'login') { %>
-    <input type="text" name="otp" placeholder="2fa/recovery code, if applicable. 2fa in format 123456" minlength="6" maxlength="6" pattern="[0-9]+" />
+    <input type="text" name="otp" placeholder="2fa/recovery code, if applicable. 2fa in format 123456" />
 
     <%  } %>
     <% if (captcha.implementation==='cloudflare') {%> <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script><%}%>
