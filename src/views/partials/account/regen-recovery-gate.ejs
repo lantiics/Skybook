@@ -1,0 +1,26 @@
+<div class="fs-popup-container" id="fsc">
+    <div class="fs-popup visible">
+       
+            <h3>input your password in order to regenerate recovery codes</h3>
+            <form onsubmit="event.preventDefault(); return false">
+                <input name="password" type="password" id="password">
+                <input type="submit" id="smt" style="margin:0 auto;" onclick="(async() => {
+                    const res = await fetch('/partials/new-recovery-codes', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({'password': document.getElementById('password').value})
+                    }
+                    );
+                    if (!res.ok) {
+                        this.disabled=true;
+                        this.value='invalid password'
+                        setTimeout(()=>{this.removeAttribute('disabled');this.value='Submit'},1500)
+                    } else {
+                        document.getElementById('fsc').remove()
+                        document.body.insertAdjacentHTML('beforebegin', await res.text())
+                    }
+                })()">
+            </form>
+        
+    </div>
+</div>
