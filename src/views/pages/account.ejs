@@ -14,6 +14,7 @@
         this.innerText=`Your invitation code is ${body}, it has been copied to your clipboard. make sure you save it. It can only be used three times.`
       }
     })()">Generate invitation</button>
+    <div class="information-box">&#9888; Invitations are active for <%=invitations.expiration_period_hours%> hours. You can only have one invitation active at once.</div>
   </div> <%}%>
 <hr />
   <h2>Account settings</h2>
