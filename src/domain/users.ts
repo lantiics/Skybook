@@ -21,7 +21,12 @@ import {
 } from "./service-settings.ts";
 import { READER, WRITER } from "../db.ts";
 import { Session, User } from "../types/entities";
-import { passwordIsSafe, verifyTotp } from "./auth.ts";
+import {
+  generateRecoveryCodes,
+  passwordIsSafe,
+  recoveryCodeValid,
+  verifyTotp,
+} from "./auth.ts";
 import { config } from "../config.ts";
 import { hashIp } from "./ip.ts";
 import { generateToken } from "./tokens.ts";
@@ -124,7 +129,7 @@ export const userPasswordIsValid = async (
 export const loginUser = async (
   name: User["name"],
   password: string,
-  otp?: string,
+  mfaCredential?: string,
 ): Promise<string> => {
   if (!(await loginEnabled())) {
     throw new UnavailableError(
@@ -132,10 +137,16 @@ export const loginUser = async (
     );
   }
   const userEntry = (
-    await READER`SELECT name, identifier, totp_secret, can_login, password_hash FROM users WHERE name = ${name}`
+    await READER`SELECT name, identifier, mfa_enabled, totp_secret, can_login, password_hash, mfa_recovery FROM users WHERE name = ${name}`
   )[0] as Pick<
     User,
-    "name" | "identifier" | "totp_secret" | "can_login" | "password_hash"
+    | "name"
+    | "identifier"
+    | "totp_secret"
+    | "can_login"
+    | "password_hash"
+    | "mfa_recovery"
+    | "mfa_enabled"
   >;
 
   if (!userEntry) {
@@ -153,11 +164,23 @@ export const loginUser = async (
   if (!userEntry.can_login) {
     throw new LockedError("Attempted to log in as a user with login disabled");
   }
-  if (userEntry.totp_secret) {
-    if (!otp || !(await verifyTotp(userEntry.totp_secret, otp))) {
-      throw new UnauthorizedError(
-        "Invalid or missing one-time password while attempting to log in as a user with TOTP enabled",
-      );
+  if (userEntry.mfa_enabled) {
+    if (!mfaCredential) {
+      throw new UnauthorizedError("No MFA credential provided");
+    }
+    if (/^[0-9]{6}$/.test(mfaCredential)) {
+      if (!(await verifyTotp(userEntry.totp_secret!, mfaCredential)))
+        throw new UnauthorizedError("Invalid one-time password provided");
+    } else {
+      if (
+        !(await recoveryCodeValid(
+          userEntry.identifier,
+          mfaCredential,
+          userEntry.mfa_recovery!,
+        ))
+      ) {
+        throw new UnauthorizedError("Provided MFA Recovery code is invalid");
+      }
     }
   }
   if (await userIsPendingDeletion(identifier))
@@ -188,17 +211,43 @@ export const authenticateUser = async (
   }
 };
 
+export const initUserMfa = async (
+  identifier: User["identifier"],
+  secret: string,
+  recoveryCodes: string[],
+) => {
+  await WRITER`UPDATE users SET totp_secret=${secret}, mfa_recovery=${WRITER.array(recoveryCodes, "TEXT")} WHERE identifier = ${identifier}`;
+};
+
+export const regenerateRecoveryCodes = async (
+  identifier: User["identifier"],
+  password: string,
+) => {
+  const userData =
+    await READER`SELECT password_hash, mfa_enabled, identifier FROM users WHERE identifier = ${identifier}`;
+  if (!userData.identifier)
+    throw new NotFoundError("Specified identifier is not linked to a user");
+  if (!userData.mfa_enabled)
+    throw new UnauthorizedError(
+      "Cannot regenerate recovery codes for a user with MFA disabled",
+    );
+  const [codes, hashedCodes] = generateRecoveryCodes();
+  await WRITER`UPDATE users SET mfa_recovery = ${WRITER.array(hashedCodes)} WHERE identifier = ${identifier}`;
+  return codes;
+};
+
 export const enableUserMfa = async (
   identifier: User["identifier"],
   secret: string,
   recoveryCodes: string[],
 ): Promise<void> => {
   const [userEntry] =
-    await READER`SELECT name,identifier,totp_secret FROM users WHERE identifier=${identifier}`;
+    await READER`SELECT name, identifier, mfa_enabled FROM users WHERE identifier=${identifier}`;
   if (!userEntry) throw new NotFoundError("User not found");
-  if (userEntry.totp_secret)
+
+  if (userEntry.mfa_enabled)
     throw new BadRequestError("MFA Is already enabled for this user!");
-  await WRITER`UPDATE users SET totp_secret = ${secret}, mfa_recovery =  ${WRITER.array(recoveryCodes, "TEXT")} WHERE identifier = ${identifier}`;
+  await WRITER`UPDATE users SET mfa_enabled = true WHERE identifier = ${identifier}`;
   await revokeAllSessions(identifier);
   return;
 };
@@ -206,7 +255,7 @@ export const enableUserMfa = async (
 export const disableUserMfa = async (
   identifier: User["identifier"],
 ): Promise<void> => {
-  await WRITER`UPDATE users SET totp_secret = NULL, mfa_recovery = NULL WHERE identifier = ${identifier}`;
+  await WRITER`UPDATE users SET totp_secret = NULL, mfa_recovery = NULL, mfa_enabled = FALSE WHERE identifier = ${identifier}`;
   return;
 };
 
