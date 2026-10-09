@@ -1,12 +1,12 @@
 FROM oven/bun:latest
 
 WORKDIR /app
-
+ENV NODE_ENV=production
 COPY package.json ./
 COPY bun.lock ./
 COPY src ./src
 COPY scripts ./scripts
-RUN bun install
+RUN bun install --frozen-lockfile --production
 ENV PORT=3000
 EXPOSE 3000/tcp
 
