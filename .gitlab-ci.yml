@@ -19,11 +19,12 @@ test:
     - bun install
     - cp config.sample.toml config.toml
   script:
-    - until bash -c 'echo > /dev/tcp/postgres/5432' 2>/dev/null; do sleep 1; done
-    - PGPASSWORD=$POSTGRES_PASSWORD psql -h postgres -U $POSTGRES_USER -d $POSTGRES_DB -f migrations/000_reservations.sql
-    - PGPASSWORD=$POSTGRES_PASSWORD psql -h postgres -U $POSTGRES_USER -d $POSTGRES_DB -f migrations/001_init.sql
-    - PGPASSWORD=$POSTGRES_PASSWORD psql -h postgres -U $POSTGRES_USER -d $POSTGRES_DB -f migrations/002_enforcements.sql
-    - bun test
+  - until bash -c 'echo > /dev/tcp/postgres/5432' 2>/dev/null; do sleep 1; done
+  - |
+    for f in migrations/*.sql; do
+      PGPASSWORD=$POSTGRES_PASSWORD psql -h postgres -U $POSTGRES_USER -d $POSTGRES_DB -f "$f"
+    done
+  - bun test
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: always
