@@ -13,12 +13,12 @@ body = """
 {% else %}\
     ## [unreleased]
 {% endif %}\
-{% for entry in commits | commit_groups(groups=commit_parsers_groups) %}
-    ### {{ entry.group | striptags | trim | upper_first }}
-    {% for commit in entry.commits %}
-        - {% if commit.scope %}*({{ commit.scope }})* {% endif %}\
-            {% if commit.breaking %}[**breaking**] {% endif %}\
-            {{ commit.message | upper_first }}\
+{% for group, commits in commits | group_by(attribute="group") %}
+    ### {{ group | upper_first }}
+    {% for commit in commits %}
+        - {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message | upper_first }} {% if commit.body %}
+        {{ commit.body | trim | indent(width=4, first=true, blank=true)}}
+        {% endif -%}
     {% endfor %}
 {% endfor %}
 """
