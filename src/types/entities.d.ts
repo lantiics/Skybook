@@ -5,6 +5,7 @@ export interface User {
   readonly password_hash: string;
   readonly totp_secret?: string;
   readonly mfa_recovery?: string[];
+  readonly mfa_enabled: boolean;
   readonly can_login: boolean;
   readonly can_post: boolean;
   readonly can_change_password: boolean;
