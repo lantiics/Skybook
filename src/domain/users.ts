@@ -223,16 +223,19 @@ export const regenerateRecoveryCodes = async (
   identifier: User["identifier"],
   password: string,
 ) => {
-  const userData =
+  const [userData] =
     await READER`SELECT password_hash, mfa_enabled, identifier FROM users WHERE identifier = ${identifier}`;
+
   if (!userData.identifier)
     throw new NotFoundError("Specified identifier is not linked to a user");
+  if (!(await userPasswordIsValid(identifier, password)))
+    throw new UnauthorizedError("Invalid password specified");
   if (!userData.mfa_enabled)
     throw new UnauthorizedError(
       "Cannot regenerate recovery codes for a user with MFA disabled",
     );
   const [codes, hashedCodes] = generateRecoveryCodes();
-  await WRITER`UPDATE users SET mfa_recovery = ${WRITER.array(hashedCodes)} WHERE identifier = ${identifier}`;
+  await WRITER`UPDATE users SET mfa_recovery = ${WRITER.array(hashedCodes, "TEXT")} WHERE identifier = ${identifier}`;
   return codes;
 };
 
