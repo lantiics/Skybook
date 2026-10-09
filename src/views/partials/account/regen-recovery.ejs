@@ -1,0 +1,10 @@
+<% if (ctx.user.mfaEnabled) {%> <button onclick="ls_regen()">regenerate MFA codes</button> 
+<script>
+    async function ls_regen() {
+        const url = "/partials/regen-recovery-gate";
+        document.body.insertAdjacentHTML('beforebegin', await (await fetch(url)).text())
+    }
+</script>
+
+
+<%}%>
