@@ -1,7 +1,7 @@
 #!/bin/bash
 source ./inject-env.sh
 
-value=$(psql -tA "$WRITE_DB_URL" << 'EOF'
+value=$(psql -tA "$SUPERUSER_DB_URL" << 'EOF'
 DELETE FROM tokens;
 EOF
 )
