@@ -7,7 +7,7 @@ import { config } from "../config.ts";
 import { User } from "../types/entities";
 export const userInformation = async (UUID: User["identifier"]) => {
   const [uI] =
-    await READER`SELECT name, identifier, can_login, can_post, created_at, last_seen, can_create_invitations, totp_secret FROM users WHERE identifier = ${UUID}`;
+    await READER`SELECT name, identifier, can_login, can_post, created_at, last_seen, can_create_invitations, mfa_enabled FROM users WHERE identifier = ${UUID}`;
   if (uI === undefined) {
     throw new NotFoundError("Requested user could not be found");
   }
