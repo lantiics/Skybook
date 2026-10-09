@@ -47,7 +47,7 @@ export const setupTwoFactor = async (user: User["name"]) => {
   };
 };
 
-export const generateRecoveryCodes = (): User["mfa_recovery"] => {
+export const generateRecoveryCodes = (hash: boolean = true): User["mfa_recovery"] => {
   const codes = [];
   for (let i = 0; i < 6; i++) {
     let code = new ScureBase32Plugin()
