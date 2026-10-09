@@ -7,6 +7,7 @@ import {
 } from "otplib";
 import QRCode from "qrcode";
 import { User } from "../types/entities";
+import { WRITER } from "../db";
 const crypto = require("node:crypto");
 export const generateOTP = async (secret: string) => {
   return await generate({ secret });
@@ -37,26 +38,54 @@ export const setupTwoFactor = async (user: User["name"]) => {
     uri,
     opts as Partial<QRCode.QRCodeToDataURLOptions>,
   ) as Promise<unknown>);
-  const codes = generateRecoveryCodes();
+  const [codes, hashedCodes] = generateRecoveryCodes();
 
   return {
     secret,
     qrDataUrl,
     uri,
     codes,
+    hashedCodes,
   };
 };
 
-export const generateRecoveryCodes = (hash: boolean = true): User["mfa_recovery"] => {
+export const generateRecoveryCodes = (): [User["mfa_recovery"], string[]] => {
   const codes = [];
+  const hashedCodes = [];
   for (let i = 0; i < 6; i++) {
     let code = new ScureBase32Plugin()
       .encode(crypto.randomBytes(32))
       .replace(/=/g, "");
-    codes.push(code.slice(0, code.length / 3));
+    code = code.slice(0, code.length / 3);
+    const salt = new ScureBase32Plugin()
+      .encode(crypto.randomBytes(32))
+      .replace(/=/g, "");
+    let hashedCode = code;
+    hashedCode = Bun.SHA256.hash(code + salt, "hex");
+    hashedCode = [hashedCode, salt, "0"].join(":");
+    codes.push(code);
+    hashedCodes.push(hashedCode);
   }
 
-  return codes;
+  return [codes, hashedCodes];
+};
+
+export const recoveryCodeValid = async (
+  identifier: User["identifier"],
+  code: string,
+  codes: string[],
+) => {
+  for (const [token, salt, consumed] of codes.map((str) => str.split(":"))) {
+    if (consumed === "1") continue;
+    const saltedCode = Bun.SHA256.hash(code + salt, "hex");
+    if (saltedCode === token) {
+      const index = codes.indexOf([token, salt, consumed].join(":"));
+      const newState = [token, salt, "1"].join(":");
+      await WRITER`UPDATE users SET mfa_recovery[${index}] = ${newState} WHERE identifier = ${identifier}`;
+      return true;
+    }
+  }
+  return false;
 };
 
 export const verifyTotp = async (secret: string, token: string) => {

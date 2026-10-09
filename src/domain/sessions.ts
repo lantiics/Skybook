@@ -40,7 +40,7 @@ export const getSessionUser = async (
   return {
     name: row.user_name,
     identifier: row.user_identifier,
-    mfaEnabled: uData.totp_secret !== null,
+    mfaEnabled: uData.mfa_enabled,
     can_create_invitations: uData.can_create_invitations,
   };
 };
