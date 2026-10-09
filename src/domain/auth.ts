@@ -81,7 +81,8 @@ export const recoveryCodeValid = async (
     if (saltedCode === token) {
       const index = codes.indexOf([token, salt, consumed].join(":"));
       const newState = [token, salt, "1"].join(":");
-      await WRITER`UPDATE users SET mfa_recovery[${index}] = ${newState} WHERE identifier = ${identifier}`;
+      codes[index] = newState;
+      await WRITER`UPDATE users SET mfa_recovery = ${WRITER.array(codes)} WHERE identifier = ${identifier}`;
       return true;
     }
   }

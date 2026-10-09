@@ -21,7 +21,12 @@ import {
 } from "./service-settings.ts";
 import { READER, WRITER } from "../db.ts";
 import { Session, User } from "../types/entities";
-import { passwordIsSafe, recoveryCodeValid, verifyTotp } from "./auth.ts";
+import {
+  generateRecoveryCodes,
+  passwordIsSafe,
+  recoveryCodeValid,
+  verifyTotp,
+} from "./auth.ts";
 import { config } from "../config.ts";
 import { hashIp } from "./ip.ts";
 import { generateToken } from "./tokens.ts";
@@ -211,8 +216,24 @@ export const initUserMfa = async (
   secret: string,
   recoveryCodes: string[],
 ) => {
-  const userData = await userInformation(identifier);
-  await WRITER`UPDATE users SET totp_secret=${secret}, mfa_recovery=${recoveryCodes} WHERE identifier = ${identifier}`;
+  await WRITER`UPDATE users SET totp_secret=${secret}, mfa_recovery=${WRITER.array(recoveryCodes, "TEXT")} WHERE identifier = ${identifier}`;
+};
+
+export const regenerateRecoveryCodes = async (
+  identifier: User["identifier"],
+  password: string,
+) => {
+  const userData =
+    await READER`SELECT password_hash, mfa_enabled, identifier FROM users WHERE identifier = ${identifier}`;
+  if (!userData.identifier)
+    throw new NotFoundError("Specified identifier is not linked to a user");
+  if (!userData.mfa_enabled)
+    throw new UnauthorizedError(
+      "Cannot regenerate recovery codes for a user with MFA disabled",
+    );
+  const [codes, hashedCodes] = generateRecoveryCodes();
+  await WRITER`UPDATE users SET mfa_recovery = ${WRITER.array(hashedCodes)} WHERE identifier = ${identifier}`;
+  return codes;
 };
 
 export const enableUserMfa = async (
@@ -234,7 +255,7 @@ export const enableUserMfa = async (
 export const disableUserMfa = async (
   identifier: User["identifier"],
 ): Promise<void> => {
-  await WRITER`UPDATE users SET totp_secret = NULL, mfa_recovery = NULL WHERE identifier = ${identifier}`;
+  await WRITER`UPDATE users SET totp_secret = NULL, mfa_recovery = NULL, mfa_enabled = FALSE WHERE identifier = ${identifier}`;
   return;
 };
 
