@@ -1,7 +1,7 @@
 #!/bin/bash
 source ./inject-env.sh
 
-psql -tA -v "name=$1" "$WRITE_DB_URL" << 'EOF'
+psql -tA -v "name=$1" "$SUPERUSER_DB_URL" << 'EOF'
 BEGIN;
 
 DELETE FROM sessions WHERE user_name = :'name';
@@ -14,7 +14,7 @@ COMMIT;
 EOF
 
 
-value=$(psql -tA -v "name=$1" "$WRITE_DB_URL" << 'EOF'
+value=$(psql -tA -v "name=$1" "$SUPERUSER_DB_URL" << 'EOF'
 SELECT can_login FROM users WHERE name = :'name';
 EOF
 )
