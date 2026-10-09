@@ -1,0 +1,1 @@
+ALTER TABLE invitations ADD CONSTRAINT invitations_created_by_unique UNIQUE (created_by);

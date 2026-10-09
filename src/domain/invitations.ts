@@ -31,7 +31,10 @@ export const newInvitation = async (
     );
   const token = crypto.randomUUID();
   const [row] =
-    await WRITER`INSERT INTO invitations (token, created_by, created_at, uses) VALUES (${token}, ${creatorIdentifier}, now(), 0) RETURNING token`;
+    await WRITER`INSERT INTO invitations (token, created_by, created_at, uses) VALUES (${token}, ${creatorIdentifier}, now(), 0)
+    ON CONFLICT (created_by)
+    DO UPDATE SET token=EXCLUDED.token,created_at=EXCLUDED.created_at,uses=EXCLUDED.uses,last_used=NULL
+    RETURNING token`;
   if (!row) {
     throw new Error("Failed to insert invitation token");
   }

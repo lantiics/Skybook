@@ -31,6 +31,9 @@ const config = raw as {
     challenge_url: string;
     verification_url: string;
   };
+  invitations: {
+    expiration_period_hours: number;
+  };
   users: {
     indefinite_locking_threshold: number;
     expiration_threshold_days: number;
