@@ -1,5 +1,5 @@
 <script src="/js/auth.js?v=<%=assetVersion%>"></script>
-<% if (captcha.implementation==='cap') { %><script src="https://cdn.jsdelivr.net/npm/cap-widget@latest"></script> <% } %>
+<% if (captcha.enabled && captcha.implementation==='cap') { %><script src="https://cdn.jsdelivr.net/npm/cap-widget@latest"></script> <% } %>
 <% if (authAction==='signup') {%><% if (skybook.invitation_required) {%> <h2>An invitation from an existing user is currently required to make an account.</h2> <%} }%>
 
 <form class="authentication" action="/api/auth/<%=authAction%>" method="POST" id="authentication" style="place-items: center;">
@@ -11,8 +11,8 @@
     <input type="text" name="otp" placeholder="2fa/recovery code, if applicable. 2fa in format 123456" />
 
     <%  } %>
-    <% if (captcha.implementation==='cloudflare') {%> <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script><%}%>
-      <% if (captcha.implementation) {%> <script>
+    
+      <% if (captcha.enabled) {%><% if (captcha.implementation==='cloudflare') {%> <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script><%}%> <script>
       const appendWidget = () => {
         document.querySelectorAll('[data-unsolvedcaptcha="disabled"]').forEach(e => e.disabled = true);
 
@@ -41,7 +41,7 @@
         <%}%>
       }
       const initSolving = () => {
-        <% if (captcha.implementation==='cap') {%>
+        <% if (captcha.enabled && captcha.implementation==='cap') {%>
 
           (async () => {
             try {
@@ -75,8 +75,8 @@
         this.removeEventListener('keydown', handler)
       }
       document.getElementById("password").addEventListener("keydown", handler)
-    </script><%}%>
-      <div id="turnstile"></div>
+    </script>
+      <div id="turnstile"></div><%}%>
     <input type="submit" value="Submit" id="authorize" data-unsolvedcaptcha="disabled" disabled/>
   </fieldset>
 </form>
