@@ -25,6 +25,7 @@ const config = raw as {
   };
 
   captcha: {
+    enabled: boolean;
     implementation: "cap" | "cloudflare";
     token_property_name: string;
     site_key: string;
