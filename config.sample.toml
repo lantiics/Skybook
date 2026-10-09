@@ -34,6 +34,9 @@ site_key = "1x00000000000000000000AA" # cloudflare testing key | cap sitekey
 challenge_url = "http://localhost:9000/"
 verification_url = "https://challenges.cloudflare.com/turnstile/v0/siteverify" # https://challenges.cloudflare.com/turnstile/v0/siteverify | 127.0.0.1 (cap instance)
 
+[invitations]
+expiration_period_hours = 24
+
 [users]
 indefinite_locking_threshold = 3
 expiration_threshold_days = 365
