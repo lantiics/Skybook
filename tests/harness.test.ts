@@ -18,8 +18,8 @@ describe("Harness is valid", () => {
     expect(instance).toBeTrue();
   });
   test("baseTOTPUser has MFA enabled", async () => {
-    const [{ totp_secret: secret }] =
-      await WRITER`SELECT totp_secret FROM users WHERE name = ${baseTOTPUser.name}`;
-    expect(secret).toBeDefined();
+    const [{ mfa_enabled: mfaEnabled }] =
+      await WRITER`SELECT mfa_enabled FROM users WHERE name = ${baseTOTPUser.name}`;
+    expect(mfaEnabled).toBeTrue();
   });
 });
