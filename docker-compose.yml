@@ -27,7 +27,7 @@ services:
   postgres:
     image: postgres
     healthcheck:
-      test: [ "CMD", "pg_isready" ]
+      test: ["CMD", "pg_isready", "-h", "localhost"]
       interval: 10s
       timeout: 5s
       retries: 5
