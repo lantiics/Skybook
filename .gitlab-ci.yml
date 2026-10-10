@@ -11,7 +11,7 @@ variables:
   NOTIFICATION_URL_IV: "eb2199b617f31dabacc06de2"
 
 test:
-  image: oven/bun:1
+  image: oven/bun:1.4
   services:
     - name: postgres:latest
       alias: postgres
