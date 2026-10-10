@@ -4,7 +4,7 @@ import { UserEnforcement } from "../types/entities";
 import { config } from "../config";
 
 export const unblockLapsedIps = async (): Promise<void> => {
-  await SUPERUSER`DELETE FROM global_ip_blocks WHERE blocked_at < NOW() - INTERVAL '30 days'`;
+  await SUPERUSER`DELETE FROM global_ip_blocks WHERE blocked_at < (NOW() - make_interval(days => ${config.ip_blocking.blocking_timeframe_days_max}))`;
   await SUPERUSER`DELETE FROM instance_blocks WHERE user_identifier IS NULL AND ip_hash IS NOT NULL AND blocked_at < NOW() - INTERVAL '60 days'`;
 };
 
