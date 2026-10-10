@@ -1,0 +1,47 @@
+#
+# This is a working docker-compose.yml for Skybook, with some configuration required.
+# .env, .env.postgres, & config.toml file are required.
+# All required files have samples provided by Skybook.
+#
+# cap_default networking is only required if using Cap,
+# which should be dockerized.
+#
+
+services:
+  skybook:
+    image: lanticss/skybook:latest
+    restart: unless-stopped
+    networks:
+      # - cap_default
+      - skybook_default
+    ports:
+      - 127.0.0.1:3000:3000
+    volumes:
+      # Skybook access these two volumes directly in its code, so we mount them as volumes
+      - ./skybook/.env:/app/.env
+      - ./skybook/config.toml:/app/config.toml
+    depends_on:
+      postgres:
+        condition: service_healthy
+  postgres:
+    image: postgres:18
+    healthcheck:
+      test: ["CMD", "pg_isready", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    env_file: ./.env.postgres
+    networks:
+      - skybook_default
+    environment:
+      POSTGRES_DB: skybook
+    volumes:
+      - ./postgres_data:/var/lib/postgresql
+
+networks:
+  # cap_default:
+  #   external: true
+  skybook_default:
+    driver: bridge

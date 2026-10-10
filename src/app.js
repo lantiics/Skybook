@@ -4,13 +4,18 @@ import cookieParser from "cookie-parser";
 import { authenticate } from "./middleware/authenticate.ts";
 import { resolveInstance } from "./middleware/resolve-instance.ts";
 import express from "express";
+if (!process.env.SUPERUSER_DB_URL) throw new Error("SUPERUSER_DB_URL is not specified in Skybook's environment variables. SUPERUSER_DB_URL is required to run key tasks for Skybook's database.")
+import { runMigrations } from "@startup/migrate";
+await runMigrations()
 require("./jobs/cron.ts")
 const VERSION = hash("SHA1", Date.now().toString()).slice(0, 8);
 const app = express();
 app.locals.assetVersion = VERSION;
 app.set("trust proxy", config.skybook.proxies_between);
 
-app.listen(process.env.PORT || 3000);
+const PORT = process.env.PORT||3000
+app.listen(PORT);
+console.log("Listening on port "+PORT)
 var path = require("path");
 const api = express.Router();
 
@@ -80,7 +85,7 @@ app.use(function (err, req, res, next) {
   }
   // render the error page
   res.status(err.status || 500);
-
+  console.error(err.status, err.message, err, process.env)
   res.render("error");
 });
 export default app;

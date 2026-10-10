@@ -34,6 +34,6 @@
     "isolatedModules": true,
     
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/app.js", "src/app.js", "src/app.js","tests/*.ts"],
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/app.js", "src/app.js", "src/app.js","tests/*.ts", "scripts/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }
