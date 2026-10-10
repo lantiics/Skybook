@@ -76,6 +76,7 @@ const config = raw as {
   ip_blocking: {
     global_block_threshold: number;
     automated_enforcements_enabled: boolean;
+    blocking_timeframe_days_max: number;
     proxy_addresses_blocked: boolean;
     vpn_addresses_blocked: boolean;
     tor_addresses_blocked: boolean;
