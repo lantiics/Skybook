@@ -18,8 +18,8 @@ services:
       - 127.0.0.1:3000:3000
     volumes:
       # Skybook access these two volumes directly in its code, so we mount them as volumes
-      - ./skybook/.env:/app/.env
-      - ./skybook/config.toml:/app/config.toml
+      - ./.env:/app/.env
+      - ./config.toml:/app/config.toml
     depends_on:
       postgres:
         condition: service_healthy
