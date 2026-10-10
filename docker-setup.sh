@@ -2,7 +2,7 @@
 
 [ -f docker-compose.yml ] && { echo "docker-compose.yml already exists; exiting"; exit 1; }
 
-curl -f https://gitlab.com/lantics/skybook/-/raw/master/docker-compose.yml -o docker-compose.yml
+curl -fsSL https://gitlab.com/lantics/skybook/-/raw/master/docker-compose.yml -o docker-compose.yml
 
 echo "default configuration for Skybook has been created. some manual configuration is required, but running 'docker compose up' should allow you to access Skybook at:"
 echo "localhost:3000"
