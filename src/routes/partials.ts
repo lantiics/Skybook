@@ -1,10 +1,6 @@
 import { Request, Response, Router } from "express";
-import { setupTwoFactor, generateRecoveryCodes } from "../domain/auth";
-import {
-  initUserMfa,
-  regenerateRecoveryCodes,
-  userPasswordIsValid,
-} from "../domain/users";
+import { setupTwoFactor } from "../domain/auth";
+import { initUserMfa, regenerateRecoveryCodes } from "../domain/users";
 import { errorStatus } from "../errors";
 const router = Router();
 

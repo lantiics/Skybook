@@ -1,12 +1,7 @@
 import { RequestContext } from "../types/context.ts";
 import { Instance, Mutable, Post, User } from "../types/entities.ts";
 import { READER, WRITER } from "../db.ts";
-import {
-  BadRequestError,
-  LockedError,
-  UnauthorizedError,
-  UnavailableError,
-} from "../errors.ts";
+import { BadRequestError, LockedError, UnavailableError } from "../errors.ts";
 import { setField, allFieldsAreWritable } from "./fields.ts";
 import { config } from "../config.ts";
 import { purgeInstanceCache } from "./cache.ts";

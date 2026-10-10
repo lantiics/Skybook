@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response, Router } from "express";
 import { renderWithLayout } from "../views/utils";
-import { countPosts, getPosts, pageCount } from "../domain/posts";
+import { getPosts, pageCount } from "../domain/posts";
 import {
   compiledInstanceStatus,
   instanceIpBlocks,
@@ -145,10 +145,13 @@ const instanceLogic = async (
         service: notificationInfo.notification_service,
         url:
           typeof notificationInfo.notification_endpoint == "string"
-            ? decryptedURL(notificationInfo.notification_endpoint, req.ctx.instance)
+            ? decryptedURL(
+                notificationInfo.notification_endpoint,
+                req.ctx.instance,
+              )
             : null,
       };
-      res.setHeader("Cache-Control", "private")
+      res.setHeader("Cache-Control", "private");
     }
 
     res.locals.fields = await getFieldData(req.ctx.instance);

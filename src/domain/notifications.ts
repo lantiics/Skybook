@@ -18,22 +18,34 @@ export const notificationUrlIsValidForService = (
   }
   return true;
 };
-const KEY = Buffer.from(process.env.NOTIFICATION_URL_KEY!, "hex")
+const KEY = Buffer.from(process.env.NOTIFICATION_URL_KEY!, "hex");
 export const encryptedURL = (url: string, instance: string) => {
-  const iv = crypto.randomBytes(12)
-  const c = crypto.createCipheriv("aes-256-gcm", KEY, iv)
-  c.setAAD(Buffer.from(instance))
+  const iv = crypto.randomBytes(12);
+  const c = crypto.createCipheriv("aes-256-gcm", KEY, iv);
+  c.setAAD(Buffer.from(instance));
   const ct = Buffer.concat([c.update(url, "utf8"), c.final()]);
-  const tag = c.getAuthTag()
-  return ["v2", iv.toString("base64"), tag.toString("base64"), ct.toString("base64")].join(":")
+  const tag = c.getAuthTag();
+  return [
+    "v2",
+    iv.toString("base64"),
+    tag.toString("base64"),
+    ct.toString("base64"),
+  ].join(":");
 };
 export const decryptedURL = (stored: string, instance: string) => {
   const [v, iv, tag, ct] = stored.split(":");
-  if (v !== "v2") throw new Error("unsupported notification_endpoint format")
-  const d = crypto.createDecipheriv("aes-256-gcm", KEY, Buffer.from(iv, "base64"));
-  d.setAAD(Buffer.from(instance))
+  if (v !== "v2") throw new Error("unsupported notification_endpoint format");
+  const d = crypto.createDecipheriv(
+    "aes-256-gcm",
+    KEY,
+    Buffer.from(iv, "base64"),
+  );
+  d.setAAD(Buffer.from(instance));
   d.setAuthTag(Buffer.from(tag, "base64"));
-  return Buffer.concat([d.update(Buffer.from(ct, "base64")), d.final()]).toString("utf8")
+  return Buffer.concat([
+    d.update(Buffer.from(ct, "base64")),
+    d.final(),
+  ]).toString("utf8");
 };
 export const notifyUser = async (
   instance: Instance["name"],
@@ -55,7 +67,12 @@ export const notifyUser = async (
   let reqHeaders = {
     "User-Agent": `Skybook/${config.skybook.version} (instance-notifications; +https://${config.skybook.domain}; https://gitlab.com/lantics/skybook)`,
   };
-  if (process.env.NOTIFICATION_PROXY_HEADERS){reqHeaders={...reqHeaders,...JSON.parse(process.env.NOTIFICATION_PROXY_HEADERS)}}
+  if (process.env.NOTIFICATION_PROXY_HEADERS) {
+    reqHeaders = {
+      ...reqHeaders,
+      ...JSON.parse(process.env.NOTIFICATION_PROXY_HEADERS),
+    };
+  }
   const requestBody: any = {
     method: "POST",
     body:
@@ -118,8 +135,8 @@ export const notifyUser = async (
       break;
     }
     case "matrix": {
-      updateBody({text:message})
-      requestBody.headers['Content-Type']="application/json"
+      updateBody({ text: message });
+      requestBody.headers["Content-Type"] = "application/json";
       break;
     }
     case "custom":
