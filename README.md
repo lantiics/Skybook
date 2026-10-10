@@ -45,6 +45,25 @@ The official hosted instance of Skybook is available at [skybook.page](https://s
 
 # Technical guide
 
+To quickly initialize Skybook:
+
+<sub>dockerized (to be ran from the same directory your docker-compose.yml should be)</sub>
+
+```
+curl https://gitlab.com/lantics/skybook/-/raw/master/setup.sh | sh && curl https://gitlab.com/lantics/skybook/-/raw/master/docker-setup.sh | sh
+```
+
+the first script copies all required configuration files into your directory if they don't already exist, and generates default passwords and keys.
+
+<sub>raw (development purposes)</sub>
+
+```
+git clone https://gitlab.com/lantics/skybook.git &&
+cd skybook && ./setup.sh && cd dev && ./database.sh && cd ../ && bun install &&
+```
+
+**_continue with the configuration sections below_**
+
 ## Docker
 
 Skybook is available containerized using Docker, available at `lanticss/skybook`.
