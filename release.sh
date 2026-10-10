@@ -8,10 +8,10 @@ echo "Releases may only be made from the MASTER branch; exiting"
 exit 1
 fi
 
-# if [ ! -z "$(git status --porcelain)" ]; then
-# echo "Working branch is not clean; exiting"
-# exit 1
-# fi
+if [ ! -z "$(git status --porcelain)" ]; then
+echo "Working branch is not clean; exiting"
+exit 1
+fi
 
 
 LAST_TAG=$(git tag --list 'v[0-9]*' --sort=-v:refname | grep -v -- '-' | head -1 || true)
