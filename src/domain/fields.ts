@@ -74,7 +74,13 @@ export const setField = async (
     !fieldNameAccepted(field.name)
   )
     throw new BadRequestError("Provided field name is not accepted");
-  if ((await instanceFieldCount(instance)) > config.fields.max_count)
+  const currentFields = (
+    await READER`SELECT name FROM fields WHERE instance = ${instance} AND name NOT IN ('author', 'content')`.values()
+  ).flat(1);
+  if (
+    currentFields.length > config.fields.max_count &&
+    ![...currentFields, "author", "content"].includes(field.name)
+  )
     throw new BadRequestError("Maximum amount of fields reached");
   const record: Partial<Mutable<Field>> = {
     instance: instance,
