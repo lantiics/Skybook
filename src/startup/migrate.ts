@@ -1,4 +1,3 @@
-import { readdir } from "node:fs/promises";
 import { Glob, SQL } from "bun";
 import { join } from "node:path";
 
@@ -17,7 +16,7 @@ export const runMigrations = async () => {
 
     const migrated = new Set(
       (await MIGRATOR`SELECT name FROM schema_migrations`.values()).map(
-        (row: any[][]) => row[0],
+        (row: [string[]]) => row[0],
       ),
     );
 
