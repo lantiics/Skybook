@@ -40,8 +40,7 @@ The official hosted instance of Skybook is available at [skybook.page](https://s
  - Ability to automatically purge cache if using CloudFlare caching (it is recommended to only enable caching if there is no 'session' cookie, as we do not cache anything for logged-in users)
  - Docker support
 
-<small> *Currently requires server-side access</small>
-
+<small> \*Requires server-side access</small>
 
 # Docker
 
