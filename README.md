@@ -87,7 +87,7 @@ We must also create a `.env.postgres` file. We can use the `.env.postgres.exampl
 POSTGRES_USER=skybook
 POSTGRES_PASSWORD=skybook
 
-# SUPERUSER_URL=postgres://<POSTGRES_USER>:<POSTGRES_PASSWORD>@<POSTGRES_HOST>/<POSTGRES_DB>
+# SUPERUSER_DB_URL=postgres://<POSTGRES_USER>:<POSTGRES_PASSWORD>@<POSTGRES_HOST>/<POSTGRES_DB>
 # This variable MUST be set, it is used for database operations.
 # This must also be set in your .env, as it is used for Skybook database jobs
 ```
