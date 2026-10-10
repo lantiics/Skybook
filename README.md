@@ -75,9 +75,9 @@ In your `.env`, set `CAPTCHA_SECRET` to your captcha secret. If you are using Cl
 
 ### Database setup
 
-Skybook uses two accounts for its database operations, `skybook_reader` and `skybook_writer`. Self explanatory, but assign skybook_reader only SELECT privileges, and skybook_writer both SELECT and WRITE privileges.
+Skybook uses two accounts for its database operations, `skybook_reader` and `skybook_writer`. They need to be set in Skybook's .env. The app creates both roles, sets their permissions, and sets their passwords to what is in Skybook's .env file on every start.
 
-The `.env.example` in Skybook's repo root can be used for formatting.
+The [.env.example](/.env.example) in Skybook's repo root can be used for formatting.
 We must also create a `.env.postgres` file. We can use the `.env.postgres.example` file as a starting point.
 
 ```
