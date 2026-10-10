@@ -7,103 +7,91 @@ Skybook is currently unfinished but in a very usable state.
 The official hosted instance of Skybook is available at [skybook.page](https://skybook.page)
 
 ## Features:
- - Hashing of all stored IP addresses (alongside a salt)
- - Vanity subdomains (yourname.skybook.page)
-   - OR: Vanity pages (skybook.page/yourname)
- - Optional blocking of proxy, VPN, and Tor IP addresses
- - Deletion, editing, hiding of entries
- - Ability to reply to entries
- - Toggle submission, visibility of your guestbook
- - Optionally require approval for all entries before they become visible
- - The ability to block post creators
-   - This contributes to a global record which can result in the IP address associated with the post being temporarily blocked (IP addresses are not immutable identifiers), or the account associated to be permanently disabled (deleted after 1 year, or as specified per Skybook instance)
- - The ability for users to flag posts on your guestbook
-   - Posts which surpass a user-defined threshold of flags automatically become queued
-   - Flagging can be disabled per-post, and is always unavailable for the guestbook owner
-   - Each account/IP address can only flag a post once, we store post flaggers alongside account identifiers/their hashed IP address
- - Filters (utilizing regular expressions)
-   - Custom per-field filters
-   - Custom guestbook-wide filters (applies to all fields)
-   - Optionally queue filtered posts (otherwise, they are immediately discarded)
- - Creation of custom fields
- - Toggling requirement of fields
-   - Optionally, specify a replacement value for a field which is required. If no replacement value is specified, posts without that field specified will be rejected.
- - Exports
- - Imports (maximum of 1000 entries)
- - Iframe embedding @ yourinstance/embed
 
+- Hashing of all stored IP addresses (alongside a salt)
+- Vanity subdomains (yourname.skybook.page)
+  - OR: Vanity pages (skybook.page/yourname)
+- Optional blocking of proxy, VPN, and Tor IP addresses
+- Deletion, editing, hiding of entries
+- Ability to reply to entries
+- Toggle submission, visibility of your guestbook
+- Optionally require approval for all entries before they become visible
+- The ability to block post creators
+  - This contributes to a global record which can result in the IP address associated with the post being temporarily blocked (IP addresses are not immutable identifiers), or the account associated to be permanently disabled (deleted after 1 year, or as specified per Skybook instance)
+- The ability for users to flag posts on your guestbook
+  - Posts which surpass a user-defined threshold of flags automatically become queued
+  - Flagging can be disabled per-post, and is always unavailable for the guestbook owner
+  - Each account/IP address can only flag a post once, we store post flaggers alongside account identifiers/their hashed IP address
+- Filters (utilizing regular expressions)
+  - Custom per-field filters
+  - Custom guestbook-wide filters (applies to all fields)
+  - Optionally queue filtered posts (otherwise, they are immediately discarded)
+- Creation of custom fields
+- Toggling requirement of fields
+  - Optionally, specify a replacement value for a field which is required. If no replacement value is specified, posts without that field specified will be rejected.
+- Exports
+- Imports (maximum of 1000 entries)
+- Iframe embedding @ yourinstance/embed
 
 ### Skybook Features:
- - Ability to toggle signup, login, and require an invitation code for signup*
- - Captcha support: Both [Cap](https://trycap.dev) and Cloudflare Turnstile
- - Optional blocking of proxy, VPN, Tor IP addresses instance-wide
- - Ability to automatically purge cache if using CloudFlare caching (it is recommended to only enable caching if there is no 'session' cookie, as we do not cache anything for logged-in users)
- - Docker support
+
+- Ability to toggle signup, login, and require an invitation code for signup\*
+- Captcha support: Both [Cap](https://trycap.dev) and Cloudflare Turnstile
+- Optional blocking of proxy, VPN, Tor IP addresses instance-wide
+- Ability to automatically purge cache if using CloudFlare caching (it is recommended to only enable caching if there is no 'session' cookie, as we do not cache anything for logged-in users)
+- Docker support
 
 <small> \*Requires server-side access</small>
 
-# Docker
+# Technical guide
+
+## Docker
 
 Skybook is available containerized using Docker, available at `lanticss/skybook`.
 
 We can use the [sample docker-compose.yml file](/docker-compose.yml) provided at the root of this repository as a starting point. This also contains most of the information necessary to dockerize Skybook.
 
-We can use the information shown in the technical guide to help with configuration. We put Skybook's .env & config.toml files into a directory under where your docker-compose.yml is located. This directory is to be named `skybook`.
+We can use the information shown in the technical guide to help with configuration. We put Skybook's .env & config.toml files into a directory under where your docker-compose.yml is located. This directory is to be named `skybook`. We put our .env.postgres file in the same directory as our docker-compose.yml.
 
-Create a directory named `postgres_data`, this is where Skybook's database will be mounted.
+Refer to the **Configuration** & **Database setup** sections for configuration.
 
-We also need a .env.postgres file, to provide credentials for Postgres to initialize & manage Skybook's database. It is very simple:
-```
-POSTGRES_USER=user
-POSTGRES_PASSWORD=password
-```
+Postgres's data will be stored in `./postgres_data`.
 
 If we are using [Cap](https://trycap.dev), we need to add Skybook's container to Cap's Docker network. The lines needed to typically do so are commented out in our `docker-compose.yml`.
 
 If everything is correct, Skybook should now work when starting it's container.
 
-You are responsible for data safety. 
+You are responsible for data safety.
 
-# Technical guide
 ## Configuration
+
 Skybook supports captchas using either [Cap](https://trycap.dev) or Cloudflare Turnstile. Both are configured with Skybook in the same manner, but require manual setup. Skybook does not currently work without captchaing, as they are embedded in serverside endpoints.
 
 After completing setup of either captchaing service, there are some configuration values needed in order to enable captchaing.
 
-The following *need* to be set in order for Skybook to work, alter according to your configuration:
-```toml
-[skybook]
-proxies_between = 1 # If using Cloudflare, required to be at least 1 for Expressjs's 'Trust proxy' setting to actually register IP addresses.
-environment = "development"
-subdomain_vanity = true # This allows users to have yourname.skybook.page. If disabled, they have a url akin to skybook.page/yourname
-cloudflare = true 
-user_enforcements_enabled=true
-domain="skybook.localhost"
-header="Skybook is currently under development, stability can not be guaranteed." # Set to null if not needed
-username_max_length=15
-username_min_length=3
-
-[caching]
-purging=false     #
-purge_endpoint="https://api.cloudflare.com/client/v4/zones/$ZONE_ID/purge_cache" # We can purge cache facing anonymous users using Cloudflare to speed up Skybook
-
-[captcha]
-implementation = "cap"                                       # Available values: cap | cloudflare
-token_property_name = "cap-token" # Available values: cap-token | cf-turnstile-response
-site_key = "a1b2c3d4" # Set to your site key.
-
-challenge_url = "http://localhost:9000/" # (Only required if using Cap): Set to the *root* path of your Cap instance.
-verification_url = "http://localhost:9000/a1b2c3d4/siteverify" # Set to the *absolute* URL of your site verification URL.
-```
+Refer to the [_config.sample.toml_](/config.sample.toml) file. ALl information needed for configuration is inlined.
 
 In your `.env`, set `CAPTCHA_SECRET` to your captcha secret. If you are using CloudFlare and Skybook's cache purging, set `CACHE_CLEARING_TOKEN` to Skybook's CloudFlare API token for purging cache on your domain.
 
 ### Database setup
+
 Skybook uses two accounts for its database operations, `skybook_reader` and `skybook_writer`. Self explanatory, but assign skybook_reader only SELECT privileges, and skybook_writer both SELECT and WRITE privileges.
 
 The `.env.example` in Skybook's repo root can be used for formatting.
+We must also create a `.env.postgres` file. We can use the `.env.postgres.example` file as a starting point.
 
-To actually set up the database tables, we use the `migrations` directory. Default SQL scripts are provided. Execute them in order.
+```
+# THESE DICTATE POSTGRES'S SUPERUSER ACCOUNT
+# DO NOT USE THESE DEFAULT VARIABLES
+
+POSTGRES_USER=skybook
+POSTGRES_PASSWORD=skybook
+
+# SUPERUSER_URL=postgres://<POSTGRES_USER>:<POSTGRES_PASSWORD>@<POSTGRES_HOST>/<POSTGRES_DB>
+# This variable MUST be set, it is used for database operations.
+# This must also be set in your .env, as it is used for Skybook database jobs
+```
+
+Scripts in the `/migrations` directory are executed as Skybook initializes. Passwords for `skybook_reader` and `skybook_writer` are set on every startup for convenience.
 
 We can configure username limits in our `config.toml`, but the `users` database table uses a default type of `VARCHAR(15)`, so if we decide to alter username length we have to alter the length limits specified here.
-

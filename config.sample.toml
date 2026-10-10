@@ -1,30 +1,50 @@
 [skybook]
+# If Skybook is directly accessible, you want to set this to 0.
 proxies_between = 1
 environment = "development"
 subdomain_vanity = false
 cloudflare = true
+
+# Whether Skybook will automatically enforce actions on
+# accounts which are blocked by a meaningful
+# number of guestbooks
 user_enforcements_enabled=true
 domain="skybook.page"
 header="Skybook is currently under development, stability can not be guaranteed."
 username_max_length=20 # If altered, requires alteration of the `name` column in the `users` DB table, which defaults to VARCHAR(15)
 username_min_length=3
 instance_notifications=false # Notify instance owners when they receive a new entry
+
 # Specify which notification endpoints to allow/disallow.
 # Currently, Skybook supports the following endpoints:
-# [ntfy, discord, custom]
+# [ntfy, discord, matrix, custom]
 instance_notification_services=["ntfy","discord","matrix","custom"] 
+
 # Optionally specify a URL which forwards notification POST requests;
 # This will replace the user-specified endpoint and put it into the request body.
 # An example usage of this is a CloudFlare worker to proxy requests, hiding the origin server IP.
-# If behind cloudflare, we probably want to use this.
-# Some services with rate limiting (during testing I had experienced problems with NTFY) will
-# block requests from cloudflare workers.
+# If behind CloudFlare, we probably want to use this.
+# Some services with rate limiting  will block requests from
+# cloudflare workers. (during testing I had experienced problems with NTFY)
+# A working script that can be used with CloudFlare workers is included in 
+# the root of Skybook's repository, at CFWorker-proxy-sample.js
+
+
 instance_notification_proxy_url=""
 
 [caching]
-purging=false     #
+
+# If we are using CloudFlare & their caching, Skybook can cache data for anonymous users.
+# Once the state of a guestbook changes (e.g, a new post becomes visible,
+# a post is edited, the guestbook disables visibility of posts), 
+# Skybook can purge the cache associated with that guestbook.
+# Caching should never be enabled for authenticated users.
+# We can disable caching if a request contains a 'session' cookie.
+purging=false     
 purge_endpoint="https://api.cloudflare.com/client/v4/zones/$ZONE_ID/purge_cache" # We can purge cache facing anonymous users using Cloudflare to speed up Skybook
 [instances]
+# Maximum number of characters that can exist within a
+# guestbook's global filter (affecting all fields)
 max_global_filter_length=5000
 [captcha]
 enabled = true
@@ -47,9 +67,9 @@ expiration_grace_period_days = 7
 perPage = 15
 
 [fields]
-name_max_length=50
+name_max_length=50 # Maximum length of the name of a custom guestbook field
 max_count=10
-author_max_length = 50
+author_max_length = 50 # We treat the 'author' field as special, so it has specific limits
 typical_max_length = 500
 max_filter_length=2500
 
@@ -76,9 +96,17 @@ expiration_sweep_interval_minutes = 60
 lift_enforcements_interval_minutes = 60
 
 [ip_blocking]
+
+# If an IP address receives global_block_threshold number of infringements
+# (e.g, blocked by N number of guestbook owners), 
+# we can temporarily block them from creating SKybook posts entirely.
 automated_enforcements_enabled = false
 global_block_threshold = 15
+
 blocking_timeframe_days_max = 30           # As IP addresses are not permanent identifiers, we expire all IP blocks after this timeframe.
-proxy_addresses_blocked = true         #
-vpn_addresses_blocked = true           #
-tor_addresses_blocked = true           #
+
+# We can block specific anonymizers from accessing Skybook entirely.
+# This overrides the blocking settings of individual guestbooks.
+proxy_addresses_blocked = true         
+vpn_addresses_blocked = true           
+tor_addresses_blocked = true           
