@@ -26,7 +26,7 @@ CAPTCHA_SECRET=""
 PORT=3000
 EOF
 
-    curl -f https://gitlab.com/lantics/skybook/-/raw/master/config.sample.toml > config.toml
+    curl -fsSL https://gitlab.com/lantics/skybook/-/raw/master/config.sample.toml -o config.toml
     chmod 600 .env.postgres .env
     
     
