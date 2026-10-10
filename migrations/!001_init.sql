@@ -28,7 +28,7 @@ CREATE TABLE sessions (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   expires_at TIMESTAMPTZ NOT NULL DEFAULT (now() + INTERVAL '1 week')
 );
-CREATE INDEX CONCURRENTLY sessions_expires_at_idx ON sessions (expires_at);
+CREATE INDEX sessions_expires_at_idx ON sessions (expires_at);
 
 CREATE TABLE instances (
   name TEXT PRIMARY KEY REFERENCES users(name) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -99,7 +99,7 @@ CREATE TABLE tokens (
   created_at TIMESTAMPTZ NOT NULL,
   PRIMARY KEY (instance, identifier)
 );
-CREATE INDEX CONCURRENTLY tokens_expires_at_idx ON tokens (expires_at);
+CREATE INDEX tokens_expires_at_idx ON tokens (expires_at);
 CREATE TABLE invitations (
   token TEXT PRIMARY KEY NOT NULL,
   created_by UUID NOT NULL REFERENCES users(identifier) ON DELETE CASCADE,
