@@ -30,10 +30,7 @@ import {
 import { config } from "../config.ts";
 import { hashIp } from "./ip.ts";
 import { generateToken } from "./tokens.ts";
-import { userInformation } from "./enforcements.ts";
 import { randomBytes } from "node:crypto";
-import cookieParser from "cookie-parser";
-import { text } from "express";
 import { invitationIsValid } from "./invitations.ts";
 
 export const userUUID = async (name: User["name"]) => {

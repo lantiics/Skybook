@@ -23,7 +23,6 @@ const config = raw as {
   instances: {
     max_global_filter_length: number;
   };
-
   captcha: {
     enabled: boolean;
     implementation: "cap" | "cloudflare";
@@ -43,7 +42,6 @@ const config = raw as {
   posts: {
     perPage: number;
   };
-
   filter: {
     derogatory: boolean;
   };
@@ -63,7 +61,6 @@ const config = raw as {
     alteration_window_ms: number;
     alteration_limit_elevated: number;
     alteration_limit_anonymous: number;
-
     fetch_window_ms: number;
     fetch_limit: number;
   };

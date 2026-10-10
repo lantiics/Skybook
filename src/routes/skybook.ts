@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { config } from "../config.ts";
-import { BadRequestError, errorStatus, UnavailableError } from "../errors.ts";
+import { BadRequestError, errorStatus } from "../errors.ts";
 import {
   compiledInstanceStatus,
   toggleInstanceVisibility,
@@ -106,7 +106,13 @@ router.post(
       console.log(req.body, "aa");
       const createdEntry = await createPost(req.ctx, req.body);
       if (createdEntry.token) {
-        res.setHeader(`token`, JSON.stringify({token:createdEntry.token,expires:createdEntry.tokenExpires}));
+        res.setHeader(
+          `token`,
+          JSON.stringify({
+            token: createdEntry.token,
+            expires: createdEntry.tokenExpires,
+          }),
+        );
       }
 
       return res
@@ -203,9 +209,9 @@ router.post(
   multer({
     storage: multer.memoryStorage({
       limits: {
-        fileSize: 250 * 1024
-      }
-    })
+        fileSize: 250 * 1024,
+      },
+    }),
   }).single("file"),
   async (req: Request, res: Response, next: NextFunction) => {
     if (!req.ctx.elevated) return res.sendStatus(403);

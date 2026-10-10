@@ -22,7 +22,7 @@ import {
   instanceSuppliedFilter,
   InstanceQueueFlaggedThreshold,
 } from "./instances.ts";
-import { Field, Instance, Mutable, Post } from "../types/entities.ts";
+import { Field, Mutable, Post } from "../types/entities.ts";
 import { hashIp, ipSource } from "./ip.ts";
 import { userCanBeBlocked, userCanPost } from "./users.ts";
 import { config } from "../config.ts";
@@ -98,8 +98,12 @@ const validatedEntry = async (
     is_queued: instanceStatus.approval_required.status,
   };
   if (fieldFilter) {
-    const filter = RE2JS.compile(fieldFilter, RE2JS.CASE_INSENSITIVE)
-    if (Object.values(fields).some((field) => filter.test(field.replace(/\r\n|\n|\r/g, "")))) {
+    const filter = RE2JS.compile(fieldFilter, RE2JS.CASE_INSENSITIVE);
+    if (
+      Object.values(fields).some((field) =>
+        filter.test(field.replace(/\r\n|\n|\r/g, "")),
+      )
+    ) {
       if (instanceStatus.queue_on_filtered.status) {
         entry.is_queued = true;
       } else {
@@ -134,7 +138,9 @@ const validatedEntry = async (
     }
 
     if (field["filter"] && fields[field.name]) {
-      if (fieldIsFiltered(fields[field.name], new RegExp(field["filter"], "ig"))) {
+      if (
+        fieldIsFiltered(fields[field.name], new RegExp(field["filter"], "ig"))
+      ) {
         if (instanceStatus.queue_on_filtered.status) {
           entry.is_queued = true;
         } else {
@@ -179,7 +185,7 @@ export const createPost = async (
 ) => {
   let entry = await validatedEntry(ctx, fields);
   if (ctx.elevated) {
-    entry.is_queued = false
+    entry.is_queued = false;
   }
 
   const _token = generateToken();
@@ -212,7 +218,7 @@ export const createPost = async (
   const row = await WRITER.begin(async (tx) => {
     const [row] =
       await tx`INSERT INTO posts ${tx(entry)} RETURNING ${tx.unsafe(columns)}`;
-    const [{expires_at: tokenExpiresIn}]=await tx`
+    const [{ expires_at: tokenExpiresIn }] = await tx`
   INSERT INTO tokens (instance, identifier, token, created_at, expires_at)
   VALUES (${entry.instance},  ${row.identifier}, ${_token}, NOW(), (NOW() + make_interval(hours => ${config.tokens.expiry_hours}))) RETURNING expires_at
 `;
@@ -222,7 +228,12 @@ export const createPost = async (
 
   if (!entry.is_queued) purgeInstanceCache(ctx.instance);
   await notifyUser(ctx.instance, row[0]);
-  return { row: row[0], token: _token, tokenExpires:row[1], wasQueued: entry.is_queued };
+  return {
+    row: row[0],
+    token: _token,
+    tokenExpires: row[1],
+    wasQueued: entry.is_queued,
+  };
 };
 
 export const editPost = async (
@@ -260,15 +271,14 @@ export const editPost = async (
   const hasFields = Object.keys(entry).length > 0;
   if (!hasExtra && !hasFields) throw new BadRequestError("No fields specified");
 
-  let toDelete: String[] = []
+  let toDelete: String[] = [];
   Object.entries(extra).forEach(([k, v]) => {
-
     if (v.trim() == "") {
       toDelete.push(k as string);
-      delete extra[k]
-
+      delete extra[k];
     }
-  }); console.log("extra: ", extra, "fields: ", entry, toDelete)
+  });
+  console.log("extra: ", extra, "fields: ", entry, toDelete);
   // convert array of fields to be deleted into a postgres-compatible array
   const literal = `{${toDelete.map((s) => `"${s.replace(/"/g, '\\"')}"`).join(",")}}`;
 
@@ -276,8 +286,9 @@ export const editPost = async (
     UPDATE posts
     SET ${hasFields ? WRITER(entry) : WRITER``}
     ${hasFields && hasExtra ? WRITER`,` : WRITER``}
-    ${hasExtra
-      ? WRITER`extra = COALESCE(extra, '{}'::jsonb) - ${literal}::text[] || ${extra}::jsonb`
+    ${
+      hasExtra
+        ? WRITER`extra = COALESCE(extra, '{}'::jsonb) - ${literal}::text[] || ${extra}::jsonb`
         : WRITER``
     }
     WHERE identifier = ${identifier} AND instance = ${ctx.instance}
@@ -347,7 +358,7 @@ export const blockPostCreator = async (
       await tx`SELECT COUNT(*) FROM instance_blocks WHERE ip_hash = ${postData.ip_hash} OR user_identifier = ${postData.authenticated_user_identifier}`;
     await tryGlobalBlock(postData.ip_hash, blockCount, tx);
     if (postData.authenticated_user_identifier)
-      await tryUserEnforcement(postData.authenticated_user_identifier)
+      await tryUserEnforcement(postData.authenticated_user_identifier);
   });
 };
 export const unblockPostCreator = async (
@@ -524,7 +535,7 @@ export const lockPostMethods = async (
 };
 
 /**
- * 
+ *
  * @param returnsPublic - Whether the returned data will be directly accessible
  *  (e.g, via API)
  */
@@ -550,11 +561,11 @@ export const getPosts = async (
   let columnList = ctx.superAdmin
     ? "*"
     : (ctx.elevated
-      ? [...PRIVATE_COLUMN_NAMES]
-      : [...PUBLIC_COLUMN_NAMES]
-    ).join(",");
+        ? [...PRIVATE_COLUMN_NAMES]
+        : [...PUBLIC_COLUMN_NAMES]
+      ).join(",");
   if (returnsPublic) {
-    columnList = columnList.replace(/,authenticated_user_identifier/, "")
+    columnList = columnList.replace(/,authenticated_user_identifier/, "");
   }
   if (ctx.elevated) {
     columnList = columnList.replace("ip_hash", "posts.ip_hash");
