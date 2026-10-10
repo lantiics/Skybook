@@ -1,5 +1,5 @@
 import { doProxy, doVpn, doTor } from "./update-ip-lists";
-import { expireOldAccounts } from "./expire-accounts";
+import { expireOldAccounts } from "./expirations";
 import { unblockLapsedIps, liftUserEnforcements } from "./lift-enforcements";
 import { tryPurgeGlobalCache, tryPurgeLoginCache, tryPurgeSignupCache } from "./purge-helper";
 import { deleteEligibleAccounts } from "./scheduled-account-deletion";

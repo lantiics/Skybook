@@ -1,5 +1,5 @@
 import raw from "../config.toml";
-import pkg from "root/package.json";
+import pkg from "../package.json";
 
 const config = raw as {
   skybook: {
