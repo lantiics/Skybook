@@ -44,7 +44,7 @@ const multer = require("multer");
 const { Readable } = require("stream");
 import { assertCaptchaTokenValid } from "../domain/captcha.ts";
 import csvParser from "csv-parser";
-import { Post } from "../types/entities";
+import { Mutable, Post } from "../types/entities";
 import { rateLimit } from "express-rate-limit";
 //#region HELPERS
 
@@ -222,7 +222,7 @@ router.post(
       await new Promise<void>((resolve, reject) => {
         stream
           .pipe(csvParser())
-          .on("data", (data: Post) => {
+          .on("data", (data: Mutable<Post>) => {
             let parsed: unknown = {};
             if (data.extra) {
               try {
@@ -233,7 +233,7 @@ router.post(
             }
             data.extra =
               parsed && typeof parsed === "object" && !Array.isArray(parsed)
-                ? (parsed as Record<string, unknown>)
+                ? (parsed as Record<string, string>)
                 : {};
             r.push(data);
           })
