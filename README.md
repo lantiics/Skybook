@@ -71,7 +71,7 @@ Skybook is available containerized using Docker, available at `lanticss/skybook`
 
 We can use the [sample docker-compose.yml file](/docker-compose.yml) provided at the root of this repository as a starting point. This also contains most of the information necessary to dockerize Skybook.
 
-We can use the information shown in the technical guide to help with configuration. We put Skybook's .env m config.toml, .env.postgres, and docker-compose.yml into the same directory.
+We can use the information shown in the technical guide to help with configuration. We put Skybook's .env, config.toml, .env.postgres, and docker-compose.yml into the same directory.
 
 Refer to the **Configuration** & **Database setup** sections for configuration.
 
