@@ -1,5 +1,6 @@
 import { config } from "./config.ts";
-require("./startup/inject-secrets.ts");
+import {injectSecrets} from "@/startup/inject-secrets"
+injectSecrets()
 import cookieParser from "cookie-parser";
 import { authenticate } from "./middleware/authenticate.ts";
 import { resolveInstance } from "./middleware/resolve-instance.ts";
