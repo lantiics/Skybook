@@ -3,12 +3,12 @@
 proxies_between = 1
 environment = "development"
 subdomain_vanity = false
-cloudflare = true
+cloudflare = false
 
 # Whether Skybook will automatically enforce actions on
 # accounts which are blocked by a meaningful
 # number of guestbooks
-user_enforcements_enabled=true
+user_enforcements_enabled=false
 domain="skybook.page"
 header="Skybook is currently under development, stability can not be guaranteed."
 username_max_length=20 # If altered, requires alteration of the `name` column in the `users` DB table, which defaults to VARCHAR(20)
@@ -47,7 +47,7 @@ purge_endpoint="https://api.cloudflare.com/client/v4/zones/$ZONE_ID/purge_cache"
 # guestbook's global filter (affecting all fields)
 max_global_filter_length=5000
 [captcha]
-enabled = true
+enabled = false
 implementation = "cloudflare"                                       # cap | cloudflare
 token_property_name = "cf-turnstile-response" # cap-token | cf-turnstile-response
 site_key = "1x00000000000000000000AA" # cloudflare testing key | cap sitekey
