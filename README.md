@@ -50,7 +50,7 @@ To quickly initialize Skybook:
 <sub>dockerized (to be ran from the same directory your docker-compose.yml should be)</sub>
 
 ```
-curl https://gitlab.com/lantics/skybook/-/raw/master/setup.sh | sh && curl https://gitlab.com/lantics/skybook/-/raw/master/docker-setup.sh | sh
+curl https://gitlab.com/lantics/skybook/-/raw/master/setup.sh | bash && curl https://gitlab.com/lantics/skybook/-/raw/master/docker-setup.sh | bash
 ```
 
 the first script copies all required configuration files into your directory if they don't already exist, and generates default passwords and keys.
