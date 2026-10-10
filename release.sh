@@ -31,10 +31,7 @@ echo "Releasing $TAG"
 read -rp "Continue? [y/N] " ok; [[ "$ok" == y ]] || { echo aborted; exit 1; }
 NOTES=$(git cliff --unreleased --tag "$TAG" --strip all)
 if $push; then
-#
-# Docker currently incomplete
-#
-# docker buildx build -t lanticss/skybook:latest -t lanticss/skybook:$TAG --push .
+docker buildx build -t lanticss/skybook:latest -t lanticss/skybook:$TAG --push .
 bun git-cliff --tag "$TAG" -o CHANGELOG.md
 git add CHANGELOG.md
 git commit -q -m "chore(release): $TAG"
@@ -43,6 +40,6 @@ git push --atomic origin "$TAG"
 echo "Released $TAG"
 else
 bun git-cliff -o CHANGELOG.md
-# docker buildx build -t lanticss/skybook:latest -t lanticss/skybook:$TAG --load .
+docker buildx build -t lanticss/skybook:latest -t lanticss/skybook:$TAG --load .
 echo "Dry run OK. Tried with tag: $TAG"
 fi
