@@ -4,6 +4,10 @@ import { join } from "node:path";
 
 const MIGRATION_LOCK_KEY = 57568446;
 const dir = join(import.meta.dir, "../../migrations");
+if (!process.env.SUPERUSER_DB_URL)
+  throw new Error(
+    "SUPERUSER_DB_URL is not specified in Skybook's environment variables. SUPERUSER_DB_URL is required to run key tasks for Skybook's database.",
+  );
 
 export const runMigrations = async () => {
   const MIGRATOR = new SQL({ url: process.env.SUPERUSER_DB_URL, max: 1 });
