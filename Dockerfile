@@ -7,6 +7,7 @@ COPY tsconfig.json ./
 COPY bun.lock ./
 COPY src ./src
 COPY scripts ./scripts
+COPY migrations ./migrations
 
 RUN bun install --frozen-lockfile --production
 ENV PORT=3000
