@@ -94,4 +94,4 @@ POSTGRES_PASSWORD=skybook
 
 Scripts in the `/migrations` directory are executed as Skybook initializes. Passwords for `skybook_reader` and `skybook_writer` are set on every startup for convenience.
 
-We can configure username limits in our `config.toml`, but the `users` database table uses a default type of `VARCHAR(15)`, so if we decide to alter username length we have to alter the length limits specified here.
+We can configure username limits in our `config.toml`, but the `users` database table uses a default type of `VARCHAR(20)`, so if we decide to alter username length we have to alter the length limits specified here.
