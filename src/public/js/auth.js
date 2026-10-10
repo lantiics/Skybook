@@ -15,12 +15,16 @@ document.addEventListener("DOMContentLoaded", () => {
             case 423:
               createPopup("Your account has been locked", 10000);
               break;
-            case 409: 
-              createPopup(`An account with the username '${this.username.value}' already exists`, 5000);break;
+            case 409:
+              createPopup(
+                `An account with the username '${this.username.value}' already exists`,
+                5000,
+              );
+              break;
             default:
               createPopup(errorStatus(res.status.toString()), 3500);
           }
-          document.querySelectorAll("#captcha").forEach(e=>e.remove())
+          document.querySelectorAll("#captcha").forEach((e) => e.remove());
           appendWidget();
         }
       });
