@@ -4,6 +4,9 @@ import cookieParser from "cookie-parser";
 import { authenticate } from "./middleware/authenticate.ts";
 import { resolveInstance } from "./middleware/resolve-instance.ts";
 import express from "express";
+if (!process.env.SUPERUSER_DB_URL) throw new Error("SUPERUSER_DB_URL is not specified in Skybook's environment variables. SUPERUSER_DB_URL is required to run key tasks for Skybook's database.")
+import { runMigrations } from "@startup/migrate";
+await runMigrations()
 require("./jobs/cron.ts")
 const VERSION = hash("SHA1", Date.now().toString()).slice(0, 8);
 const app = express();

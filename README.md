@@ -59,8 +59,6 @@ POSTGRES_USER=user
 POSTGRES_PASSWORD=password
 ```
 
-We can copy the files from [/migrations/](/migrations/) into a directory named `schema`. The schema directory is mounted as a volume, Postgres runs each script within while initializing Skybook's database.
-
 If we are using [Cap](https://trycap.dev), we need to add Skybook's container to Cap's Docker network. The lines needed to typically do so are commented out in our `docker-compose.yml`.
 
 If everything is correct, Skybook should now work when starting it's container.

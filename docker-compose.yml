@@ -1,8 +1,6 @@
 #
 # This is a working docker-compose.yml for Skybook, with some configuration required.
 # .env, .env.postgres, & config.toml file are required.
-# Initialization SQL scripts are required to be placed into
-# a schema directory. Mounted as /docker-entrypoint-initdb.d/ to postgres.
 # All required files have samples provided by Skybook.
 #
 # cap_default networking is only required if using Cap,
@@ -41,8 +39,6 @@ services:
       POSTGRES_DB: skybook
     volumes:
       - ./postgres_data:/var/lib/postgresql
-      - ./schema:/docker-entrypoint-initdb.d/
-      - ./scripts:/scripts
 
 networks:
   # cap_default:
