@@ -8,7 +8,6 @@ variables:
   IP_HASH_SECRET: "iphashsecret"
   COOKIE_SIGNING_SECRET: "cookiesigningsecret"
   NOTIFICATION_URL_KEY: "a3e1df35903c431ac811c3d4f1eba753950fc1ac4e758edf38309f9fa5c10086"
-  NOTIFICATION_URL_IV: "eb2199b617f31dabacc06de2"
 
 test:
   image: oven/bun:1.4
