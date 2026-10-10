@@ -4,6 +4,7 @@ variables:
   POSTGRES_PASSWORD: "skybook"
   READ_DB_URL: "postgres://skybook:skybook@postgres:5432/skybook"
   WRITE_DB_URL: "postgres://skybook:skybook@postgres:5432/skybook"
+  SUPERUSER_DB_URL: "postgres://skybook:skybook@postgres:5432/skybook"
   IP_HASH_SECRET: "iphashsecret"
   COOKIE_SIGNING_SECRET: "cookiesigningsecret"
   NOTIFICATION_URL_KEY: "a3e1df35903c431ac811c3d4f1eba753950fc1ac4e758edf38309f9fa5c10086"
@@ -15,16 +16,12 @@ test:
     - name: postgres:latest
       alias: postgres
   before_script:
-    - apt-get update && apt-get install -y postgresql-client
     - bun install
     - cp config.sample.toml config.toml
   script:
-  - until bash -c 'echo > /dev/tcp/postgres/5432' 2>/dev/null; do sleep 1; done
-  - |
-    for f in migrations/*.sql; do
-      PGPASSWORD=$POSTGRES_PASSWORD psql -h postgres -U $POSTGRES_USER -d $POSTGRES_DB -f "$f"
-    done
-  - bun test
+    - until bash -c 'echo > /dev/tcp/postgres/5432' 2>/dev/null; do sleep 1; done
+    - bun run src/startup/migrate.ts
+    - bun test
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: always
