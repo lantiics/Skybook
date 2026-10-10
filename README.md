@@ -37,6 +37,7 @@ The official hosted instance of Skybook is available at [skybook.page](https://s
 
 - Ability to toggle signup, login, and require an invitation code for signup\*
 - Captcha support: Both [Cap](https://trycap.dev) and Cloudflare Turnstile
+  - Or, completely disable captchas
 - Optional blocking of proxy, VPN, Tor IP addresses instance-wide
 - Ability to automatically purge cache if using CloudFlare caching (it is recommended to only enable caching if there is no 'session' cookie, as we do not cache anything for logged-in users)
 - Docker support
@@ -84,7 +85,8 @@ You are responsible for data safety.
 
 ## Configuration
 
-Skybook supports captchas using either [Cap](https://trycap.dev) or Cloudflare Turnstile. Both are configured with Skybook in the same manner, but require manual setup. Skybook does not currently work without captchaing, as they are embedded in serverside endpoints.
+Skybook supports captchas using either [Cap](https://trycap.dev) or Cloudflare Turnstile. Both are configured with Skybook in the same manner, but require manual setup.
+You can disable captchas by setting `captcha.enabled` to `false` in your config.toml.
 
 After completing setup of either captchaing service, there are some configuration values needed in order to enable captchaing.
 
