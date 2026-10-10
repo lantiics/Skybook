@@ -3,6 +3,7 @@ FROM oven/bun:1.4.2
 WORKDIR /app
 ENV NODE_ENV=production
 COPY package.json ./
+COPY tsconfig.json ./
 COPY bun.lock ./
 COPY src ./src
 COPY scripts ./scripts
