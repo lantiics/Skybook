@@ -16,7 +16,7 @@ POSTGRES_PASSWORD=$PG_PASS
 EOF
     cat <<EOF > .env
 # replace postgres:5432 with localhost:5432 if not dockerized
-SUPERUSER_DB_URL="postgres://skybook:$PG_PASS@postgres:5432/skybook" 
+SUPERUSER_DB_URL="postgres://skybook:$PG_PASS@postgres:5432/skybook"
 READ_DB_URL="postgres://skybook_reader:$READ_PASS@postgres:5432/skybook"
 WRITE_DB_URL="postgres://skybook_writer:$WRITE_PASS@postgres:5432/skybook"
 COOKIE_SIGNING_SECRET=$(rand 32)
