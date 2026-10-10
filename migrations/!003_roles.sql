@@ -5,13 +5,13 @@ BEGIN
     END IF;
     IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'skybook_writer') THEN
         CREATE ROLE skybook_writer LOGIN;
-    ENF IF;
+    END IF;
 END $$;
 
 GRANT USAGE ON SCHEMA public TO skybook_reader, skybook_writer;
 
-GRANT SELECT ON ALL TABLES IN SCHEMA publi TO skybook_reader, skybook_writer;
-GRANT INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO skybook_reader;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO skybook_reader, skybook_writer;
+GRANT INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO skybook_writer;
 
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO skybook_writer;
 
