@@ -33,11 +33,11 @@ EOF
     
     
 
-    
+    echo "environment variables have been generated for Skybook"
 
 else
-echo "meow"
+echo ".env file already exists; skipping generation of files"
 fi
 
-echo "environment variables have been generated for Skybook"
+
 echo "some manual configuration is required for non-key features"
