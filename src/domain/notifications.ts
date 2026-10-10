@@ -18,8 +18,9 @@ export const notificationUrlIsValidForService = (
   }
   return true;
 };
-const KEY = Buffer.from(process.env.NOTIFICATION_URL_KEY!, "hex");
+
 export const encryptedURL = (url: string, instance: string) => {
+  const KEY = Buffer.from(process.env.NOTIFICATION_URL_KEY!, "hex");
   const iv = crypto.randomBytes(12);
   const c = crypto.createCipheriv("aes-256-gcm", KEY, iv);
   c.setAAD(Buffer.from(instance));
@@ -33,6 +34,7 @@ export const encryptedURL = (url: string, instance: string) => {
   ].join(":");
 };
 export const decryptedURL = (stored: string, instance: string) => {
+  const KEY = Buffer.from(process.env.NOTIFICATION_URL_KEY!, "hex");
   const [v, iv, tag, ct] = stored.split(":");
   if (v !== "v2") throw new Error("unsupported notification_endpoint format");
   const d = crypto.createDecipheriv(
