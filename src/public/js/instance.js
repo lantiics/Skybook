@@ -242,9 +242,8 @@ const addPostActionButtons = (post) => {
       className: "actions",
     });
   const deleteButton = Object.assign(document.createElement("button"), {
-    className: "danger",
+    className: "deleteBtn",
     onclick: () => actOnPost(post, deleteButton),
-    innerText: "delete",
   });
   deleteButton.setAttribute("data-action", "delete");
   if (!actionRow.querySelector('[data-action="delete"]')) {
@@ -253,7 +252,9 @@ const addPostActionButtons = (post) => {
   if (!existingRow) {
     post.append(actionRow);
   } else {
-    existingRow.append(deleteButton);
+    if (!existingRow.querySelector(".deleteBtn")) {
+      existingRow.append(deleteButton);
+    }
   }
 };
 
