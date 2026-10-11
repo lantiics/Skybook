@@ -30,7 +30,7 @@
     
     background-color: var(--important);
     color:var(--on-important);
-    border-radius: .5rem;
+    border-radius: var(--primary-brad);
     /* width: 50vw; */
     margin-inline: 0.5rem;
     padding-inline:6px;
@@ -40,13 +40,13 @@
     place-content: center;
     font-weight: bold;
     min-height: 2rem;
+    margin-bottom:0.5rem;
     /* position: relative; */
     
   }
 
   header {
-    margin-top:0.5rem;
-
+    padding-block:0.5rem;
     /* background-color: var(--important); */
     border-bottom: 2px solid color-mix(in hsl, white 5%, transparent 95%);
     /* border-radius: var(--primary-brad); */
@@ -80,7 +80,9 @@
     
   }
 
-
+  .header-btn {
+    background-color:var(--primary-container);
+  }
   .auth-actions {
     display: flex;
     align-items: center;
