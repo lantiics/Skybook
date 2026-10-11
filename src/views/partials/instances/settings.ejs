@@ -23,10 +23,10 @@
   <span>Receive a notification when a new post is created</span>
   <div>
     <label for="available-notification-services">Service:</label>
-    <select name="available-notification-services"   id="available-notification-services">
+    <select name="available-notification-services"   id="available-notification-services" <% if (!skybook.instance_notifications) {%>disabled title="notifications are currently unable to be sent"<%}%>>
       <% for (service of skybook.instance_notification_services) {%><option value="<%=service%>" <%= service==notifications.service?"selected":""%>><%=service%></option> <%}%>
     </select>
     <label for="notification-service-url">URL:</label>
-    <input id="notification-service-url" placeholder="<%=notifications.enabled?'endpoint URL':'notifications unavailable'%>" <% if (notifications.enabled) {%> value="<%=notifications.url%>"<%}%>>
+    <input id="notification-service-url" placeholder="<%=skybook.instance_notifications?'endpoint URL':'notifications unavailable'%>" <% if (notifications.enabled) {%> value="<%=notifications.url%>"<%}%><% if (!skybook.instance_notifications) {%>disabled title="notifications are currently unable to be sent"<%}%> >
   </div>
 </div>
