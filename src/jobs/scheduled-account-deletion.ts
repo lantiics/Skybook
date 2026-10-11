@@ -1,7 +1,7 @@
 require("dotenv");
 
-import { WRITER } from "../db";
+import { SUPERUSER } from "../db";
 
 export const deleteEligibleAccounts = async (): Promise<void> => {
-  await WRITER`DELETE FROM users WHERE pending_deletion AND delete_at < now()`;
+  await SUPERUSER`DELETE FROM users WHERE pending_deletion AND delete_at < now()`;
 };

@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { config } from "../config.ts";
-import { BadRequestError, errorStatus, UnavailableError } from "../errors.ts";
+import { BadRequestError, errorStatus } from "../errors.ts";
 import {
   compiledInstanceStatus,
   toggleInstanceVisibility,
@@ -44,7 +44,7 @@ const multer = require("multer");
 const { Readable } = require("stream");
 import { assertCaptchaTokenValid } from "../domain/captcha.ts";
 import csvParser from "csv-parser";
-import { Post } from "../types/entities";
+import { Mutable, Post } from "../types/entities";
 import { rateLimit } from "express-rate-limit";
 //#region HELPERS
 
@@ -106,7 +106,13 @@ router.post(
       console.log(req.body, "aa");
       const createdEntry = await createPost(req.ctx, req.body);
       if (createdEntry.token) {
-        res.setHeader(`token`, JSON.stringify({token:createdEntry.token,expires:createdEntry.tokenExpires}));
+        res.setHeader(
+          `token`,
+          JSON.stringify({
+            token: createdEntry.token,
+            expires: createdEntry.tokenExpires,
+          }),
+        );
       }
 
       return res
@@ -203,9 +209,9 @@ router.post(
   multer({
     storage: multer.memoryStorage({
       limits: {
-        fileSize: 250 * 1024
-      }
-    })
+        fileSize: 250 * 1024,
+      },
+    }),
   }).single("file"),
   async (req: Request, res: Response, next: NextFunction) => {
     if (!req.ctx.elevated) return res.sendStatus(403);
@@ -216,7 +222,7 @@ router.post(
       await new Promise<void>((resolve, reject) => {
         stream
           .pipe(csvParser())
-          .on("data", (data: Post) => {
+          .on("data", (data: Mutable<Post>) => {
             let parsed: unknown = {};
             if (data.extra) {
               try {
@@ -227,7 +233,7 @@ router.post(
             }
             data.extra =
               parsed && typeof parsed === "object" && !Array.isArray(parsed)
-                ? (parsed as Record<string, unknown>)
+                ? (parsed as Record<string, string>)
                 : {};
             r.push(data);
           })

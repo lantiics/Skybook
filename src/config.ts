@@ -1,5 +1,5 @@
 import raw from "../config.toml";
-import pkg from "root/package.json";
+import pkg from "../package.json";
 
 const config = raw as {
   skybook: {
@@ -23,7 +23,6 @@ const config = raw as {
   instances: {
     max_global_filter_length: number;
   };
-
   captcha: {
     enabled: boolean;
     implementation: "cap" | "cloudflare";
@@ -43,7 +42,6 @@ const config = raw as {
   posts: {
     perPage: number;
   };
-
   filter: {
     derogatory: boolean;
   };
@@ -63,7 +61,6 @@ const config = raw as {
     alteration_window_ms: number;
     alteration_limit_elevated: number;
     alteration_limit_anonymous: number;
-
     fetch_window_ms: number;
     fetch_limit: number;
   };
@@ -76,6 +73,7 @@ const config = raw as {
   ip_blocking: {
     global_block_threshold: number;
     automated_enforcements_enabled: boolean;
+    blocking_timeframe_days_max: number;
     proxy_addresses_blocked: boolean;
     vpn_addresses_blocked: boolean;
     tor_addresses_blocked: boolean;
