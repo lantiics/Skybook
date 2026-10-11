@@ -39,7 +39,6 @@ export const setupTwoFactor = async (user: User["name"]) => {
     opts as Partial<QRCode.QRCodeToDataURLOptions>,
   ) as Promise<unknown>);
   const [codes, hashedCodes] = generateRecoveryCodes();
-
   return {
     secret,
     qrDataUrl,

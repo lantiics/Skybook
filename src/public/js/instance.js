@@ -11,7 +11,8 @@ const additionalPostAlterationHeaders = (identifier) => {
 
   const additionalHeaders = {};
   if (postToken) {
-    additionalHeaders["authorization"] = "Bearer " + JSON.parse(postToken).token;
+    additionalHeaders["authorization"] =
+      "Bearer " + JSON.parse(postToken).token;
   }
   return additionalHeaders;
 };
@@ -241,10 +242,9 @@ const addPostActionButtons = (post) => {
       className: "actions",
     });
   const deleteButton = Object.assign(document.createElement("button"), {
-    className: "danger",
+    className: "deleteBtn",
     onclick: () => actOnPost(post, deleteButton),
-    innerText: "delete",
-  }); 
+  });
   deleteButton.setAttribute("data-action", "delete");
   if (!actionRow.querySelector('[data-action="delete"]')) {
     actionRow.insertBefore(deleteButton, actionRow.firstChild);
@@ -252,7 +252,9 @@ const addPostActionButtons = (post) => {
   if (!existingRow) {
     post.append(actionRow);
   } else {
-    existingRow.append(deleteButton)
+    if (!existingRow.querySelector(".deleteBtn")) {
+      existingRow.append(deleteButton);
+    }
   }
 };
 
@@ -263,7 +265,8 @@ const editPost = async (post, field) => {
 
   const additionalHeaders = {};
   if (postToken) {
-    additionalHeaders["authorization"] = "Bearer " + JSON.parse(postToken).token;
+    additionalHeaders["authorization"] =
+      "Bearer " + JSON.parse(postToken).token;
   }
   const res = await fetch(`/api/${instanceName()}/entry/${identifier}`, {
     method: "PATCH",
@@ -415,16 +418,14 @@ document.addEventListener("DOMContentLoaded", () => {
       );
     });
   Object.keys(localStorage)
-    .filter(key => 
-      key.startsWith("ENTRY")
-    ).map(key => [key, localStorage.getItem(key)])
-    .forEach(([key, object]) => { 
+    .filter((key) => key.startsWith("ENTRY"))
+    .map((key) => [key, localStorage.getItem(key)])
+    .forEach(([key, object]) => {
       object = JSON.parse(object);
-       if (new Date(object.expires) < new Date()) {
-         localStorage.removeItem(key) 
-        } 
+      if (new Date(object.expires) < new Date()) {
+        localStorage.removeItem(key);
       }
-    )
+    });
   checkForAlterableEntries();
   addEditListeners();
 });

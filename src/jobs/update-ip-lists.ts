@@ -1,6 +1,6 @@
 require("dotenv");
 
-import { WRITER, READER } from "../db";
+import { SUPERUSER, READER } from "../db";
 import { PipelineSource, Transform } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import {
@@ -81,7 +81,7 @@ export const doProxy = async () => {
     const BATCH = 1000;
     let batch: string[] = [];
     console.log("beginning");
-    await WRITER.begin(async (tx) => {
+    await SUPERUSER.begin(async (tx) => {
       console.log("delete");
       await tx`DELETE FROM blocklist_ranges WHERE source = 'proxy'`;
       console.log("deleted, querying");
@@ -133,10 +133,10 @@ export const doVpn = async () => {
     ips.push(cidr);
   }
   const literal = `{${ips.map((s) => `"${s.replace(/"/g, '\\"')}"`).join(",")}}`;
-  await WRITER.begin(async (tx) => {
+  await SUPERUSER.begin(async (tx) => {
     await tx`DELETE FROM blocklist_ranges WHERE source = 'vpn'`;
     await tx`INSERT INTO blocklist_ranges (source, range) SELECT 'vpn', unnest(${literal}::text[])::cidr`;
-  })
+  });
 };
 
 // doTor
@@ -164,12 +164,12 @@ export const doTor = async () => {
     );
 
   const literal = `{${ips.map((s) => `"${s.replace(/"/g, '\\"')}"`).join(",")}}`;
-  await WRITER.begin(async (tx) => {
+  await SUPERUSER.begin(async (tx) => {
     await tx`DELETE FROM blocklist_ranges WHERE source = 'tor'`;
     await tx`INSERT INTO blocklist_ranges (source, range) SELECT 'tor', unnest(${literal}::text[])::cidr ON CONFLICT DO NOTHING`;
-  })
+  });
 };
 
 export const reindex = async () => {
-  await WRITER`REINDEX INDEX CONCURRENTLY idx_blocklist_ranges`;
+  await SUPERUSER`REINDEX INDEX CONCURRENTLY idx_blocklist_ranges`;
 };
