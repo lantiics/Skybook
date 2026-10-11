@@ -1,10 +1,7 @@
 require("dotenv");
 
-import { WRITER } from "../db";
+import { SUPERUSER } from "../db";
 
-const deleteEligibleAccounts = async (): Promise<void> => {
-  await WRITER`DELETE FROM users WHERE pending_deletion AND delete_at < now()`;
+export const deleteEligibleAccounts = async (): Promise<void> => {
+  await SUPERUSER`DELETE FROM users WHERE pending_deletion AND delete_at < now()`;
 };
-
-deleteEligibleAccounts();
-setInterval(deleteEligibleAccounts, 60 * 60 * 1000); // 60 minutes

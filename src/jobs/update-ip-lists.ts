@@ -1,6 +1,6 @@
 require("dotenv");
 
-import { WRITER, READER } from "../db";
+import { SUPERUSER, READER } from "../db";
 import { PipelineSource, Transform } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import {
@@ -38,8 +38,8 @@ const sourceElapsedMinutesUpdateThreshold = async (
 // doProxy
 
 const proxyIpURL = "https://iplists.firehol.org/files/firehol_proxies.netset"; // Last checked: exclusively ipv4 (some subnets, some no subnets)
-const doProxy = async () => {
-  if (await sourceElapsedMinutesUpdateThreshold("proxy", "280")) return; // 3 hours
+export const doProxy = async () => {
+  if (!(await sourceElapsedMinutesUpdateThreshold("proxy", "280"))) return; // 3 hours
   console.time("Updated proxies");
 
   const res = await fetch(proxyIpURL);
@@ -81,7 +81,7 @@ const doProxy = async () => {
     const BATCH = 1000;
     let batch: string[] = [];
     console.log("beginning");
-    await WRITER.begin(async (tx) => {
+    await SUPERUSER.begin(async (tx) => {
       console.log("delete");
       await tx`DELETE FROM blocklist_ranges WHERE source = 'proxy'`;
       console.log("deleted, querying");
@@ -115,8 +115,8 @@ const vpnipv4URL =
 const vpnipv6URL =
   "https://raw.githubusercontent.com/X4BNet/lists_vpn/refs/heads/main/output/vpn/ipv6.txt";
 
-const doVpn = async () => {
-  if (await sourceElapsedMinutesUpdateThreshold("vpn", "720")) return; // 12 hours
+export const doVpn = async () => {
+  if (!(await sourceElapsedMinutesUpdateThreshold("vpn", "720"))) return; // 12 hours
   const ip4s = (await (await fetch(vpnipv4URL)).text())
     .split("\n")
     .map((l) => l.trim())
@@ -133,8 +133,10 @@ const doVpn = async () => {
     ips.push(cidr);
   }
   const literal = `{${ips.map((s) => `"${s.replace(/"/g, '\\"')}"`).join(",")}}`;
-  await WRITER`DELETE FROM blocklist_ranges WHERE source = 'vpn'`;
-  await WRITER`INSERT INTO blocklist_ranges (source, range) SELECT 'vpn', unnest(${literal}::text[])::cidr`;
+  await SUPERUSER.begin(async (tx) => {
+    await tx`DELETE FROM blocklist_ranges WHERE source = 'vpn'`;
+    await tx`INSERT INTO blocklist_ranges (source, range) SELECT 'vpn', unnest(${literal}::text[])::cidr`;
+  });
 };
 
 // doTor
@@ -142,8 +144,8 @@ const doVpn = async () => {
 // If doing development, I recommend downloading the file locally and replacing the URL here
 // with a file:// URL.
 const TorDownloadURL = "https://www.dan.me.uk/torlist/?exit";
-const doTor = async () => {
-  if (await sourceElapsedMinutesUpdateThreshold("tor", "30")) return;
+export const doTor = async () => {
+  if (!(await sourceElapsedMinutesUpdateThreshold("tor", "30"))) return;
   const res = await fetch(TorDownloadURL, {
     headers: {
       "User-Agent": "Skybook IP blocklist updating (gitlab:lantics/skybook)",
@@ -162,28 +164,12 @@ const doTor = async () => {
     );
 
   const literal = `{${ips.map((s) => `"${s.replace(/"/g, '\\"')}"`).join(",")}}`;
-  await WRITER`DELETE FROM blocklist_ranges WHERE source = 'tor'`;
-  await WRITER`INSERT INTO blocklist_ranges (source, range) SELECT 'tor', unnest(${literal}::text[])::cidr ON CONFLICT DO NOTHING`;
+  await SUPERUSER.begin(async (tx) => {
+    await tx`DELETE FROM blocklist_ranges WHERE source = 'tor'`;
+    await tx`INSERT INTO blocklist_ranges (source, range) SELECT 'tor', unnest(${literal}::text[])::cidr ON CONFLICT DO NOTHING`;
+  });
 };
 
-const reindex = async () => {
-  await WRITER`REINDEX INDEX CONCURRENTLY idx_blocklist_ranges`;
+export const reindex = async () => {
+  await SUPERUSER`REINDEX INDEX CONCURRENTLY idx_blocklist_ranges`;
 };
-
-(async () => {
-  await doProxy();
-  await doVpn();
-  await doTor();
-  await reindex();
-})();
-
-setInterval(
-  async () => {
-    await doProxy();
-    await doVpn();
-    await doTor();
-  },
-  30 * 60 * 1000,
-); // 30 minutes
-
-setInterval(reindex, 12 * 60 * 60 * 1000); // 12 hours

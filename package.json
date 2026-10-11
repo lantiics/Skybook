@@ -1,6 +1,10 @@
 {
   "name": "Skybook",
-  "version": "0.10.0",
+  "version": "0.12.0",
+  "scripts": {
+    "start": "NODE_ENV=production bun ./src/app.js",
+    "dev":"NODE_ENV=development bun --watch ./src/app.js"
+  },
   "dependencies": {
     "@types/cookie-parser": "^1.4.10",
     "@types/cookie-signature": "^1.1.2",
@@ -18,11 +22,12 @@
     "morgan": "^1.12.1",
     "multer": "^2.4.0",
     "otplib": "^13.5.0",
-    "pm2": "^7.0.4",
     "qrcode": "^1.5.4",
+    "re2js": "^2.8.6",
     "vhost": "^3.0.2"
   },
   "devDependencies": {
-    "@types/bun": "^1.4.2"
+    "@types/bun": "^1.4.2",
+    "git-cliff": "^2.14.2"
   }
 }

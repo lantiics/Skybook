@@ -54,9 +54,6 @@ router.post("/signup", authLimiter, async (req: Request, res: Response) => {
 });
 
 router.post("/login", authLimiter, async (req: Request, res: Response) => {
-  if (req.signedCookies.session) {
-    return res.sendStatus(401);
-  }
   try {
     await assertCaptchaTokenValid(req.body[config.captcha.token_property_name]);
     console.time("Logged in");
@@ -119,7 +116,9 @@ router.post("/password", async (req: Request, res: Response) => {
     const { oldPassword, newPassword, otp } = req.body;
 
     await changeUserPassword(userIdentifier, oldPassword, newPassword, otp);
-    res.clearCookie("session");
+    res.clearCookie("session", {
+      domain: config.skybook.domain,
+    });
     const encodedPopupText = btoa("Password changed");
     return res.redirect("/login#pup:" + encodedPopupText);
   } catch (e) {

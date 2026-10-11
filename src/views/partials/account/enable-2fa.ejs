@@ -6,7 +6,7 @@
     <label for="txtsecret" style="font-weight:bold">Or, input this code into an authenticator application:</label>
     <code id="txtsecret"><%=secret%></code>
     <br />
-    <label for="codes" style="font-weight: bold;">Save the following codes, they can be used once in place of your OTP:</label>
+    <label for="codes" style="font-weight: bold;">Save the following codes, they can be used once in place of your OTP, and will only be displayed once:</label>
     <div id="codes" style="display:grid;grid-template-columns: 1fr 1fr;gap:1rem">
       <% for (code of codes) { %> <div><%=code%></div> <%}%>
   </div>

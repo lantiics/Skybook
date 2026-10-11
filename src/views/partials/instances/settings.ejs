@@ -22,9 +22,9 @@
 <div>
   <span>Receive a notification when a new post is created</span>
   <div>
-    <label for="available-notification-services" <% if (notifications.enabled) {%> value="<%=notifications.service%>" <%}%>>Service:</label>
-    <select name="available-notification-services" if="available-notification-services">
-      <% for (service of skybook.instance_notification_services) {%><option value="<%=service%>"><%=service%></option> <%}%>
+    <label for="available-notification-services">Service:</label>
+    <select name="available-notification-services"   id="available-notification-services">
+      <% for (service of skybook.instance_notification_services) {%><option value="<%=service%>" <%= service==notifications.service?"selected":""%>><%=service%></option> <%}%>
     </select>
     <label for="notification-service-url">URL:</label>
     <input id="notification-service-url" placeholder="<%=notifications.enabled?'endpoint URL':'notifications unavailable'%>" <% if (notifications.enabled) {%> value="<%=notifications.url%>"<%}%>>

@@ -1,0 +1,1 @@
+ALTER TABLE user_enforcements ADD COLUMN is_expired BOOLEAN DEFAULT FALSE;

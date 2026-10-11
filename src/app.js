@@ -1,15 +1,21 @@
 import { config } from "./config.ts";
-require("./startup/inject-secrets.ts");
+import {injectSecrets} from "@/startup/inject-secrets"
+injectSecrets()
 import cookieParser from "cookie-parser";
 import { authenticate } from "./middleware/authenticate.ts";
 import { resolveInstance } from "./middleware/resolve-instance.ts";
 import express from "express";
+import { runMigrations } from "@startup/migrate";
+await runMigrations()
+require("./jobs/cron.ts")
 const VERSION = hash("SHA1", Date.now().toString()).slice(0, 8);
 const app = express();
 app.locals.assetVersion = VERSION;
 app.set("trust proxy", config.skybook.proxies_between);
 
-app.listen(process.env.PORT || 3000);
+const PORT = process.env.PORT||3000
+app.listen(PORT);
+console.log("Listening on port "+PORT)
 var path = require("path");
 const api = express.Router();
 
@@ -73,13 +79,13 @@ app.use(function (err, req, res, next) {
       return res.redirect(`http://${config.skybook.domain}`);
     } else {
       return res.redirect(
-        `http://${req.ctx.instance}.${config.skybook.domain}`,
+        `http://${req.ctx.instance ? req.ctx.instance + "." : ""}${config.skybook.domain}`,
       );
     }
   }
   // render the error page
   res.status(err.status || 500);
-
+  console.error(err.status, err.message, err, process.env)
   res.render("error");
 });
 export default app;

@@ -2,6 +2,7 @@ import { config } from "../config";
 import { CaptchaFailedError } from "../errors";
 
 export const assertCaptchaTokenValid = async (token: string) => {
+  if (!config.captcha.enabled) return true;
   const { success } = (await (
     await fetch(config.captcha.verification_url, {
       method: "POST",

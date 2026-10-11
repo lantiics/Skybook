@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response, Router } from "express";
 import { renderWithLayout } from "../views/utils";
-import { countPosts, getPosts, pageCount } from "../domain/posts";
+import { getPosts, pageCount } from "../domain/posts";
 import {
   compiledInstanceStatus,
   instanceIpBlocks,
@@ -101,7 +101,7 @@ const instanceLogic = async (
     if (status.is_visible.status || req.ctx.elevated) {
       console.log(req.query.p);
 
-      const posts = await getPosts(req.ctx, page);
+      const posts = await getPosts(req.ctx, page, false);
       if (!posts[0] && page !== 0)
         return res.redirect(`/${req.ctx.instance}?p=${pages}`);
       for (const post of posts) {
@@ -145,9 +145,13 @@ const instanceLogic = async (
         service: notificationInfo.notification_service,
         url:
           typeof notificationInfo.notification_endpoint == "string"
-            ? decryptedURL(notificationInfo.notification_endpoint)
+            ? decryptedURL(
+                notificationInfo.notification_endpoint,
+                req.ctx.instance,
+              )
             : null,
       };
+      res.setHeader("Cache-Control", "private");
     }
 
     res.locals.fields = await getFieldData(req.ctx.instance);

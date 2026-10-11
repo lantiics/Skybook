@@ -15,28 +15,18 @@ document.addEventListener("DOMContentLoaded", () => {
             case 423:
               createPopup("Your account has been locked", 10000);
               break;
+            case 409:
+              createPopup(
+                `An account with the username '${this.username.value}' already exists`,
+                5000,
+              );
+              break;
             default:
               createPopup(errorStatus(res.status.toString()), 3500);
           }
+          document.querySelectorAll("#captcha").forEach((e) => e.remove());
           appendWidget();
         }
       });
     });
 });
-
-//   document
-//     .getElementById("submission-form")
-//     .addEventListener("submit", function (e) {
-//       e.preventDefault();
-//       console.log(this);
-//       const formData = new URLSearchParams(new FormData(this));
-
-//       fetch(this.action, {
-//         method: "POST",
-//         body: formData,
-//       }).then(async (res) => {
-//         const identifier = (await res.json()).identifier;
-//         const token = res.headers.get("token");
-//         localStorage.setItem(identifier, token);
-//       });
-//     });

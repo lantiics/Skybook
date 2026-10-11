@@ -79,6 +79,10 @@ export const errorStatus = (e: unknown, elevated: boolean): number => {
   if (e instanceof UnauthorizedError) return elevated ? 403 : 401;
   if (e instanceof ForbiddenError) return 403;
   if (e instanceof NotFoundError) return 404;
+  if (e instanceof Bun.SQL.PostgresError && e.errno === "23505") {
+    // "23505" corresponds to the SQLSTATE for a unique_violation error
+    return 409;
+  }
   if (e instanceof FilteredError) return 422;
   if (e instanceof LockedError) return 423;
 

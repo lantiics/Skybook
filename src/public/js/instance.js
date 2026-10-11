@@ -7,11 +7,12 @@ class PostAlterationError extends Error {
 }
 
 const additionalPostAlterationHeaders = (identifier) => {
-  const postToken = localStorage.getItem(identifier);
+  const postToken = localStorage.getItem(`ENTRY-${identifier}`);
 
   const additionalHeaders = {};
   if (postToken) {
-    additionalHeaders["authorization"] = "Bearer " + postToken;
+    additionalHeaders["authorization"] =
+      "Bearer " + JSON.parse(postToken).token;
   }
   return additionalHeaders;
 };
@@ -243,24 +244,29 @@ const addPostActionButtons = (post) => {
   const deleteButton = Object.assign(document.createElement("button"), {
     className: "deleteBtn",
     onclick: () => actOnPost(post, deleteButton),
-  }); //  <button onclick="approvePost(this.parentNode.parentNode)" data-action="approve">approve</button>
+  });
   deleteButton.setAttribute("data-action", "delete");
   if (!actionRow.querySelector('[data-action="delete"]')) {
     actionRow.insertBefore(deleteButton, actionRow.firstChild);
   }
   if (!existingRow) {
     post.append(actionRow);
+  } else {
+    if (!existingRow.querySelector(".deleteBtn")) {
+      existingRow.append(deleteButton);
+    }
   }
 };
 
 const editPost = async (post, field) => {
   const fieldName = field.getAttribute("data-field");
   const identifier = postIdentifier(post);
-  const postToken = localStorage.getItem(identifier);
+  const postToken = localStorage.getItem(`ENTRY-${identifier}`);
 
   const additionalHeaders = {};
   if (postToken) {
-    additionalHeaders["authorization"] = "Bearer " + postToken;
+    additionalHeaders["authorization"] =
+      "Bearer " + JSON.parse(postToken).token;
   }
   const res = await fetch(`/api/${instanceName()}/entry/${identifier}`, {
     method: "PATCH",
@@ -290,7 +296,7 @@ const checkForAlterableEntries = () => {
   console.log(entries);
 
   for (const entry of entries) {
-    if (localStorage.getItem(postIdentifier(entry))) {
+    if (localStorage.getItem(`ENTRY-${postIdentifier(entry)}`)) {
       entry.querySelector("div.actions > button[data-action='flag']")?.remove();
       entry.setAttribute("data-can-alter", true);
       const userDefinedEntryFields = entry.querySelectorAll(
@@ -317,7 +323,7 @@ const addEditListeners = () => {
         if (field.innerText != field.getAttribute("data-original-content")) {
           if (!field.getAttribute("data-reply-to")) {
             await editPost(field.parentNode.parentNode, field);
-            field.blur()
+            field.blur();
           } else {
             await reply(
               field.parentNode.parentNode.parentNode,
@@ -344,7 +350,7 @@ const submitEntry = async (identifier, fields) => {
   } else {
     const identifier = (await res.json()).identifier;
     const token = res.headers.get("token");
-    localStorage.setItem(identifier, token);
+    localStorage.setItem(`ENTRY-${identifier}`, token);
     console.log(res.status);
     if (res.status === 201) {
       location.reload();
@@ -391,7 +397,7 @@ document.addEventListener("DOMContentLoaded", () => {
           if (!res.ok) throw new Error(res.status);
           const identifier = (await res.json()).identifier;
           const token = res.headers.get("token");
-          localStorage.setItem(identifier, token);
+          localStorage.setItem(`ENTRY-${identifier}`, token);
           if (res.status === 201) {
             location.reload();
           } else if (res.status === 202)
@@ -411,6 +417,15 @@ document.addEventListener("DOMContentLoaded", () => {
         () => this.querySelector("fieldset").removeAttribute("disabled"),
         3000,
       );
+    });
+  Object.keys(localStorage)
+    .filter((key) => key.startsWith("ENTRY"))
+    .map((key) => [key, localStorage.getItem(key)])
+    .forEach(([key, object]) => {
+      object = JSON.parse(object);
+      if (new Date(object.expires) < new Date()) {
+        localStorage.removeItem(key);
+      }
     });
   checkForAlterableEntries();
   addEditListeners();

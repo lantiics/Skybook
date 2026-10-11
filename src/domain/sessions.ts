@@ -5,6 +5,7 @@ import { randomBytes } from "node:crypto";
 import Bun from "bun";
 import { userInformation } from "./enforcements.ts";
 import { Session, User } from "../types/entities";
+import { config } from "../config.ts";
 const generateSessionKey = async (): Promise<string> => {
   const token = randomBytes(32).toString("hex");
   return token;
@@ -22,7 +23,7 @@ export const createSession = async (
   const token = await generateSessionKey();
   const tokenHash = new Bun.CryptoHasher("sha256").update(token).digest("hex");
 
-  await DB`INSERT INTO sessions (token, user_name, user_identifier) VALUES (${tokenHash}, ${name}, ${await userIdentifier(name)} )`;
+  await DB`INSERT INTO sessions (token, user_name, user_identifier, expires_at) VALUES (${tokenHash}, ${name}, ${await userIdentifier(name)}, (NOW() + make_interval(days => ${config.sessions.expiry_days})))`;
 
   return token;
 };
@@ -39,7 +40,7 @@ export const getSessionUser = async (
   return {
     name: row.user_name,
     identifier: row.user_identifier,
-    mfaEnabled: uData.totp_secret !== null,
+    mfaEnabled: uData.mfa_enabled,
     can_create_invitations: uData.can_create_invitations,
   };
 };
