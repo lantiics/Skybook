@@ -35,7 +35,7 @@ docker buildx build -t lanticss/skybook:latest -t lanticss/skybook:$TAG --push .
 bun git-cliff --tag "$TAG" -o CHANGELOG.md
 git add CHANGELOG.md
 git commit -q -m "chore(release): $TAG"
-git tag -a "$TAG" -m "$TAG"$'\n\n'"$NOTES"
+git tag -a "$TAG" -m "$TAG"
 git push --atomic origin "$TAG"
 echo "Released $TAG"
 else
