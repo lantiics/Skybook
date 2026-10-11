@@ -6,3 +6,4 @@ config.toml
 dist
 dev/postgres_data/*
 !dev/postgres_data/.gitkeep
+.gitlab-ci-local
