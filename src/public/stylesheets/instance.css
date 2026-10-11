@@ -24,6 +24,7 @@ main {
   gap: 0.4rem;
   font-size: small;
   overflow-wrap: anywhere;
+  color: var(--on-primary);
 
   transition: border-color 75ms;
   button {
@@ -254,6 +255,7 @@ main {
 form.entry-submission {
   width: 30vw;
   margin-inline: auto;
+  color: var(--on-primary);
   @media only screen and (max-width: 600px) {
     width: 80vw;
     margin-block: 2rem;
