@@ -297,28 +297,6 @@ export const deletePost = async (ctx: RequestContext, identifier: string) => {
   if (!post.is_queued && post.is_visible) purgeInstanceCache(ctx.instance);
 };
 
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-/* 
-  TODO:
-        Queue every post made by the blocked creator. If using a user identifier, we don't use a time limit. If there is only
-        a hashed IP address attached, we queue every post made by that IP addresses within the past 60 days 
-        in order to to account for IP address changes.
-*/
 export const blockPostCreator = async (
   ctx: RequestContext,
   identifier: string,
