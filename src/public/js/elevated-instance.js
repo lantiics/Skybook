@@ -57,6 +57,12 @@ const toggleStatus = async (btn) => {
         );
         if (!queueFiltered.ok) throw new Error(queueFiltered.status);
         break;
+      case "entry-flagging":
+        const entryFlagging = await fetch(`/api/${instanceName()}/flagging`, {
+          method: "PATCH",
+        });
+        if (!entryFlagging.ok) throw new Error(entryFlagging.status);
+        break;
       default: {
         throw new Error("Action is not specified");
       }
