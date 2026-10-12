@@ -12,6 +12,10 @@ import { config } from "../config";
 const router = require("express").Router();
 router.post("/delete", async (req: Request, res: Response) => {
   try {
+    if (!req.ctx.authenticated)
+      throw new UnauthorizedError(
+        "A logged in session is required while attempting account deletion",
+      );
     const { password } = req.body;
     if (!password)
       throw new BadRequestError("Required credentials not specified");
@@ -23,7 +27,7 @@ router.post("/delete", async (req: Request, res: Response) => {
     });
     return res.sendStatus(202);
   } catch (e) {
-    if (e instanceof UnauthorizedError)
+    if (e instanceof UnauthorizedError && req.ctx.authenticated)
       return res
         .status(401)
         .redirect(
@@ -38,6 +42,11 @@ router.post("/delete", async (req: Request, res: Response) => {
 
 router.post("/enable-totp", async (req: Request, res: Response) => {
   try {
+    if (!req.ctx.authenticated) {
+      throw new UnauthorizedError(
+        "A logged in session is required to enable TOTP",
+      );
+    }
     const { secret, otp, password, codes } = req.body;
 
     if (!secret || !otp || !password || !codes)
@@ -57,7 +66,7 @@ router.post("/enable-totp", async (req: Request, res: Response) => {
     });
     return res.status(201).redirect("/login");
   } catch (e) {
-    if (e instanceof UnauthorizedError)
+    if (e instanceof UnauthorizedError && req.ctx.authenticated)
       return res
         .status(401)
         .redirect("/account#pup:" + btoa("Provided OTP code is invalid"));
@@ -67,6 +76,11 @@ router.post("/enable-totp", async (req: Request, res: Response) => {
 
 router.post("/disable-totp", async (req: Request, res: Response) => {
   try {
+    if (!req.ctx.authenticated) {
+      throw new UnauthorizedError(
+        "A logged in session is required to disable TOTP",
+      );
+    }
     const { password } = req.body;
     if (!password)
       throw new UnauthorizedError("Required credentials not provided");
