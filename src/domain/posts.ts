@@ -1,13 +1,8 @@
-import {
-  PUBLIC_COLUMN_NAMES,
-  PRIVATE_COLUMN_NAMES,
-  SYSTEM_COLUMN_NAMES,
-} from "../defaults.ts";
+import { PUBLIC_COLUMN_NAMES, PRIVATE_COLUMN_NAMES } from "../defaults.ts";
 import {
   UnauthorizedError,
   FilteredError,
   NotFoundError,
-  LockedError,
   BadRequestError,
 } from "../errors.ts";
 import { RequestContext } from "../types/context.ts";
