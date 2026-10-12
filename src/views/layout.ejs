@@ -9,9 +9,12 @@
 
   <header>
     <div class="header-announcement">Skybook is currently under development, stability can not be guaranteed.<br/><%=skybook.header%></div>
-    <% if (!ctx.instance||ctx.instance&&ctx.authenticated) {%> <%- include('./partials/header', ) %><%}%>
+    <div id="menu">
+    <% if (!ctx.instance||ctx.instance&&ctx.authenticated) {%> <%- include('./partials/header', ) %><%}%></div>
   </header>
+  <button id="menu-button" class="menu-button" onclick="toggleNav()">menu</button>
 
+  
   <main class="container"><%-body %></main>
     <footer><%- include('./partials/footer') %></footer>
 

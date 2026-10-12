@@ -22,7 +22,8 @@
   --on-caution: black;
   --success: #4da845;
   --on-success: #1d201c;
-  background-color: #0d0c16;
+  --bg-color: #0d0c16;
+  background-color: var(--bg-color);
   --color: #e3e3e3;
   color: var(--color);
   --href: #978eff;
