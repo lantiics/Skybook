@@ -109,30 +109,6 @@ export const notifyUser = async (
         username: "Skybook",
         content: message + ` \n-# <t:${Math.floor(Date.now() / 1000)}:R>`,
       });
-
-      /*
-
-      TBD whether we include post content in messages.
-      Main worry: Providing potentially excessive data
-      to third party services (in the event the entry is
-      not immediately visible to anyone who comes across the guestbook instance
-      )
-
-      // updateBody({
-      //   username: "Skybook",
-      //   embeds: [
-      //     {
-      //       author: { name: post!.author },
-      //       description: post!.content,
-      //       footer: {
-      //         text: `this post is ${post!.is_queued ? "queued" : "not queued"}`,
-      //       },
-      //     },
-      //   ],
-      // });
-
-
-      */
       requestBody.headers["Content-Type"] = "application/json";
       break;
     }
