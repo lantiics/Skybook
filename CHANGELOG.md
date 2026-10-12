@@ -1,3 +1,12 @@
+## [0.12.1] - 2026-10-12
+
+### <!-- 1 -->🐛 Bug Fixes
+
+- Failure to check req.ctx.authenticated on some endpoints 
+
+### <!-- 7 -->⚙️ Miscellaneous Tasks
+
+- Add container_name to docker-compose.yml services 
 ## [0.12.0] - 2026-10-11
 
 ### <!-- 0 -->🚀 Features
@@ -122,6 +131,7 @@
 - Update CI bun image to 1.4 
 - Fix formatting; remove unused imports 
 - Fix formatting (clientside js) 
+- V0.12.0 
 ## [0.11.0] - 2026-10-04
 
 ### <!-- 0 -->🚀 Features
