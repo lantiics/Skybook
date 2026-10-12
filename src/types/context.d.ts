@@ -1,7 +1,6 @@
 export interface RequestContext {
   readonly instance: string;
-  readonly elevated: boolean; // Instance administrators
-  readonly superAdmin: boolean; //
+  readonly elevated: boolean; // Guestbook administrators
   readonly authenticated: boolean;
   readonly identifier?: string;
   readonly token?: string;
@@ -11,6 +10,5 @@ export interface RequestContext {
     mfaEnabled: boolean;
     can_create_invitations: boolean;
   };
-  readonly superadmin?: boolean;
   readonly ip: string;
 }

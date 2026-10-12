@@ -58,18 +58,12 @@ export const authenticate = async (
   req.ctx = {
     ...req.ctx,
     user: user,
-    superAdmin:
-      ![undefined, null, ""].includes(process.env.SUPERADMIN_KEY) &&
-      req.headers["x-superadmin-key"] === process.env.SUPERADMIN_KEY,
     authenticated: !!user,
     ip: req.ip!,
   };
   res.locals.skybook = config.skybook;
 
-  if (!req.ctx?.instance) {
-  }
-  let elevated = req.ctx.superAdmin ?? false;
-  console.log(elevated, "elevated");
+  let elevated = false;
   if (!elevated && user && req.ctx.instance && user.name === req.ctx.instance) {
     elevated = true;
   }
