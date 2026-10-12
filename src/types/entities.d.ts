@@ -146,6 +146,7 @@ export interface UserEnforcement {
   readonly details: string;
   readonly created_at: Date;
   readonly expires_at?: Date;
+  readonly is_expired: boolean;
 }
 
 export interface BlocklistRange {
