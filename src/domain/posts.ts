@@ -204,16 +204,9 @@ export const createPost = async (
     entry.authenticated_user_identifier = ctx.user.identifier;
   }
 
-  const columns = ctx.superAdmin
-    ? [
-        ...PRIVATE_COLUMN_NAMES,
-        ...PUBLIC_COLUMN_NAMES,
-        ...SYSTEM_COLUMN_NAMES,
-      ].join(",")
-    : (ctx.elevated
-        ? [...PRIVATE_COLUMN_NAMES]
-        : [...PUBLIC_COLUMN_NAMES]
-      ).join(",");
+  const columns = (
+    ctx.elevated ? [...PRIVATE_COLUMN_NAMES] : [...PUBLIC_COLUMN_NAMES]
+  ).join(",");
 
   const row = await WRITER.begin(async (tx) => {
     const [row] =
@@ -246,13 +239,6 @@ export const editPost = async (
       "Not authorized to alter entry with identifier " + identifier,
     );
   }
-  if (!ctx.superAdmin) {
-    if (await _getPostStatus(ctx.instance, identifier, "sys_lock")) {
-      throw new LockedError(
-        "Attempted to update a locked post without system-level privileges",
-      );
-    }
-  }
 
   const entry = await validatedEntry(ctx, fields, true);
   if (ctx.elevated || !entry.is_queued) {
@@ -260,12 +246,9 @@ export const editPost = async (
   }
   let extra: Record<string, string> = entry.extra as Record<string, string>;
   delete entry.extra;
-  const columns = ctx.superAdmin
-    ? `*`
-    : (ctx.elevated
-        ? [...PRIVATE_COLUMN_NAMES]
-        : [...PUBLIC_COLUMN_NAMES]
-      ).join(",");
+  const columns = (
+    ctx.elevated ? [...PRIVATE_COLUMN_NAMES] : [...PUBLIC_COLUMN_NAMES]
+  ).join(",");
   if (ctx.user) fields.last_edited_by = ctx.user.identifier;
   const hasExtra = Object.keys(extra as Record<any, any>).length > 0;
   const hasFields = Object.keys(entry).length > 0;
@@ -302,13 +285,6 @@ export const deletePost = async (ctx: RequestContext, identifier: string) => {
     if (!(await entryTokenValid(ctx, identifier))) {
       throw new UnauthorizedError(
         "Not authorized to specified delete entry with provided credentials",
-      );
-    }
-  }
-  if (!ctx.superAdmin) {
-    if (await _getPostStatus(ctx.instance, identifier, "sys_lock")) {
-      throw new LockedError(
-        "Attempted to update a locked post without system-level privileges",
       );
     }
   }
@@ -383,19 +359,9 @@ export const _updatePost = async (
   identifier: string,
   property: string,
 ) => {
-  const columns = ctx.superAdmin
-    ? `*`
-    : (ctx.elevated
-        ? [...PRIVATE_COLUMN_NAMES]
-        : [...PUBLIC_COLUMN_NAMES]
-      ).join(",");
-  if (!ctx.superAdmin) {
-    if (await _getPostStatus(ctx.instance, identifier, "sys_lock")) {
-      throw new LockedError(
-        "Attempted to update a locked post without system-level privileges",
-      );
-    }
-  }
+  const columns = (
+    ctx.elevated ? [...PRIVATE_COLUMN_NAMES] : [...PUBLIC_COLUMN_NAMES]
+  ).join(",");
   if (
     [
       "is_visible",
@@ -558,12 +524,9 @@ export const getPosts = async (
         "block_count DESC, is_pinned DESC, is_queued DESC, flag_count DESC, seq DESC",
       )
     : READER.unsafe("is_pinned DESC,is_queued DESC, is_visible ASC, seq DESC");
-  let columnList = ctx.superAdmin
-    ? "*"
-    : (ctx.elevated
-        ? [...PRIVATE_COLUMN_NAMES]
-        : [...PUBLIC_COLUMN_NAMES]
-      ).join(",");
+  let columnList = (
+    ctx.elevated ? [...PRIVATE_COLUMN_NAMES] : [...PUBLIC_COLUMN_NAMES]
+  ).join(",");
   if (returnsPublic) {
     columnList = columnList.replace(/,authenticated_user_identifier/, "");
   }
