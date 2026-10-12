@@ -1,7 +1,6 @@
 [skybook]
 # If Skybook is directly accessible, you want to set this to 0.
 proxies_between = 1
-environment = "development"
 subdomain_vanity = false
 cloudflare = false
 
