@@ -144,7 +144,7 @@ button,
   border-radius: var(--secondary-brad);
   --container-color: var(--secondary-container);
   --text-color: var(--on-secondary);
-  border: 1px groove var(--border-color);
+  border: none;
   background-color: var(--container-color);
   color: var(--text-color);
   font-weight: bold;
