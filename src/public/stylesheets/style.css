@@ -363,7 +363,7 @@ textarea {
   z-index: 1;
   width: 40vw;
   min-height: 20vh;
-  background-color: var(--primary-container);
+  background-color: var(--bg-color);
   border-radius: var(--primary-brad);
   border: 1px groove var(--border-color);
 
