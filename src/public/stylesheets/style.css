@@ -238,28 +238,15 @@ input,
 textarea {
   padding: var(--secondary-padding);
   border: none;
-  border: 1px groove;
-  border-color: var(--border-color);
   border-radius: var(--secondary-brad);
   color: var(--on-secondary);
-  background-color: var(--secondary-container);
+  background-color: var(--primary-container);
   outline: 2px groove transparent;
   transition: 75ms 25ms;
   transition-property: border-color filter transform;
   font-family: var(--font-family);
   font-size: medium;
   width: fit-content;
-
-  &:not([type="checkbox"])&:not(:disabled) {
-    &:hover {
-      border-color: color-mix(in hsl, var(--border-color) 80%, black 20%);
-    }
-
-    &:focus {
-      border-color: color-mix(in hsl, var(--border-color) 70%, black 30%);
-    }
-  }
-
   &:disabled {
     filter: saturate(50%);
     &:hover {
