@@ -210,7 +210,6 @@ form {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  background-color: var(--primary-container);
   border-radius: var(--primary-brad);
   padding: var(--primary-padding);
 
