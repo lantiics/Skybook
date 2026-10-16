@@ -236,10 +236,10 @@ fieldset.table-form {
 
 input,
 textarea {
-  padding: var(--secondary-padding);
+  padding: var(--primary-padding);
   border: none;
-  border-radius: var(--secondary-brad);
-  color: var(--on-secondary);
+  border-radius: var(--primary-brad);
+  color: var(--on-primary);
   background-color: var(--primary-container);
   outline: 2px groove transparent;
   transition: 75ms 25ms;
@@ -248,7 +248,7 @@ textarea {
   font-size: medium;
   width: fit-content;
   &:disabled {
-    filter: saturate(50%);
+    filter: saturate(90%) brightness(80%);
     &:hover {
       cursor: not-allowed;
     }
