@@ -15,6 +15,7 @@ export const liftUserEnforcements = async () => {
   for (const enforcement of Object.values(
     expiredEnforcements,
   ) as UserEnforcement[]) {
+    if (!enforcement.type) continue;
     let $QUERY;
     switch (enforcement.type) {
       case "locked":
