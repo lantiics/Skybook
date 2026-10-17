@@ -17,8 +17,6 @@
     <fieldset>
       <input type="text" required name="otp" minlength="6" maxlength="6" pattern="[0-9]+">
       <input type="password" required name="password" minlength="8" placeholder="password">
-      <input type="hidden" name="secret" required value="<%=secret%>">
-      <input type="hidden" name="codes" required value="<%=btoa(JSON.stringify(codes))%>">
       <input type="submit" name="submit">
       </fieldset>
       </form>

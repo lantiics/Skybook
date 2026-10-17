@@ -186,6 +186,12 @@ export const loginUser = async (
   return await createSession(name);
 };
 
+export const userTotpData = async (identifier: User["identifier"]) => {
+  const [{ totp_secret: secret, mfa_recovery: recovery }] =
+    await READER`SELECT totp_secret, mfa_recovery FROM users WHERE identifier = ${identifier}`;
+  return { secret, recovery };
+};
+
 const updateUserLastSeenTime = async (
   identifier: User["identifier"],
 ): Promise<void> => {
@@ -238,8 +244,6 @@ export const regenerateRecoveryCodes = async (
 
 export const enableUserMfa = async (
   identifier: User["identifier"],
-  secret: string,
-  recoveryCodes: string[],
 ): Promise<void> => {
   const [userEntry] =
     await READER`SELECT name, identifier, mfa_enabled FROM users WHERE identifier=${identifier}`;
