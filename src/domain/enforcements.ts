@@ -95,8 +95,8 @@ export const tryUserEnforcement = async (UUID: string, DB = READER) => {
     await DB`SELECT COUNT(*) FROM instance_blocks WHERE user_identifier = ${UUID} AND blocked_at > NOW() - INTERVAL '30 days'`;
   const [l] =
     await DB`SELECT COUNT(*) FROM instance_blocks WHERE user_identifier = ${UUID} AND blocked_at > NOW() - INTERVAL '240 days'`;
-  const longUserBlocks = l.count;
-  const userBlocks = f.count;
+  const longUserBlocks = l.count + 1;
+  const userBlocks = f.count + 1;
   let enforced = false;
   for (const enforcement of history) {
     frequency.push([enforcement.created_at, enforcement.expires_at]);
