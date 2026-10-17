@@ -280,6 +280,7 @@ input:is([type="submit"]) {
 
   &:is(.danger) {
     background-color: var(--danger);
+    color: var(--on-danger);
     border: none;
   }
 
