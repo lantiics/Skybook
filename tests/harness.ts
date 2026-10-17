@@ -55,11 +55,7 @@ beforeAll(async () => {
     baseTOTPUser.mfa.secret,
     baseTOTPUser.mfa.hashedCodes,
   );
-  await enableUserMfa(
-    baseTOTPUser.identifier,
-    baseTOTPUser.mfa.secret,
-    baseTOTPUser.mfa.hashedCodes,
-  );
+  await enableUserMfa(baseTOTPUser.identifier);
 });
 
 afterAll(async () => {
