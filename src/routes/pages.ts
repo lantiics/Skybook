@@ -166,7 +166,6 @@ const instanceLogic = async (
       return res.render("embeds/instance");
     }
   } catch (e) {
-    console.error(e, "error", req.ctx.instance);
     return res.sendStatus(500);
   }
 };

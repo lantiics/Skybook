@@ -48,9 +48,10 @@ export const authenticate = async (
       );
       user = authenticatedUser;
     } catch (e) {
-      if (e instanceof UnauthorizedError) {
-      } else {
-        console.error(e); // during development
+      if (!(e instanceof UnauthorizedError)) {
+        console.error(
+          "An error occurred during middleware authentication " + e,
+        );
       }
     }
   }

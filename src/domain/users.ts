@@ -102,7 +102,6 @@ export const createUser = async (
     const token = await createSession(name, DB);
     return token;
   } catch (e) {
-    console.error(e);
     throw e;
   }
 };
