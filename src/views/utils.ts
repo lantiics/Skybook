@@ -9,7 +9,6 @@ export const renderWithLayout = (
 ) => {
   req.app.render(view, { ...locals, ctx: req.ctx }, (err, innerHtml) => {
     if (err) {
-      console.error(err);
       return res.sendStatus(500);
     }
 
