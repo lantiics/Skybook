@@ -1,5 +1,9 @@
 import { doProxy, doVpn, doTor } from "./update-ip-lists";
-import { expireOldAccounts, expireOldInvitations } from "./expirations";
+import {
+  expireOldAccounts,
+  expireOldInvitations,
+  unblockLapsedIps,
+} from "./expirations";
 import {
   tryPurgeGlobalCache,
   tryPurgeLoginCache,
@@ -11,6 +15,7 @@ const hourly = Bun.cron("0 * * * *", async () => {
   await deleteEligibleAccounts();
   await expireOldAccounts();
   await expireOldInvitations();
+  await unblockLapsedIps();
   await doProxy();
   await doVpn();
   await doTor();
