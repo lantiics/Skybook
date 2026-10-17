@@ -5,6 +5,7 @@ import {
   disableUserMfa,
   enableUserMfa,
   userPasswordIsValid,
+  userTotpData,
 } from "../domain/users";
 import { verifyTotp } from "../domain/auth";
 import { config } from "../config";
@@ -38,20 +39,21 @@ router.post("/delete", async (req: Request, res: Response) => {
 
 router.post("/enable-totp", async (req: Request, res: Response) => {
   try {
-    const { secret, otp, password, codes } = req.body;
+    const { otp, password } = req.body;
 
-    if (!secret || !otp || !password || !codes)
+    if (!otp || !password)
       throw new BadRequestError("Required credentials not supplied");
     if (!(await userPasswordIsValid(req.ctx.user!.identifier, password)))
       throw new UnauthorizedError("Password incorrect");
-    if (!(await verifyTotp(secret, otp)))
+    if (
+      !(await verifyTotp(
+        (await userTotpData(req.ctx.user!.identifier)).secret,
+        otp,
+      ))
+    )
       throw new UnauthorizedError("Incorrect one time password supplied");
     console.log(req.ctx);
-    await enableUserMfa(
-      req.ctx.user!.identifier,
-      secret,
-      JSON.parse(atob(codes)),
-    );
+    await enableUserMfa(req.ctx.user!.identifier);
     res.clearCookie("session", {
       domain: config.skybook.domain,
     });
