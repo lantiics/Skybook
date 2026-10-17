@@ -22,8 +22,10 @@ const api = express.Router();
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.text());
-var logger = require("morgan");
-app.use(logger("dev"));
+if (process.env.NODE_ENV === "development") {
+  var logger = require("morgan");
+  app.use(logger("dev"));
+}
 app.use(cookieParser(process.env.COOKIE_SIGNING_SECRET));
 app.set("view engine", "ejs");
 app.set("views", "./src/views");
