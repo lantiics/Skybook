@@ -8,7 +8,6 @@ const config = raw as {
     subdomain_vanity: boolean;
     domain: string;
     header: string;
-    user_enforcements_enabled: boolean;
     invitation_required: boolean;
     username_max_length: number;
     username_min_length: number;
@@ -35,7 +34,6 @@ const config = raw as {
     expiration_period_hours: number;
   };
   users: {
-    indefinite_locking_threshold: number;
     expiration_threshold_days: number;
     expiration_grace_period_days: number;
   };
@@ -66,19 +64,12 @@ const config = raw as {
   };
   sessions: { expiry_days: number };
   tokens: { expiry_hours: number };
-  jobs: {
-    expiration_sweep_interval_minutes: number;
-    lift_enforcements_interval_minutes: number;
-  };
+  jobs: { expiration_sweep_interval_minutes: number };
   ip_blocking: {
-    global_block_threshold: number;
-    automated_enforcements_enabled: boolean;
-    blocking_timeframe_days_max: number;
     proxy_addresses_blocked: boolean;
     vpn_addresses_blocked: boolean;
     tor_addresses_blocked: boolean;
   };
-
   is_production: boolean;
 };
 config.is_production = process.env.NODE_ENV === "production";

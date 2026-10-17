@@ -4,10 +4,6 @@ proxies_between = 1
 subdomain_vanity = false
 cloudflare = false
 
-# Whether Skybook will automatically enforce actions on
-# accounts which are blocked by a meaningful
-# number of guestbooks
-user_enforcements_enabled=false
 domain="localhost"
 header=""
 username_max_length=20 # If altered, requires alteration of the `name` column in the `users` DB table, which defaults to VARCHAR(20)
@@ -58,7 +54,6 @@ verification_url = "https://challenges.cloudflare.com/turnstile/v0/siteverify" #
 expiration_period_hours = 24
 
 [users]
-indefinite_locking_threshold = 3
 expiration_threshold_days = 365
 expiration_grace_period_days = 7
 
@@ -95,15 +90,6 @@ expiration_sweep_interval_minutes = 60
 lift_enforcements_interval_minutes = 60
 
 [ip_blocking]
-
-# If an IP address receives global_block_threshold number of infringements
-# (e.g, blocked by N number of guestbook owners), 
-# we can temporarily block them from creating SKybook posts entirely.
-automated_enforcements_enabled = false
-global_block_threshold = 15
-
-blocking_timeframe_days_max = 30           # As IP addresses are not permanent identifiers, we expire all IP blocks after this timeframe.
-
 # We can block specific anonymizers from accessing Skybook entirely.
 # This overrides the blocking settings of individual guestbooks.
 proxy_addresses_blocked = true         
