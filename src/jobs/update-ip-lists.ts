@@ -139,6 +139,7 @@ export const doVpn = async () => {
 const TorDownloadURL = "https://www.dan.me.uk/torlist/?exit";
 export const doTor = async () => {
   if (!(await sourceElapsedMinutesUpdateThreshold("tor", "30"))) return;
+  console.time("Updated Tor IP addresses");
   const res = await fetch(TorDownloadURL, {
     headers: {
       "User-Agent": "Skybook IP blocklist updating (gitlab:lantics/skybook)",
@@ -160,6 +161,7 @@ export const doTor = async () => {
     await tx`DELETE FROM blocklist_ranges WHERE source = 'tor'`;
     await tx`INSERT INTO blocklist_ranges (source, range) SELECT 'tor', unnest(${literal}::text[])::cidr ON CONFLICT DO NOTHING`;
   });
+  console.timeEnd("Updated Tor IP addresses");
 };
 
 export const reindex = async () => {

@@ -31,7 +31,6 @@ export const authenticate = async (
   res: Response,
   next: NextFunction,
 ) => {
-  console.time("Authenticated");
   if (
     config.ip_blocking.proxy_addresses_blocked ||
     config.ip_blocking.vpn_addresses_blocked ||
@@ -75,8 +74,6 @@ export const authenticate = async (
     token: token,
     identifier: req.params.identifier as string,
   };
-
-  console.timeEnd("Authenticated");
 
   next();
 };
