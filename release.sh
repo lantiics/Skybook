@@ -29,8 +29,9 @@ TAG="v$v"
 
 echo "Releasing $TAG"
 read -rp "Continue? [y/N] " ok; [[ "$ok" == y ]] || { echo aborted; exit 1; }
-NOTES=$(git cliff --unreleased --tag "$TAG" --strip all)
 if $push; then
+bun pm version $TAG --no-git-tag-version
+git add package.json
 docker buildx build -t lanticss/skybook:latest -t lanticss/skybook:$TAG --push .
 bun git-cliff --tag "$TAG" -o CHANGELOG.md
 git add CHANGELOG.md
