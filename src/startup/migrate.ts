@@ -9,7 +9,7 @@ if (!process.env.SUPERUSER_DB_URL)
   );
 
 export const runMigrations = async () => {
-  console.log("Running migrations");
+  console.time("Ran migrations");
   const MIGRATOR = new SQL({ url: process.env.SUPERUSER_DB_URL, max: 1 });
   try {
     await MIGRATOR`SELECT pg_advisory_lock(${MIGRATION_LOCK_KEY})`;
@@ -26,11 +26,12 @@ export const runMigrations = async () => {
     ).sort();
 
     for (const name of files.filter((f) => !migrated.has(f))) {
-      console.log(`Applying migration ${name}`);
+      console.time(`Applied migration ${name}`);
       await MIGRATOR.begin(async (tx) => {
         await tx.file(join(dir, name));
         await tx`INSERT INTO schema_migrations (name) VALUES (${name})`;
       });
+      console.timeEnd(`Applied migration ${name}`);
     }
     const writerURL = new URL(process.env.WRITE_DB_URL!);
     const readerURL = new URL(process.env.READ_DB_URL!);
@@ -45,7 +46,7 @@ export const runMigrations = async () => {
       () => {},
     );
     await MIGRATOR.close();
-    console.log("Finished running migrations");
+    console.timeEnd("Ran migrations");
   }
 };
 

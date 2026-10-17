@@ -3,7 +3,6 @@ import { NotFoundError } from "../errors";
 import { revokeAllSessions } from "./sessions";
 import { RequestContext } from "../types/context";
 import { userUUID } from "./users";
-import { config } from "../config.ts";
 import { User } from "../types/entities";
 export const userInformation = async (UUID: User["identifier"]) => {
   const [uI] =

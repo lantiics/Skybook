@@ -34,7 +34,6 @@ const validatedEntry = async (
   fields: Record<string, any>,
   isEdit: boolean = false,
 ): Promise<Record<string, unknown>> => {
-  // console.time("Validated entry");
   const instanceStatus = await compiledInstanceStatus(ctx.instance);
   if (!instanceStatus.submission_enabled.status && !ctx.elevated)
     throw new UnauthorizedError("Submission is disabled");
@@ -161,7 +160,6 @@ const validatedEntry = async (
   }
   fields.extra = extra;
   entry = { ...entry, ...fields };
-  // console.timeEnd("Validated entry");
   return entry;
 };
 
@@ -301,8 +299,6 @@ export const blockPostCreator = async (
     await READER`SELECT ip_hash,authenticated_user_identifier FROM posts WHERE identifier = ${identifier} AND instance = ${ctx.instance}`;
   await WRITER.begin(async (tx) => {
     await tx`INSERT INTO instance_blocks (instance, ip_hash, user_identifier, reason) VALUES (${ctx.instance},${postData.ip_hash},${postData.authenticated_user_identifier},${reason})`;
-    const [{ count: blockCount }] =
-      await tx`SELECT COUNT(*) FROM instance_blocks WHERE ip_hash = ${postData.ip_hash} OR user_identifier = ${postData.authenticated_user_identifier}`;
   });
 };
 export const unblockPostCreator = async (
