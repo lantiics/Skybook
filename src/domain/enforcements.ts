@@ -144,7 +144,8 @@ export const tryGlobalBlock = async (
 };
 
 export const globalBlock = async (ipHash: string, DB = WRITER) => {
+  const reason = `SYSTEM: Exceeded per-instance block threshold of ${config.ip_blocking.global_block_threshold}`;
   await DB`
-    INSERT INTO global_ip_blocks (ip_hash, reason) VALUES (${ipHash}, ${DB`SYSTEM: Exceeded per-instance block threshold of ${config.ip_blocking.global_block_threshold}`})
+    INSERT INTO global_ip_blocks (ip_hash, reason) VALUES (${ipHash}, ${reason})
     ON CONFLICT (ip_hash) DO NOTHING`;
 };
