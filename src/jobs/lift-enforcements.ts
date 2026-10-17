@@ -10,7 +10,7 @@ export const unblockLapsedIps = async (): Promise<void> => {
 
 export const liftUserEnforcements = async () => {
   const expiredEnforcements =
-    await SUPERUSER`SELECT user_identifier,type,id FROM user_enforcements WHERE expires_at < NOW()`;
+    await SUPERUSER`SELECT user_identifier,type,id FROM user_enforcements WHERE expires_at IS NOT NULL AND NOT is_expired AND expires_at < NOW()`;
 
   for (const enforcement of Object.values(
     expiredEnforcements,
