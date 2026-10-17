@@ -17,7 +17,6 @@ The official hosted instance of Skybook is available at [skybook.page](https://s
 - Toggle submission, visibility of your guestbook
 - Optionally require approval for all entries before they become visible
 - The ability to block post creators
-  - This contributes to a global record which can result in the IP address associated with the post being temporarily blocked (IP addresses are not immutable identifiers), or the account associated to be permanently disabled (deleted after 1 year, or as specified per Skybook instance)
 - The ability for users to flag posts on your guestbook
   - Posts which surpass a user-defined threshold of flags automatically become queued
   - Flagging can be disabled per-post, and is always unavailable for the guestbook owner

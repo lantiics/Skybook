@@ -21,7 +21,6 @@ import { Field, Mutable, Post } from "../types/entities.ts";
 import { hashIp, ipSource } from "./ip.ts";
 import { userCanBeBlocked, userCanPost } from "./users.ts";
 import { config } from "../config.ts";
-import { tryGlobalBlock, tryUserEnforcement } from "./enforcements.ts";
 import { purgeInstanceCache } from "./cache.ts";
 import { notifyUser } from "./notifications.ts";
 import { RE2JS } from "re2js";
@@ -305,9 +304,6 @@ export const blockPostCreator = async (
     await tx`INSERT INTO instance_blocks (instance, ip_hash, user_identifier, reason) VALUES (${ctx.instance},${postData.ip_hash},${postData.authenticated_user_identifier},${reason})`;
     const [{ count: blockCount }] =
       await tx`SELECT COUNT(*) FROM instance_blocks WHERE ip_hash = ${postData.ip_hash} OR user_identifier = ${postData.authenticated_user_identifier}`;
-    await tryGlobalBlock(postData.ip_hash, blockCount, tx);
-    if (postData.authenticated_user_identifier)
-      await tryUserEnforcement(postData.authenticated_user_identifier);
   });
 };
 export const unblockPostCreator = async (
