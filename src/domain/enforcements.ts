@@ -11,7 +11,6 @@ export const userInformation = async (UUID: User["identifier"]) => {
   if (uI === undefined) {
     throw new NotFoundError("Requested user could not be found");
   }
-  console.log(uI);
   return uI;
 };
 const userEnforcementStatus = async (name: User["name"]) => {

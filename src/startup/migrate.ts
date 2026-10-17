@@ -9,6 +9,7 @@ if (!process.env.SUPERUSER_DB_URL)
   );
 
 export const runMigrations = async () => {
+  console.log("Running migrations");
   const MIGRATOR = new SQL({ url: process.env.SUPERUSER_DB_URL, max: 1 });
   try {
     await MIGRATOR`SELECT pg_advisory_lock(${MIGRATION_LOCK_KEY})`;
@@ -44,6 +45,7 @@ export const runMigrations = async () => {
       () => {},
     );
     await MIGRATOR.close();
+    console.log("Finished running migrations");
   }
 };
 

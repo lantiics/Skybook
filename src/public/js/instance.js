@@ -163,7 +163,6 @@ const actOnPost = async (post, actionButton) => {
         }
       case "block":
         const blockReason = window.prompt("Reason?");
-        console.log(blockReason);
 
         const block = await fetch(
           `/api/${instanceName()}/entry/${identifier}/block`,
@@ -285,15 +284,12 @@ const editPost = async (post, field) => {
     else msg = "Post returned " + res.status;
     throw new PostAlterationError("Failed to edit post: " + msg);
   } else {
-    // const newContent = (await res.json())[fieldName];
-    // field.innerText = field.innerText;
     field.setAttribute("data-original-content", field.innerText);
   }
 };
 
 const checkForAlterableEntries = () => {
   const entries = document.querySelectorAll("[data-can-alter]");
-  console.log(entries);
 
   for (const entry of entries) {
     if (localStorage.getItem(`ENTRY-${postIdentifier(entry)}`)) {
@@ -314,7 +310,6 @@ const addEditListeners = () => {
   const fields = document
     .getElementById("entries")
     .querySelectorAll("[contentEditable]");
-  console.log(fields);
   for (const field of fields) {
     field.setAttribute("data-original-content", field.innerText);
     field.addEventListener("keypress", async (e) => {
@@ -350,7 +345,6 @@ const submitEntry = async (identifier, fields) => {
     const identifier = (await res.json()).identifier;
     const token = res.headers.get("token");
     localStorage.setItem(`ENTRY-${identifier}`, token);
-    console.log(res.status);
     if (res.status === 201) {
       location.reload();
     } else if (res.status === 202) {
@@ -366,7 +360,6 @@ const reply = async (post, message = null) => {
   const prompt = message ?? window.prompt("message");
   if (prompt) {
     const message = prompt;
-    // console.log(author, message);
     const res = await fetch(
       `/api/${instanceName()}/entry/${identifier}/reply`,
       {
@@ -385,7 +378,6 @@ document.addEventListener("DOMContentLoaded", () => {
     .getElementById("submission-form")
     .addEventListener("submit", function (e) {
       e.preventDefault();
-      console.log(this);
       const formData = new URLSearchParams(new FormData(this));
       this.querySelector("fieldset").disabled = true;
       fetch(this.action, {

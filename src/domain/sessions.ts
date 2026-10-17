@@ -48,7 +48,6 @@ export const getSessionUser = async (
 export const revokeSession = async (token: Session["token"]): Promise<void> => {
   token = new Bun.CryptoHasher("sha256").update(token).digest("hex");
   const r = await WRITER`DELETE FROM sessions WHERE token = ${token}`;
-  console.log(r, "a");
 };
 export const revokeAllSessions = async (
   identifier: User["identifier"],

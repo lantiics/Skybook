@@ -103,7 +103,6 @@ router.post(
         req.body[config.captcha.token_property_name],
       );
       delete req.body[config.captcha.token_property_name];
-      console.log(req.body, "aa");
       const createdEntry = await createPost(req.ctx, req.body);
       if (createdEntry.token) {
         res.setHeader(
@@ -469,7 +468,6 @@ router
       try {
         req.body.name = req.params.field;
         const field = await setField(req.ctx.instance, req.body);
-        console.log(field, "mhm");
         return res.status(201).send(field);
       } catch (e) {
         return res.sendStatus(errorStatus(e, req.ctx.elevated));
@@ -496,7 +494,6 @@ router.patch(
   async (req: Request, res: Response) => {
     if (!req.ctx.elevated) return res.sendStatus(403);
     try {
-      console.log(req.body, "reason");
       await blockPostCreator(
         req.ctx,
         req.params.identifier as string,

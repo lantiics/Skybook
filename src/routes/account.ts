@@ -52,7 +52,6 @@ router.post("/enable-totp", async (req: Request, res: Response) => {
       ))
     )
       throw new UnauthorizedError("Incorrect one time password supplied");
-    console.log(req.ctx);
     await enableUserMfa(req.ctx.user!.identifier);
     res.clearCookie("session", {
       domain: config.skybook.domain,
