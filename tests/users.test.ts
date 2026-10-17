@@ -1,6 +1,6 @@
-import { test, expect, describe, afterAll } from "bun:test";
+import { test, expect, describe, afterAll, onTestFinished } from "bun:test";
 import { baseTOTPUser, baseUser, ctx, harnessedUser } from "./harness";
-import { createUser, loginUser } from "@/domain/users";
+import { createUser, loginUser, regenerateRecoveryCodes } from "@/domain/users";
 import { NotFoundError, UnauthorizedError, UnavailableError } from "@/errors";
 import { withLoginDisabled, withSignupDisabled } from "./skybook.test";
 import { generateOTP } from "root/src/domain/auth";
@@ -42,6 +42,28 @@ describe("TOTP", async () => {
         await generateOTP(baseTOTPUser.mfa.secret),
       ),
     ).resolves.toBeTypeOf("string");
+  });
+  test("Logging in with valid MFA code after already having consumed a valid MFA code succeeds", async () => {
+    onTestFinished(async () => {
+      baseTOTPUser.mfa.codes = await regenerateRecoveryCodes(
+        baseTOTPUser.identifier,
+        baseTOTPUser.password,
+      );
+    });
+    expect(
+      loginUser(
+        baseTOTPUser.name,
+        baseTOTPUser.password,
+        baseTOTPUser.mfa.codes![0],
+      ),
+    ).resolves.toBeString();
+    expect(
+      loginUser(
+        baseTOTPUser.name,
+        baseTOTPUser.password,
+        baseTOTPUser.mfa.codes![1],
+      ),
+    ).resolves.toBeString();
   });
 });
 
