@@ -1,21 +1,21 @@
 import { config } from "./config.ts";
-import {injectSecrets} from "@/startup/inject-secrets"
-injectSecrets()
+import { injectSecrets } from "@/startup/inject-secrets";
+injectSecrets();
 import cookieParser from "cookie-parser";
 import { authenticate } from "./middleware/authenticate.ts";
 import { resolveInstance } from "./middleware/resolve-instance.ts";
 import express from "express";
 import { runMigrations } from "@startup/migrate";
-await runMigrations()
-require("./jobs/cron.ts")
+await runMigrations();
+require("./jobs/cron.ts");
 const VERSION = hash("SHA1", Date.now().toString()).slice(0, 8);
 const app = express();
 app.locals.assetVersion = VERSION;
 app.set("trust proxy", config.skybook.proxies_between);
 
-const PORT = process.env.PORT||3000
+const PORT = process.env.PORT || 3000;
 app.listen(PORT);
-console.log("Listening on port "+PORT)
+console.log("Listening on port " + PORT);
 var path = require("path");
 const api = express.Router();
 
@@ -45,7 +45,6 @@ api.use("/account", authenticate, account);
 api.use("/auth", users);
 
 api.use("/:instance", resolveInstance, authenticate, router);
-console.log("using instance");
 
 const skybook = express.Router();
 skybook.use(authenticate, pagesRouter);
@@ -85,7 +84,7 @@ app.use(function (err, req, res, next) {
   }
   // render the error page
   res.status(err.status || 500);
-  console.error(err.status, err.message, err, process.env)
+  console.error(err.status, err.message, err, process.env);
   res.render("error");
 });
 export default app;

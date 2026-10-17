@@ -35,7 +35,6 @@ router.get("/regen-recovery-gate", async (req: Request, res: Response) => {
 router.post("/new-recovery-codes", async (req: Request, res: Response) => {
   try {
     if (!req.ctx.user) return res.sendStatus(401);
-    console.log(req.ctx.user);
     const codes = await regenerateRecoveryCodes(
       req.ctx.user.identifier,
       req.body.password,

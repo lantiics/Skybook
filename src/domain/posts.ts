@@ -255,7 +255,6 @@ export const editPost = async (
       delete extra[k];
     }
   });
-  console.log("extra: ", extra, "fields: ", entry, toDelete);
   // convert array of fields to be deleted into a postgres-compatible array
   const literal = `{${toDelete.map((s) => `"${s.replace(/"/g, '\\"')}"`).join(",")}}`;
 
@@ -532,10 +531,6 @@ export const pageCount = async (ctx: RequestContext) => {
 
 export const countPosts = async (ctx: RequestContext) => {
   const filter = ctx.elevated ? "" : "AND NOT is_queued AND is_visible";
-  console.log(
-    await READER`SELECT COUNT(*) FROM posts WHERE instance = ${ctx.instance} ${READER.unsafe(filter)}`,
-    "this the countttt",
-  );
   return (
     await READER`SELECT COUNT(*) FROM posts WHERE instance = ${ctx.instance}  ${READER.unsafe(filter)}`
   )[0].count;

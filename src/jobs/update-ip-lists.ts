@@ -80,28 +80,21 @@ export const doProxy = async () => {
     });
     const BATCH = 1000;
     let batch: string[] = [];
-    console.log("beginning");
     await SUPERUSER.begin(async (tx) => {
-      console.log("delete");
       await tx`DELETE FROM blocklist_ranges WHERE source = 'proxy'`;
-      console.log("deleted, querying");
       for await (const ip of rl) {
         batch.push(ip);
         if (batch.length >= BATCH) {
           const literal = `{${batch.map((s) => `"${s.replace(/"/g, '\\"')}"`).join(",")}}`;
-          console.log(literal);
-
           await tx`INSERT INTO blocklist_ranges (source, range) SELECT 'proxy', unnest(${literal}::text[])::cidr`;
           batch = [];
         }
       }
       if (batch.length) {
         const literal = `{${batch.map((s) => `"${s.replace(/"/g, '\\"')}"`).join(",")}}`;
-        console.log(literal);
         await tx`INSERT INTO blocklist_ranges (source, range) SELECT 'proxy', unnest(${literal}::text[])::cidr`;
       }
     });
-    console.log("done");
   } finally {
     rmSync(tmpDir, { recursive: true, force: true });
   }
@@ -152,7 +145,6 @@ export const doTor = async () => {
     },
   });
   if (!res.ok) return;
-  console.log("it was ok");
   const text = await res.text();
 
   const ips: string[] = text

@@ -21,7 +21,6 @@ const openTab = (btn, tabName) => {
 
 const toggleStatus = async (btn) => {
   event.preventDefault();
-  console.log("arr");
   const action = btn.getAttribute("data-action");
   btn.disabled = true;
   try {
@@ -69,7 +68,6 @@ const toggleStatus = async (btn) => {
     }
 
     btn.checked = !btn.checked;
-    console.log(btn.checked);
     btn.removeAttribute("disabled");
   } catch (e) {
     const errorMessage = errorStatus(e.message);
@@ -258,7 +256,6 @@ const createNewField = async (btn) => {
       "th > input#newfield-filter",
     );
     const fieldFilter = fieldFilterElem.value;
-    console.log(fieldName);
     if (fieldName.length > 50 || fieldName.replace(/ /g, "").length === 0) {
       throw new Error("Field name is not permitted");
     }
@@ -409,7 +406,6 @@ const initializeEventListeners = () => {
     const em = document.querySelector(
       `tr[data-field-name=${JSON.stringify(field)}] > th`,
     );
-    console.log(em.getAttribute("contenteditable"), field);
     if (!em.getAttribute("contenteditable")) continue;
     em.addEventListener("keydown", (event) => {
       if (event.key === "Enter" && !event.shiftKey) {

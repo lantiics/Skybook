@@ -99,8 +99,6 @@ const instanceLogic = async (
     const status = await compiledInstanceStatus(req.ctx.instance);
     res.locals.status = status;
     if (status.is_visible.status || req.ctx.elevated) {
-      console.log(req.query.p);
-
       const posts = await getPosts(req.ctx, page, false);
       if (!posts[0] && page !== 0)
         return res.redirect(`/${req.ctx.instance}?p=${pages}`);
@@ -113,7 +111,6 @@ const instanceLogic = async (
         )
           post.authentic = true;
         post.creator_blocked = (parseInt(post.block_count) || 0) > 0;
-        console.log(post);
         if (post.authenticated_user_identifier === req.ctx.user?.identifier) {
           post.postedByRequestor = true;
         } else {
@@ -124,8 +121,6 @@ const instanceLogic = async (
         } else {
           post.extra = Object.entries(post.extra);
         }
-
-        console.log(post.extra, "yea");
       }
       res.locals.posts = posts;
     }
@@ -139,7 +134,6 @@ const instanceLogic = async (
       (res.locals.filter = await instanceSuppliedFilter(req.ctx.instance)) ??
         "";
       const notificationInfo = await instanceNotificationInfo(req.ctx.instance);
-      console.log(notificationInfo);
       res.locals.notifications = {
         enabled: typeof notificationInfo.notification_endpoint == "string",
         service: notificationInfo.notification_service,

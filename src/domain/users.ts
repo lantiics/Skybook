@@ -279,7 +279,6 @@ export const changeUserPassword = async (
     | "can_change_password"
     | "password_hash"
   >;
-  console.log(userEntry);
   if (
     !userEntry.can_change_password ||
     !(await Bun.password.verify(oldPassword, userEntry.password_hash)) ||
