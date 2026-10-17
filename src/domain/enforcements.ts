@@ -85,6 +85,9 @@ export const toggleUserPosting = async (ctx: RequestContext, name: string) => {
   await WRITER`UPDATE users SET can_post = NOT can_post WHERE name = ${name}`;
 };
 
+// Guestbook owners can only block users who have made entries on their guestbook;
+// This is done by using the information associated with a post a guestbook owner has
+// opted to block the creator of.
 export const tryUserEnforcement = async (UUID: string, DB = READER) => {
   if (!config.skybook.user_enforcements_enabled) return;
   const history =
@@ -109,14 +112,14 @@ export const tryUserEnforcement = async (UUID: string, DB = READER) => {
   const intLongBlocks = parseInt(longUserBlocks);
   if (!enforced) {
     switch (intBlocks) {
-      case 3:
+      case 4:
         await temporarilyBlockUserPosting(
           UUID,
           2 * 24 * 60 * 60 * 1000,
           "SYSTEM: Exceeded 30 day block threshold",
         );
         break;
-      case 5:
+      case 6:
         await temporarilyLockUser(
           UUID,
           2 * 24 * 60 * 60 * 1000,
@@ -124,7 +127,7 @@ export const tryUserEnforcement = async (UUID: string, DB = READER) => {
         );
         break;
     }
-    if (intBlocks >= 6 || intLongBlocks >= 9)
+    if (intBlocks >= 8 || intLongBlocks >= 11)
       await toggleUserLocked("SYSTEM: Exceeded block threshold", UUID);
   }
   return;
