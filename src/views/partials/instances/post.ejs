@@ -7,7 +7,7 @@
     <% if (ctx.elevated && post.flag_count) {%> | flagged <%=post.flag_count%> times <%}%> <% if (ctx.elevated && post.creator_blocked && post.block_reason) {%> | blocked: <%=post.block_reason%> <%}%>
   </div>
   <div>
-    <div class="entry-author <% if (post.authentic) {%> authentic-author <% } %>" data-field="author" spellcheck="false" contenteditable="<%=((post.authenticated_user_identifier==(ctx.user ? ctx.user.identifier:'not an identifier'))||ctx.elevated&&!post.sys_lock||ctx.superAdmin)%>">
+    <div class="entry-author <% if (post.is_authentic) {%> authentic-author <% } %>" data-field="author" spellcheck="false" contenteditable="<%=((post.authenticated_user_identifier==(ctx.user ? ctx.user.identifier:'not an identifier'))||ctx.elevated&&!post.sys_lock||ctx.superAdmin)%>">
     <%= post.author %>
   </div>
 </div>

@@ -104,12 +104,6 @@ const instanceLogic = async (
         return res.redirect(`/${req.ctx.instance}?p=${pages}`);
       for (const post of posts) {
         post.added = new Date(post.added).toUTCString();
-        if (
-          post.authenticated_user_name &&
-          post.authenticated_user_name.toLowerCase().replace(/ /g, "") ===
-            post.author.toLowerCase()
-        )
-          post.authentic = true;
         post.creator_blocked = (parseInt(post.block_count) || 0) > 0;
         if (post.authenticated_user_identifier === req.ctx.user?.identifier) {
           post.postedByRequestor = true;
