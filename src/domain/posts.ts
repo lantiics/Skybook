@@ -241,7 +241,7 @@ export const editPost = async (
   const columns = (
     ctx.elevated ? [...PRIVATE_COLUMN_NAMES] : [...PUBLIC_COLUMN_NAMES]
   ).join(",");
-  if (ctx.user) fields.last_edited_by = ctx.user.identifier;
+  if (ctx.user) entry.last_edited_by = ctx.user.identifier;
   const hasExtra = Object.keys(extra as Record<any, any>).length > 0;
   const hasFields = Object.keys(entry).length > 0;
   if (!hasExtra && !hasFields) throw new BadRequestError("No fields specified");
@@ -494,9 +494,8 @@ export const getPosts = async (
   if (returnsPublic) {
     columnList = columnList.replace(/,authenticated_user_identifier/, "");
   }
+  columnList = columnList.replace(/([a-zA-Z0-9_]+)/g, "posts.$1");
   if (ctx.elevated) {
-    columnList = columnList.replace("ip_hash", "posts.ip_hash");
-    columnList = columnList.replace("instance", "posts.instance");
     columnList += ",instance_blocks.reason AS block_reason";
     columnList += `,(
     SELECT COUNT(*)
@@ -505,17 +504,24 @@ export const getPosts = async (
     AND (ib.ip_hash = posts.ip_hash OR ib.user_identifier = posts.authenticated_user_identifier)
     ) AS block_count`;
   }
-  const query = ctx.elevated
-    ? READER`LEFT JOIN instance_blocks
-      ON posts.instance = instance_blocks.instance
-      AND (posts.ip_hash = instance_blocks.ip_hash OR posts.authenticated_user_identifier = instance_blocks.user_identifier)
-    WHERE posts.instance = ${ctx.instance}`
-    : READER`WHERE instance = ${ctx.instance}`;
+  const query = READER`
+  ${
+    ctx.elevated
+      ? READER`LEFT JOIN instance_blocks
+    ON posts.instance = instance_blocks.instance
+    AND (posts.ip_hash = instance_blocks.ip_hash OR posts.authenticated_user_identifier = instance_blocks.user_identifier)`
+      : READER``
+  }
+    LEFT JOIN users
+      ON posts.authenticated_user_identifier = users.identifier
+      AND posts.author = users.name
+    WHERE posts.instance = ${ctx.instance}`;
+  columnList +=
+    ",users.identifier IS NOT NULL AND posts.last_edited_by IS NOT NULL AND posts.last_edited_by = posts.authenticated_user_identifier AS is_authentic";
   const entries = await READER`SELECT ${READER.unsafe(columnList)} FROM posts
-      ${query}
+      ${query} 
     ${additionalRequirements}
     ORDER BY ${order} LIMIT ${perPage} OFFSET ${page * perPage}`;
-
   return entries;
 };
 
