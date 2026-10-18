@@ -37,25 +37,7 @@
   color: var(--on-danger);
 }
 
-.caution {
-}
-
-/* .success {
-  background-color: var(--success);
-   color:var(--on-success); 
-  &:not(:disabled) {
-    color: var(--on-success);
-    background-color: var(--success);
-    box-shadow: var(--success) 0px 0px 8px;
-  }
-} */
-
-.loading {
-}
-
 .information-box {
-  /* border: 2px solid var(--border-color); */
-
   padding: 6px;
   border-radius: var(--secondary-brad);
   background-color: var(--tertiary-container);
@@ -71,7 +53,6 @@
 
 select,
 ::picker(select) {
-  /* background-color: red; */
   appearance: base-select;
   border-radius: var(--tertiary-brad);
   background-color: var(--tertiary-container);
@@ -88,7 +69,6 @@ select,
 a {
   color: var(--href);
   text-decoration: underline dotted;
-
   &:hover {
     text-decoration: underline;
   }
@@ -102,7 +82,6 @@ a {
   color: var(--on-secondary);
   min-width: 2rem;
   text-align: center;
-
   &:hover {
     filter: brightness(90%);
     text-decoration: none;
@@ -120,7 +99,6 @@ th:is([contenteditable="true"]) {
   transition: border 75ms;
   border: 1px groove transparent;
   border-radius: var(--secondary-brad);
-
   &:hover {
     border-color: color-mix(in hsl, var(--border-color) 70%, white 30%);
   }
@@ -130,9 +108,6 @@ th:is([contenteditable="true"]) {
     outline: none;
   }
 }
-
-/* .container {
-} */
 
 h1,
 h2 {
@@ -212,13 +187,9 @@ form {
   gap: 4px;
   border-radius: var(--primary-brad);
   padding: var(--primary-padding);
-
   @media only screen and (max-width: 600px) {
     scale: 110%;
   }
-}
-
-form.authentication {
 }
 
 fieldset {
@@ -260,7 +231,6 @@ textarea {
 }
 
 input:is([type="submit"]) {
-  /* border: none; */
   background-color: var(--tertiary-container);
   color: var(--on-tertiary);
   font-weight: bold;
@@ -306,24 +276,14 @@ input[type="file"]::file-selector-button {
   color: var(--on-tertiary);
 }
 
-input {
-  /* height: 3vh; */
-  /* width: 30vw;
-  height: 6vh; */
-  /* font-size: large; */
-}
-
 textarea {
   resize: none;
   width: 22vw;
   height: 12vh;
-
   @media only screen and (max-width: 600px) {
     width: 60vw;
   }
 }
-
-/* */
 
 .fs-popup-container {
   position: fixed;
@@ -344,7 +304,6 @@ textarea {
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  /* display: none; */
   margin: auto;
   place-items: center;
   z-index: 1;
@@ -353,7 +312,6 @@ textarea {
   background-color: var(--bg-color);
   border-radius: var(--primary-brad);
   border: 1px groove var(--border-color);
-
   @media only screen and (max-width: 600px) {
     width: 95vw;
     min-height: 50vh;
@@ -381,19 +339,15 @@ textarea {
   font-weight: bold;
   text-align: center;
   border: 2px solid rgba(255, 166, 0, 0.08);
-
   transition-behavior: allow-discrete;
   transition-property: transform, display, opacity, bottom;
   transition-duration: 350ms;
   transition-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1);
   opacity: 0;
-
   @media only screen and (max-width: 600px) {
     right: unset;
     width: 80vw;
   }
-
-  /* box-shadow: rgba(0, 0, 0, 0.489) -2px 2px 9px; */
 }
 
 .btm-popup.visible {
@@ -427,7 +381,6 @@ textarea {
   flex-wrap: wrap;
   align-items: center;
   flex-direction: row;
-
   margin: 0 auto;
   justify-content: center;
   gap: 0.4rem;
@@ -455,7 +408,6 @@ textarea {
 .tab-pane.active {
   display: flex;
   flex-direction: column;
-
   place-items: center;
   column-gap: 1rem;
 }
