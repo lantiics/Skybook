@@ -463,21 +463,19 @@ textarea {
 /* END tabs */
 
 cap-widget {
-  --cap-background: transparent;
+  --cap-background: var(--primary-container);
   --cap-border-color: var(--border-color);
   --cap-border-radius: 14px;
   --cap-widget-height: 45px;
   --cap-widget-width: 280px;
   --cap-widget-padding: 14px;
   --cap-gap: 15px;
-  --cap-color: var(--on-tertiary);
+  --cap-color: var(--on-primary);
   --cap-checkbox-size: 25px;
-  --cap-checkbox-border: 1px solid var(--on-tertiary);
+  --cap-checkbox-border: 1px solid var(--on-primary);
   --cap-checkbox-border-radius: 6px;
   --cap-checkbox-background: transparent;
   --cap-checkbox-margin: 2px;
-  --cap-font: monospace;
-  --cap-spinner-color: var(--on-tertiary);
+  --cap-spinner-color: var(--on-primary);
   --cap-spinner-background-color: var(--border-color);
-  --cap-spinner-thickness: 2px;
 }
