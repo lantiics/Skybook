@@ -135,12 +135,12 @@ button,
       transform 75ms 25ms;
 
     &:hover {
-      filter: brightness(90%);
+      filter: brightness(115%);
       cursor: pointer;
     }
 
     &:active {
-      filter: brightness(70%);
+      filter: brightness(85%);
       transform: scale(90%);
     }
   }
@@ -151,7 +151,7 @@ button,
   }
 
   &:is([disabled]) {
-    filter: brightness(90%) saturate(60%);
+    filter: brightness(85%) saturate(60%);
     &:hover {
       cursor: not-allowed;
     }
@@ -177,7 +177,7 @@ button,
   font-weight: bold;
   &:hover {
     text-decoration: none;
-    filter: brightness(90%);
+    filter: brightness(115%);
   }
 }
 
@@ -238,7 +238,7 @@ input:is([type="submit"]) {
 
   &:not(:disabled) {
     &:hover {
-      filter: brightness(90%);
+      filter: brightness(115%);
       cursor: pointer;
     }
 
