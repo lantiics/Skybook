@@ -242,6 +242,7 @@ const addPostActionButtons = (post) => {
     });
   const deleteButton = Object.assign(document.createElement("button"), {
     className: "deleteBtn",
+    className: "deleteBtn",
     onclick: () => actOnPost(post, deleteButton),
   });
   deleteButton.setAttribute("data-action", "delete");
@@ -318,6 +319,7 @@ const addEditListeners = () => {
         if (field.innerText != field.getAttribute("data-original-content")) {
           if (!field.getAttribute("data-reply-to")) {
             await editPost(field.parentNode.parentNode, field);
+            field.blur();
           } else {
             await reply(
               field.parentNode.parentNode.parentNode,
