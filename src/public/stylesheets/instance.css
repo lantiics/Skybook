@@ -166,7 +166,7 @@ main {
   border: 1px solid var(--border-color);
 }
 .entry:hover {
-  border-color: color-mix(in hsl, var(--border-color) 70%, black 30%);
+  border-color: color-mix(in hsl, var(--border-color) 85%, white 15%);
 }
 .entry.queued {
   --border-color: var(--caution);
