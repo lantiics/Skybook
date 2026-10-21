@@ -19,18 +19,22 @@
     <span>Entry flagging</span>
     <input type="checkbox" class="instance-switch" name="entryFlagging" id="instanceEntryFlagging" data-action="entry-flagging" <% if (status.flagging_enabled.status) {%> checked <%}%> onclick="toggleStatus(this)">
   </div>
-</div>
-<label for="queueFlagThreshold">Number of times a post has to be flagged before being automatically placed into a queue:</label>
+</div><br/>
+<label for="queueFlagThreshold"><abbr title="Number of times a post has to be flagged before being automatically placed into a queue">?</abbr> Flag threshold</label>
 <input id="queueFlagThreshold" value="<%=status.queue_flags_threshold.status%>" type="number">
 <br />
+<% if (skybook.instance_notifications || notifications.url) {%> 
 <div>
-  <span>Receive a notification when a new post is created</span>
+  <% if (!skybook.instance_notifications) {%><div class="information-box" style="font-size: small;padding:3px;">notifications are currently unavailable on this skybook instance<br/><br/><%} else {%>
+  <span>Receive a notification when a new post is created</span><% } %>
   <div>
     <label for="available-notification-services">Service:</label>
-    <select name="available-notification-services"   id="available-notification-services">
+    <select name="available-notification-services"   id="available-notification-services" <% if (!skybook.instance_notifications) {%>disabled title="notifications are currently unavailable on this skybook instance"<%}%>>
       <% for (service of skybook.instance_notification_services) {%><option value="<%=service%>" <%= service==notifications.service?"selected":""%>><%=service%></option> <%}%>
     </select>
     <label for="notification-service-url">URL:</label>
-    <input id="notification-service-url" placeholder="<%=notifications.enabled?'endpoint URL':'notifications unavailable'%>" <% if (notifications.enabled) {%> value="<%=notifications.url%>"<%}%>>
+    <input id="notification-service-url" placeholder="endpoint URL" value="<%=notifications.url%>">
   </div>
+  <% if (!skybook.instance_notifications) {%></div> <%}%>
 </div>
+<%}%>
