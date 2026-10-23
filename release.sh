@@ -32,6 +32,8 @@ read -rp "Continue? [y/N] " ok; [[ "$ok" == y ]] || { echo aborted; exit 1; }
 ./minify-clientside-js.sh
 NOTES=$(git cliff --unreleased --tag "$TAG" --strip all)
 if $push; then
+bun pm version $v --no-git-tag-version
+git add package.json
 docker buildx build -t lanticss/skybook:latest -t lanticss/skybook:$TAG --push .
 bun git-cliff --tag "$TAG" -o CHANGELOG.md
 git add CHANGELOG.md
