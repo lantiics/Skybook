@@ -1,3 +1,8 @@
+## [0.12.3] - 2026-10-23
+
+### <!-- 7 -->⚙️ Miscellaneous Tasks
+
+- Update bun version in dockerfile 
 ## [0.12.2] - 2026-10-17
 
 ### <!-- 1 -->🐛 Bug Fixes
@@ -9,6 +14,7 @@
 ### <!-- 7 -->⚙️ Miscellaneous Tasks
 
 - Update package.json version 
+- V0.12.2 
 ## [0.12.1] - 2026-10-12
 
 ### <!-- 1 -->🐛 Bug Fixes
