@@ -81,8 +81,8 @@ export const createUser = async (
   if (password.length < 8) {
     throw new ForbiddenError("Password is too short");
   }
-
-  if (await signupInvitationRequired()) {
+  const inviteRequired = await signupInvitationRequired();
+  if (inviteRequired) {
     if (!invite) throw new UnauthorizedError("No invitation provided");
     if (!(await invitationIsValid(invite)))
       throw new UnauthorizedError("Provided invitation token is invalid");
@@ -92,7 +92,7 @@ export const createUser = async (
     const userIdentifier = crypto.randomUUID();
     const user = await DB.begin(async (tx) => {
       const [user] =
-        await tx`INSERT INTO users (name, identifier, password_hash, ip_hash) VALUES (${name},${userIdentifier},${password},${hashIp(ip)}) RETURNING name`;
+        await tx`INSERT INTO users (name, identifier, password_hash, ip_hash ${inviteRequired ? tx`, invited_by` : tx``}) VALUES (${name},${userIdentifier},${password},${hashIp(ip)}${inviteRequired ? tx`, ${(await tx`SELECT created_by FROM invitations WHERE token=${new Bun.CryptoHasher("sha256", process.env.INVITATION_HASH_SECRET).update(invite!).digest("base64")}`)[0].created_by}` : tx``}) RETURNING name`;
 
       await tx`INSERT INTO instances (name, user_identifier) VALUES (${name}, ${userIdentifier})`;
 
