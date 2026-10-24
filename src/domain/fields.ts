@@ -70,6 +70,10 @@ export const setField = async (
       "Unable to alter required/replacement status for field 'content'",
     );
   }
+  if (field.name === "author" && field.is_required === false)
+    throw new BadRequestError(
+      "Attempted to disable requirement of author field",
+    );
   if (
     !["content", "author"].includes(field.name) &&
     !fieldNameAccepted(field.name)
