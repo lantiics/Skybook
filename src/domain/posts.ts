@@ -4,6 +4,7 @@ import {
   FilteredError,
   NotFoundError,
   BadRequestError,
+  LengthError,
 } from "../errors.ts";
 import { RequestContext } from "../types/context.ts";
 import { generateToken, entryTokenValid } from "./tokens.ts";
@@ -146,9 +147,9 @@ const validatedEntry = async (
   let extra: Record<string, string> = {};
   for (const [field, content] of Object.entries(fields)) {
     if (field === "author" && content.length > config.fields.author_max_length)
-      throw new FilteredError("Field length is above limit");
+      throw new LengthError("Field length is above limit");
     else if (content && content.length > config.fields.typical_max_length)
-      throw new FilteredError("Field length is above limit");
+      throw new LengthError("Field length is above limit");
     if (!["author", "content"].includes(field)) {
       if (!validFields.has(field))
         throw new BadRequestError(
@@ -168,6 +169,8 @@ export const replyToPost = async (
   identifier: string,
   message: string,
 ) => {
+  if (message.length > config.fields.typical_max_length)
+    throw new LengthError("Field length is above limit");
   await WRITER`UPDATE posts SET reply = ${message} WHERE identifier = ${identifier} AND instance = ${ctx.instance}`;
   purgeInstanceCache(ctx.instance);
 };

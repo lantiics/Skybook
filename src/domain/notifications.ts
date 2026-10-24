@@ -2,13 +2,14 @@ import { config } from "../config";
 import { READER } from "../db";
 import crypto from "node:crypto";
 import { Instance, Post } from "../types/entities";
+import { LengthError } from "../errors";
 
 export const notificationUrlIsValidForService = (
   service: string,
   url: string,
 ) => {
   if (!url.startsWith("https://")) return false;
-  if (url.length >= 400) return false;
+  if (url.length >= 400) throw new LengthError("URL Length is too large");
   switch (service) {
     case "ntfy":
       break; // NTFY can be self-hosted.
