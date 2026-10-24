@@ -370,7 +370,7 @@ const reply = async (post, message = null) => {
         body: JSON.stringify({ content: message }),
       },
     );
-    if (!res.ok) createPopup(res.status.toString(), 3000);
+    if (!res.ok) createPopup(errorStatus(res.status.toString()), 3000);
     else location.reload();
   }
 };
