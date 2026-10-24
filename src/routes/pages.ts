@@ -16,9 +16,12 @@ import {
   signupInvitationRequired,
 } from "../domain/service-settings.ts";
 import { decryptedURL } from "../domain/notifications.ts";
+import { errorStatus } from "../errors.ts";
+import "http-errors";
+import createHttpError from "http-errors";
 const router = Router();
 
-router.get("/", async (req: Request, res: Response) => {
+router.get("/", async (req: Request, res: Response, next: NextFunction) => {
   try {
     res.locals.subdomain_vanity = config.skybook.subdomain_vanity;
     res.locals.domain = config.skybook.domain;
@@ -26,62 +29,75 @@ router.get("/", async (req: Request, res: Response) => {
     res.locals.authenticated = req.ctx.authenticated;
     return renderWithLayout(req, res, "pages/about", res.locals);
   } catch (e) {
-    return res.sendStatus(500);
-  }
-});
-router.get("/features", async (req: Request, res: Response) => {
-  try {
-    res.locals.subdomain_vanity = config.skybook.subdomain_vanity;
-    res.locals.domain = config.skybook.domain;
-    res.locals.user = req.ctx.user;
-    res.locals.authenticated = req.ctx.authenticated;
-    res.locals.title = "Features - Skybook";
-
-    return renderWithLayout(req, res, "pages/features", res.locals);
-  } catch (e) {
-    return res.sendStatus(500);
+    next(createHttpError(errorStatus(e, false)));
   }
 });
 
-router.get("/signup", async (req: Request, res: Response) => {
-  try {
-    res.locals.authAction = "signup";
-    res.locals.captcha = config.captcha;
-    res.locals.signupEnabled = await signupEnabled();
-    res.locals.title = "Sign up - Skybook";
-    res.setHeader("Cache-Tag", "skybook-signup");
-    return renderWithLayout(req, res, "pages/signup", res.locals);
-  } catch (e) {
-    return res.sendStatus(500);
-  }
-});
-router.get("/login", async (req: Request, res: Response) => {
-  try {
-    res.locals.authAction = "login";
-    res.locals.captcha = config.captcha;
-    res.locals.loginEnabled = await loginEnabled();
-    res.locals.title = "Log in - Skybook";
-    res.setHeader("Cache-Tag", "skybook-login");
-    return renderWithLayout(req, res, "pages/login", res.locals);
-  } catch (e) {
-    return res.sendStatus(500);
-  }
-});
+router.get(
+  "/features",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      res.locals.subdomain_vanity = config.skybook.subdomain_vanity;
+      res.locals.domain = config.skybook.domain;
+      res.locals.user = req.ctx.user;
+      res.locals.authenticated = req.ctx.authenticated;
+      res.locals.title = "Features - Skybook";
 
-router.get("/account", async (req: Request, res: Response) => {
-  if (!req.ctx.authenticated) {
-    return res.redirect("/login");
-  }
-  try {
-    res.locals.skybook = {
-      signupRequiresInvitation: await signupInvitationRequired(),
-    };
-    res.locals.title = "My account - Skybook";
-    renderWithLayout(req, res, "pages/account", res.locals);
-  } catch (e) {
-    return res.sendStatus(500);
-  }
-});
+      return renderWithLayout(req, res, "pages/features", res.locals);
+    } catch (e) {
+      next(createHttpError(errorStatus(e, false)));
+    }
+  },
+);
+
+router.get(
+  "/signup",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      res.locals.authAction = "signup";
+      res.locals.captcha = config.captcha;
+      res.locals.signupEnabled = await signupEnabled();
+      res.locals.title = "Sign up - Skybook";
+      res.setHeader("Cache-Tag", "skybook-signup");
+      return renderWithLayout(req, res, "pages/signup", res.locals);
+    } catch (e) {
+      next(createHttpError(errorStatus(e, false)));
+    }
+  },
+);
+router.get(
+  "/login",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      res.locals.authAction = "login";
+      res.locals.captcha = config.captcha;
+      res.locals.loginEnabled = await loginEnabled();
+      res.locals.title = "Log in - Skybook";
+      res.setHeader("Cache-Tag", "skybook-login");
+      return renderWithLayout(req, res, "pages/login", res.locals);
+    } catch (e) {
+      next(createHttpError(errorStatus(e, false)));
+    }
+  },
+);
+
+router.get(
+  "/account",
+  async (req: Request, res: Response, next: NextFunction) => {
+    if (!req.ctx.authenticated) {
+      return res.redirect("/login");
+    }
+    try {
+      res.locals.skybook = {
+        signupRequiresInvitation: await signupInvitationRequired(),
+      };
+      res.locals.title = "My account - Skybook";
+      renderWithLayout(req, res, "pages/account", res.locals);
+    } catch (e) {
+      next(createHttpError(errorStatus(e, false)));
+    }
+  },
+);
 const instanceLogic = async (
   req: Request,
   res: Response,
@@ -160,7 +176,7 @@ const instanceLogic = async (
       return res.render("embeds/instance");
     }
   } catch (e) {
-    return res.sendStatus(500);
+    next(createHttpError(errorStatus(e, false)));
   }
 };
 export const instanceRouter = Router();
