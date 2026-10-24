@@ -16,6 +16,34 @@ export const injectSecrets = () => {
     });
     process.env.IP_HASH_SECRET = secret;
   }
+  if (!process.env.SESSION_HASH_SECRET) {
+    const fs = require("fs");
+    const secret = require("crypto").randomBytes(32).toString("hex");
+    fs.appendFile(".env", `\nSESSION_HASH_SECRET=${secret}`, (err: Error) => {
+      if (err) throw err;
+    });
+    process.env.SESSION_HASH_SECRET = secret;
+  }
+  if (!process.env.TOKEN_HASH_SECRET) {
+    const fs = require("fs");
+    const secret = require("crypto").randomBytes(32).toString("hex");
+    fs.appendFile(".env", `\nTOKEN_HASH_SECRET=${secret}`, (err: Error) => {
+      if (err) throw err;
+    });
+    process.env.TOKEN_HASH_SECRET = secret;
+  }
+  if (!process.env.INVITATION_HASH_SECRET) {
+    const fs = require("fs");
+    const secret = require("crypto").randomBytes(32).toString("hex");
+    fs.appendFile(
+      ".env",
+      `\nINVITATION_HASH_SECRET=${secret}`,
+      (err: Error) => {
+        if (err) throw err;
+      },
+    );
+    process.env.INVITATION_HASH_SECRET = secret;
+  }
   if (!process.env.NOTIFICATION_URL_KEY) {
     const fs = require("fs");
     const secret = require("crypto").randomBytes(32).toString("hex");

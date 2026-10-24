@@ -208,7 +208,7 @@ export const createPost = async (
       await tx`INSERT INTO posts ${tx(entry)} RETURNING ${tx.unsafe(columns)}`;
     const [{ expires_at: tokenExpiresIn }] = await tx`
   INSERT INTO tokens (instance, identifier, token, created_at, expires_at)
-  VALUES (${entry.instance},  ${row.identifier}, ${_token}, NOW(), (NOW() + make_interval(hours => ${config.tokens.expiry_hours}))) RETURNING expires_at
+  VALUES (${entry.instance},  ${row.identifier}, ${_token.hashed}, NOW(), (NOW() + make_interval(hours => ${config.tokens.expiry_hours}))) RETURNING expires_at
 `;
 
     return [row, tokenExpiresIn];
@@ -218,7 +218,7 @@ export const createPost = async (
   await notifyUser(ctx.instance, row[0]);
   return {
     row: row[0],
-    token: _token,
+    token: _token.token,
     tokenExpires: row[1],
     wasQueued: entry.is_queued,
   };
