@@ -89,7 +89,7 @@ export const createUser = async (
   }
   try {
     password = await Bun.password.hash(password);
-    const userIdentifier = generateToken();
+    const userIdentifier = crypto.randomUUID();
     const user = await DB.begin(async (tx) => {
       const [user] =
         await tx`INSERT INTO users (name, identifier, password_hash, ip_hash) VALUES (${name},${userIdentifier},${password},${hashIp(ip)}) RETURNING name`;

@@ -5,6 +5,9 @@ import { Invitation, User } from "../types/entities";
 export const invitationIsValid = async (
   token: Invitation["token"],
 ): Promise<boolean> => {
+  token = new Bun.CryptoHasher("sha256", process.env.INVITATION_HASH_SECRET)
+    .update(token)
+    .digest("base64");
   if (
     !(
       await READER`SELECT EXISTS(SELECT 1 FROM invitations WHERE token = ${token} AND uses < 3)`
@@ -18,7 +21,7 @@ export const invitationIsValid = async (
 export const invalidateInvitation = async (
   token: Invitation["token"],
 ): Promise<void> => {
-  await WRITER`DELETE FROM invitations WHERE token = ${token}`;
+  await WRITER`DELETE FROM invitations WHERE token = ${new Bun.CryptoHasher("sha256", process.env.INVITATION_HASH_SECRET).update(token).digest("base64")}`;
 };
 export const newInvitation = async (
   creatorIdentifier: User["identifier"],
@@ -29,9 +32,16 @@ export const newInvitation = async (
     throw new UnauthorizedError(
       "User is not permitted to create service invitations",
     );
+
   const token = crypto.randomUUID();
+  const hashed = new Bun.CryptoHasher(
+    "sha256",
+    process.env.INVITATION_HASH_SECRET,
+  )
+    .update(token)
+    .digest("base64");
   const [row] =
-    await WRITER`INSERT INTO invitations (token, created_by, created_at, uses) VALUES (${token}, ${creatorIdentifier}, now(), 0)
+    await WRITER`INSERT INTO invitations (token, created_by, created_at, uses) VALUES (${hashed}, ${creatorIdentifier}, now(), 0)
     ON CONFLICT (created_by)
     DO UPDATE SET token=EXCLUDED.token,created_at=EXCLUDED.created_at,uses=EXCLUDED.uses,last_used=NULL
     RETURNING token`;
