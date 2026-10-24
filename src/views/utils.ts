@@ -13,7 +13,7 @@ export const renderWithLayout = (
     }
 
     res.render("layout", {
-      title: locals.title ?? "Skybook",
+      title: locals.title ?? "Skybook - Your fully open source guestbook",
       body: innerHtml,
       ctx: req.ctx,
       skybook: config.skybook,
