@@ -394,10 +394,7 @@ document.addEventListener("DOMContentLoaded", () => {
           if (res.status === 201) {
             location.reload();
           } else if (res.status === 202)
-            createPopup(
-              "Your entry was filtered and will require manual approval before becoming visible",
-              3000,
-            );
+            createPopup("Your entry will be visible after approval", 3000);
         })
         .catch((e) => {
           appendWidget();
