@@ -16,18 +16,18 @@ The official hosted instance of Skybook is available at [skybook.page](https://s
 - Ability to reply to entries
 - Toggle submission, visibility of your guestbook
 - Optionally require approval for all entries before they become visible
-- The ability to block post creators
-- The ability for users to flag posts on your guestbook
-  - Posts which surpass a user-defined threshold of flags automatically become queued
-  - Flagging can be disabled per-post, and is always unavailable for the guestbook owner
-  - Each account/IP address can only flag a post once, we store post flaggers alongside account identifiers/their hashed IP address
+- The ability to block entry creators
+- The ability for users to flag entries on your guestbook
+  - Entries which surpass a user-defined threshold of flags automatically become queued
+  - Flagging can be disabled per entry, and is always unavailable for the guestbook owner
+  - Each account/IP address can only flag an entry once, we store entry flaggers alongside account identifiers/their hashed IP address
 - Filters (utilizing regular expressions)
   - Custom per-field filters
   - Custom guestbook-wide filters (applies to all fields)
-  - Optionally queue filtered posts (otherwise, they are immediately discarded)
+  - Optionally queue filtered entries (otherwise, they are immediately discarded)
 - Creation of custom fields
 - Toggling requirement of fields
-  - Optionally, specify a replacement value for a field which is required. If no replacement value is specified, posts without that field specified will be rejected.
+  - Optionally, specify a replacement value for a field which is required. If no replacement value is specified, entries without that field specified will be rejected.
 - Exports
 - Imports (maximum of 1000 entries)
 - Iframe embedding @ yourinstance/embed
