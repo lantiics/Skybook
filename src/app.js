@@ -82,6 +82,7 @@ app.use(function (err, req, res, next) {
   }
   // render the error page
   res.status(err.status || 500);
+  res.locals.canonical = `${req.protocol}://${req.hostname}${req.path}`;
   res.render("error");
 });
 export default app;
