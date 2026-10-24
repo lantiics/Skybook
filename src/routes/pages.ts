@@ -174,6 +174,8 @@ instanceRouter.get(
   "/embed",
   async (req: Request, res: Response, next: NextFunction) => {
     res.setHeader("Content-Security-Policy", "frame-ancestors *;");
+    res.locals.canonical = `${req.protocol}://${req.ctx.instance}.${config.skybook.domain}`;
+    res.locals.protocol = req.protocol;
     return await instanceLogic(req, res, next, true);
   },
 );
