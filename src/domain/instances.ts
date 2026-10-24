@@ -292,6 +292,9 @@ export const updateInstanceQueueFlaggedThreshold = async (
 ): Promise<void> => {
   if (Math.sign(threshold) === -1)
     throw new BadRequestError("Threshold must be positive");
+  if (threshold > 10000) {
+    throw new LengthError("Flag threshold is above configured length limit");
+  }
   await WRITER`UPDATE instances SET queue_flags_threshold = ${threshold} WHERE name = ${instance}`;
 };
 
