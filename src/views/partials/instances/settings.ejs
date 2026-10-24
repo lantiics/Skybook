@@ -12,7 +12,7 @@
     <input type="checkbox" class="instance-switch" name="approval" id="instanceApproval" data-action="approval" <% if (status.approval_required.status) {%>checked <% } %> onclick="toggleStatus(this)">
   </div>
   <div class="instance-switch-container">
-    <span>Queue filtered posts</span>
+    <span>Queue filtered entries</span>
     <input type="checkbox" class="instance-switch" name="queueFiltered" id="instanceQueueFiltered" data-action="queue-filtered" <% if (status.queue_on_filtered.status) {%>checked <% } %> onclick="toggleStatus(this)">
   </div>
   <div class="instance-switch-container">
@@ -20,16 +20,16 @@
     <input type="checkbox" class="instance-switch" name="entryFlagging" id="instanceEntryFlagging" data-action="entry-flagging" <% if (status.flagging_enabled.status) {%> checked <%}%> onclick="toggleStatus(this)">
   </div>
 </div><br/>
-<label for="queueFlagThreshold"><abbr title="Number of times a post has to be flagged before being automatically placed into a queue">?</abbr> Flag threshold</label>
+<label for="queueFlagThreshold"><abbr title="Number of times an entry has to be flagged before being automatically placed into a queue">?</abbr> Flag threshold</label>
 <input id="queueFlagThreshold" value="<%=status.queue_flags_threshold.status%>" type="number">
 <br />
 <% if (skybook.instance_notifications || notifications.url) {%> 
 <div>
-  <% if (!skybook.instance_notifications) {%><div class="information-box" style="font-size: small;padding:3px;">notifications are currently unavailable on this skybook instance<br/><br/><%} else {%>
-  <span>Receive a notification when a new post is created</span><% } %>
+  <% if (!skybook.instance_notifications) {%><div class="information-box" style="font-size: small;padding:3px;">notifications are currently unavailable on this Skybook instance<br/><br/><%} else {%>
+  <span>Receive a notification when a new entry is created</span><% } %>
   <div>
     <label for="available-notification-services">Service:</label>
-    <select name="available-notification-services"   id="available-notification-services" <% if (!skybook.instance_notifications) {%>disabled title="notifications are currently unavailable on this skybook instance"<%}%>>
+    <select name="available-notification-services"   id="available-notification-services" <% if (!skybook.instance_notifications) {%>disabled title="notifications are currently unavailable on this Skybook instance"<%}%>>
       <% for (service of skybook.instance_notification_services) {%><option value="<%=service%>" <%= service==notifications.service?"selected":""%>><%=service%></option> <%}%>
     </select>
     <label for="notification-service-url">URL:</label>
