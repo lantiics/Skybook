@@ -32,6 +32,16 @@ router.get("/", async (req: Request, res: Response, next: NextFunction) => {
     next(createHttpError(errorStatus(e, false)));
   }
 });
+router.get(
+  "/privacy",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      return renderWithLayout(req, res, "pages/privacy", res.locals);
+    } catch (e) {
+      next(createHttpError(errorStatus(e, false)));
+    }
+  },
+);
 
 router.get(
   "/features",
