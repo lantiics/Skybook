@@ -1,6 +1,6 @@
 <script src="/js/auth.min.js?v=<%=assetVersion%>"></script>
 <% if (captcha.enabled && captcha.implementation==='cap') { %><script src="https://cdn.jsdelivr.net/npm/cap-widget@latest"></script> <% } %>
-<% if (authAction==='signup') {%><% if (signupInvitationRequired) {%> <h2>An invitation from an existing user is currently required to make an account.</h2> <%} }%>
+<% if (authAction==='signup') {%><% if (signupInvitationRequired) {%> <div class="information-box">An invitation from an existing user is currently required to make an account.</div> <%} }%>
 
 <form class="authentication" action="/api/auth/<%=authAction%>" method="POST" id="authentication" style="place-items: center;">
   <fieldset id="fs">
