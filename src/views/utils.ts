@@ -17,6 +17,9 @@ export const renderWithLayout = (
       body: innerHtml,
       ctx: req.ctx,
       skybook: config.skybook,
+      canonical:
+        locals.canonical ?? `${req.protocol}://${req.hostname}${req.path}`,
+      protocol: req.protocol,
     });
   });
 };

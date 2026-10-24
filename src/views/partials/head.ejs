@@ -180,10 +180,11 @@ const toggleNav = () => {
 
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
+<link rel="canonical" href="<%=canonical%>" />
 <title><%=title%></title>
 <meta property="og:title" content="<%=ctx?.instance?ctx.instance+'\'s guestbook - Skybook':'Skybook - Your fully open source guestbook'%>">
 <meta name="description" content="Skybook is a fully open source guestbook service with an extended focus on privacy and security. You can create and moderate a guestbook for your online persona with ease.">
 <meta property="og:description" content="Skybook is a fully open source guestbook hosting service with an extended focus on privacy and security. You can quickly and easily create and moderate a guestbook for your online persona, website, or similar.">
 <meta property="og:site_name" content="Skybook">
+
 <script src="/js/main.min.js?v=<%=assetVersion%>"></script>
