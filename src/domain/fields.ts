@@ -89,6 +89,15 @@ export const setField = async (
     is_required: field.is_required,
   };
   if (field.replacement) {
+    if (
+      field.replacement.length > config.fields.typical_max_length ||
+      (field.name === "author" &&
+        field.replacement.length > config.fields.author_max_length)
+    ) {
+      throw new LengthError(
+        "Field replacement length is above configured limits",
+      );
+    }
     record.replacement = field.replacement;
   }
   if (field.filter) {
