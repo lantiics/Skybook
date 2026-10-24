@@ -73,11 +73,7 @@ app.use(function (err, req, res, next) {
   res.locals.title = err.status;
   if (err.status === 404) {
     if (req.host !== config.skybook.domain && req.path == "/") {
-      return res.redirect(`http://${config.skybook.domain}`);
-    } else {
-      return res.redirect(
-        `http://${req.ctx.instance ? req.ctx.instance + "." : ""}${config.skybook.domain}`,
-      );
+      return res.redirect(`${req.protocol}://${config.skybook.domain}`);
     }
   }
   // render the error page
