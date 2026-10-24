@@ -4,6 +4,10 @@ Skybook is a fully open-source, self-hostable guestbook host akin to [123Guestbo
 
 The official hosted instance of Skybook is available at [skybook.page](https://skybook.page)
 
+![](https://img.shields.io/badge/gitlab-repo-red?logo=gitlab) ![](https://badgen.net/docker/pulls/lanticss/skybook) ![](https://badgen.net/gitlab/issues/lantics/skybook) ![](https://badgen.net/gitlab/open-issues/lantics/skybook) ![](https://badgen.net/gitlab/releases/lantics/skybook) ![](https://badgen.net/gitlab/release/lantics/skybook)
+
+![](https://badgen.net/gitlab/license/lantics/skybook)
+
 ## Features:
 
 - Hashing of all stored IP addresses (alongside a salt)
