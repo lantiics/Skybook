@@ -1,8 +1,6 @@
-# Skybook
+# <img src="skybook.png">
 
-Skybook is a fully open-source, self-hostable guestbook host akin to [123Guestbook](https://www.123guestbook.com) and [Atabook](https://atabook.org).
-
-Skybook is currently unfinished but in a very usable state.
+Skybook is a fully open-source, self-hostable guestbook host akin to [123Guestbook](https://www.123guestbook.com) and [Atabook](https://atabook.org). Skybook is highly focused on user privacy and security, and attempts to store as little data as possible. All sensitive data is always stored as a salted hash, or encrypted.
 
 The official hosted instance of Skybook is available at [skybook.page](https://skybook.page)
 
