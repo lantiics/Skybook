@@ -413,6 +413,7 @@ const initializeEventListeners = () => {
       }
     });
   }
+  try {
   document
     .getElementById("notification-service-url")
     .addEventListener("keydown", async (e) => {
@@ -424,6 +425,9 @@ const initializeEventListeners = () => {
         }
       }
     });
+  } catch (e) {
+    if (!(e instanceof TypeError)) throw e;
+  }
 };
 const removeEventListeners = () => {
   const fieldReplacementElems = document.querySelectorAll(
