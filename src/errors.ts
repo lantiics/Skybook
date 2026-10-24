@@ -75,7 +75,6 @@ export class LengthError extends Error {
 }
 
 export const errorStatus = (e: unknown, elevated: boolean): number => {
-  console.error(e);
   if (
     e instanceof ReservedError ||
     e instanceof InvalidStatusError ||
