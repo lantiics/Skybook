@@ -57,6 +57,7 @@ router.get(
       res.locals.authAction = "signup";
       res.locals.captcha = config.captcha;
       res.locals.signupEnabled = await signupEnabled();
+      res.locals.signupInvitationRequired = await signupInvitationRequired();
       res.locals.title = "Sign up - Skybook";
       res.setHeader("Cache-Tag", "skybook-signup");
       return renderWithLayout(req, res, "pages/signup", res.locals);
@@ -92,6 +93,7 @@ router.get(
         signupRequiresInvitation: await signupInvitationRequired(),
       };
       res.locals.title = "My account - Skybook";
+      res.locals.invitations = config.invitations;
       renderWithLayout(req, res, "pages/account", res.locals);
     } catch (e) {
       next(createHttpError(errorStatus(e, false)));
