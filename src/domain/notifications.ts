@@ -8,6 +8,7 @@ export const notificationUrlIsValidForService = (
   url: string,
 ) => {
   if (!url.startsWith("https://")) return false;
+  if (url.length >= 400) return false;
   switch (service) {
     case "ntfy":
       break; // NTFY can be self-hosted.
@@ -15,6 +16,8 @@ export const notificationUrlIsValidForService = (
       break;
     case "discord":
       if (!url.startsWith("https://discord.com/api")) return false;
+    default:
+      return false;
   }
   return true;
 };
