@@ -16,6 +16,7 @@ export interface User {
   readonly pending_deletion: boolean;
   readonly delete_at: Date;
   readonly can_be_blocked: boolean;
+  readonly last_totp_window?: number;
 }
 
 export interface Session {

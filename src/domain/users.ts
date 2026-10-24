@@ -165,7 +165,13 @@ export const loginUser = async (
       throw new UnauthorizedError("No MFA credential provided");
     }
     if (/^[0-9]{6}$/.test(mfaCredential)) {
-      if (!(await verifyTotp(userEntry.totp_secret!, mfaCredential)))
+      if (
+        !(await verifyTotp(
+          userEntry.totp_secret!,
+          mfaCredential,
+          userEntry.identifier,
+        ))
+      )
         throw new UnauthorizedError("Invalid one-time password provided");
     } else {
       if (
