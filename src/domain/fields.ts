@@ -98,6 +98,9 @@ export const setField = async (
         "Field replacement length is above configured limits",
       );
     }
+    if (field.replacement.replace(/ /g, "").length === 0) {
+      throw new BadRequestError("Field replacement cannot be blank");
+    }
     record.replacement = field.replacement;
   }
   if (field.filter) {
