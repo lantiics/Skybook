@@ -12,7 +12,6 @@ if [ ! -z "$(git status --porcelain)" ]; then
 echo "Working branch is not clean; exiting"
 exit 1
 fi
-read -rp "Have all version numbers been updated? [y/N] " ok; [[ "$ok" == y ]] || { echo aborted; exit 1; }
 
 LAST_TAG=$(git tag --list 'v[0-9]*' --sort=-v:refname | grep -v -- '-' | head -1 || true)
 
