@@ -10,7 +10,7 @@ export const invitationIsValid = async (
       await READER`SELECT EXISTS(SELECT 1 FROM invitations WHERE token = ${token} AND uses < 3)`
     )[0].exists
   ) {
-    throw new NotFoundError("Specified invitation token is invalid");
+    throw new UnauthorizedError("Specified invitation token is invalid");
   }
   await WRITER`UPDATE invitations SET uses = uses + 1, last_used = now() WHERE token = ${token}`;
   return true;
