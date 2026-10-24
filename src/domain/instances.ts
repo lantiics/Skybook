@@ -1,7 +1,12 @@
 import { RequestContext } from "../types/context.ts";
 import { Instance, Mutable, Post, User } from "../types/entities.ts";
 import { READER, WRITER } from "../db.ts";
-import { BadRequestError, LockedError, UnavailableError } from "../errors.ts";
+import {
+  BadRequestError,
+  LengthError,
+  LockedError,
+  UnavailableError,
+} from "../errors.ts";
 import { setField, allFieldsAreWritable } from "./fields.ts";
 import { config } from "../config.ts";
 import { purgeInstanceCache } from "./cache.ts";
@@ -268,7 +273,7 @@ export const updateInstanceSuppliedFilter = async (
   filter: string,
 ) => {
   if (filter.length > config.instances.max_global_filter_length)
-    throw new BadRequestError(
+    throw new LengthError(
       "Provided filter character count is above global filter limit",
     );
   try {

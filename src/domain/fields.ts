@@ -4,6 +4,7 @@ import { Field, Instance, Mutable } from "../types/entities.ts";
 import { RESERVED_COLUMN_NAMES } from "../defaults.ts";
 import {
   BadRequestError,
+  LengthError,
   ReservedError,
   UnauthorizedError,
 } from "../errors.ts";
@@ -92,9 +93,7 @@ export const setField = async (
   }
   if (field.filter) {
     if (field.filter.length > config.fields.max_filter_length)
-      throw new BadRequestError(
-        "Field filter is above maximum character length",
-      );
+      throw new LengthError("Field filter is above maximum character length");
     record.filter = field.filter;
   }
   return (
@@ -146,9 +145,7 @@ export const setFieldFilter = (
   filter: RegExp,
 ) => {
   if (filter.toString().length > config.fields.max_filter_length)
-    throw new BadRequestError(
-      "Provided filter character length is above limit",
-    );
+    throw new LengthError("Provided filter character length is above limit");
   try {
     new RegExp(filter);
   } catch {

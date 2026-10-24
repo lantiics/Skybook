@@ -67,6 +67,13 @@ export class UnavailableError extends Error {
   }
 }
 
+export class LengthError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "LengthError";
+  }
+}
+
 export const errorStatus = (e: unknown, elevated: boolean): number => {
   console.error(e);
   if (
@@ -82,6 +89,9 @@ export const errorStatus = (e: unknown, elevated: boolean): number => {
   if (e instanceof Bun.SQL.PostgresError && e.errno === "23505") {
     // "23505" corresponds to the SQLSTATE for a unique_violation error
     return 409;
+  }
+  if (e instanceof LengthError) {
+    return 413;
   }
   if (e instanceof FilteredError) return 422;
   if (e instanceof LockedError) return 423;
