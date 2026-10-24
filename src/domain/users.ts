@@ -29,7 +29,6 @@ import {
 } from "./auth.ts";
 import { config } from "../config.ts";
 import { hashIp } from "./ip.ts";
-import { generateToken } from "./tokens.ts";
 import { randomBytes } from "node:crypto";
 import { invitationIsValid } from "./invitations.ts";
 
@@ -87,23 +86,20 @@ export const createUser = async (
     if (!(await invitationIsValid(invite)))
       throw new UnauthorizedError("Provided invitation token is invalid");
   }
-  try {
-    password = await Bun.password.hash(password);
-    const userIdentifier = crypto.randomUUID();
-    const user = await DB.begin(async (tx) => {
-      const [user] =
-        await tx`INSERT INTO users (name, identifier, password_hash, ip_hash ${inviteRequired ? tx`, invited_by` : tx``}) VALUES (${name},${userIdentifier},${password},${hashIp(ip)}${inviteRequired ? tx`, ${(await tx`SELECT created_by FROM invitations WHERE token=${new Bun.CryptoHasher("sha256", process.env.INVITATION_HASH_SECRET).update(invite!).digest("base64")}`)[0].created_by}` : tx``}) RETURNING name`;
 
-      await tx`INSERT INTO instances (name, user_identifier) VALUES (${name}, ${userIdentifier})`;
+  password = await Bun.password.hash(password);
+  const userIdentifier = crypto.randomUUID();
+  const user = await DB.begin(async (tx) => {
+    const [user] =
+      await tx`INSERT INTO users (name, identifier, password_hash, ip_hash ${inviteRequired ? tx`, invited_by` : tx``}) VALUES (${name},${userIdentifier},${password},${hashIp(ip)}${inviteRequired ? tx`, ${(await tx`SELECT created_by FROM invitations WHERE token=${new Bun.CryptoHasher("sha256", process.env.INVITATION_HASH_SECRET).update(invite!).digest("base64")}`)[0].created_by}` : tx``}) RETURNING name`;
 
-      return user;
-    });
+    await tx`INSERT INTO instances (name, user_identifier) VALUES (${name}, ${userIdentifier})`;
 
-    const token = await createSession(name, DB);
-    return token;
-  } catch (e) {
-    throw e;
-  }
+    return user;
+  });
+
+  const token = await createSession(name, DB);
+  return token;
 };
 let DUMMY_PASSWORD_HASH: string;
 (async () => {
