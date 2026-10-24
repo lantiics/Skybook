@@ -10,7 +10,7 @@
   </tr>
   <% for (field of fields) {%> <tr data-field-name="<%=field.name%>">
     <th contenteditable="<%=!['content','author'].includes(field.name)%>" data-field="name"><%=field.name%></th>
-    <th><input type="checkbox" <% if (field.name==='content') { %> disabled <% } %> <% if (field.is_required) {%> checked <%}%> <% if (field.name!=='content') {%> onclick='toggleFieldRequired(this)' <%}%>></th>
+    <th><input type="checkbox" <% if (['content','author'].includes(field.name)) { %> disabled <% } %> <% if (field.is_required) {%> checked <%}%> <% if (field.name!=='content') {%> onclick='toggleFieldRequired(this)' <%}%>></th>
     <th ><input <% if (field.name==='content'||!field.is_required) {%> disabled <%}%> type="text" maxlength="50" value="<%=field.replacement%>" data-field-replacement="<%=field.name%>"></th>
     <th><input value="<%=field.filter%>" maxlength="1000" data-field-filter="<%=field.name%>" placeholder="EXCLUDE DELIMITERS (e.g, */*hello*/*)"></th>
     <% if (!['author','content'].includes(field.name)) {%> <th><button class="deleteBtn" onclick="deleteField(this)"></button></th> <%}%>
