@@ -414,17 +414,17 @@ const initializeEventListeners = () => {
     });
   }
   try {
-  document
-    .getElementById("notification-service-url")
-    .addEventListener("keydown", async (e) => {
-      if (e.key == "Enter") {
-        if (e.target.value !== "") {
-          enableEntryNotifications(e.target);
-        } else {
-          disableEntryNotifications(e.target);
+    document
+      .getElementById("notification-service-url")
+      .addEventListener("keydown", async (e) => {
+        if (e.key == "Enter") {
+          if (e.target.value !== "") {
+            enableEntryNotifications(e.target);
+          } else {
+            disableEntryNotifications(e.target);
+          }
         }
-      }
-    });
+      });
   } catch (e) {
     if (!(e instanceof TypeError)) throw e;
   }
