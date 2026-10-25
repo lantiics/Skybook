@@ -16,14 +16,14 @@ app.set("trust proxy", config.skybook.proxies_between);
 const PORT = process.env.PORT || 3000;
 app.listen(PORT);
 console.log("Listening on port " + PORT);
-var path = require("path");
+const path = require("path");
 const api = express.Router();
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.text());
 if (process.env.NODE_ENV === "development") {
-  var logger = require("morgan");
+  const logger = require("morgan");
   app.use(logger("dev"));
 }
 app.use(cookieParser(process.env.COOKIE_SIGNING_SECRET));
