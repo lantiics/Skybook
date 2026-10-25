@@ -195,8 +195,9 @@ export const createPost = async (
     can_flag: !ctx.elevated,
   };
 
-  if (ctx.user?.name) {
+  if (ctx.user?.identifier) {
     entry.authenticated_user_identifier = ctx.user.identifier;
+    entry.last_edited_by = ctx.user.identifier;
   }
 
   const columns = (
