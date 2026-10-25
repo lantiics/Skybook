@@ -1,6 +1,6 @@
 import { Glob, SQL } from "bun";
 import { join } from "node:path";
-import { encryptedSecret } from "../domain/auth";
+import { encryptedSecret } from "../domain/encryption";
 
 const MIGRATION_LOCK_KEY = 57568446;
 const dir = join(import.meta.dir, "../../migrations");
@@ -14,11 +14,13 @@ if (!process.env.SUPERUSER_DB_URL)
 // This one-off encrypts all MFA secrets.
 const MFA_ENCRYPTION_MIGRATION_IDENTIFIER = "PROGRAMMATIC-MFA-ENCRYPTION-0000";
 const encryptMFA = async (MIGRATOR: SQL) => {
+  if (!process.env.TOTP_SECRET_KEY)
+    throw new Error("TOTP secret key unavailable, unable to encrypt MFA data");
   const data: { identifier: string; totp_secret: string }[] =
     await MIGRATOR`SELECT totp_secret, identifier FROM users WHERE totp_secret IS NOT NULL`;
   await MIGRATOR.begin(async (TX) => {
     for (const { identifier, totp_secret: secret } of data) {
-      await TX`UPDATE users SET totp_secret=${encryptedSecret(secret, identifier)} WHERE identifier = ${identifier}`;
+      await TX`UPDATE users SET totp_secret=${encryptedSecret(secret, identifier, process.env.TOTP_SECRET_KEY!)} WHERE identifier = ${identifier}`;
     }
   });
   await MIGRATOR`INSERT INTO schema_migrations (name) VALUES (${MFA_ENCRYPTION_MIGRATION_IDENTIFIER})`;

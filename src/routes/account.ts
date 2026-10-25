@@ -12,7 +12,8 @@ import {
   userPasswordIsValid,
   userTotpData,
 } from "../domain/users";
-import { decryptedSecret, verifyTotp } from "../domain/auth";
+import { verifyTotp } from "../domain/auth";
+import { decryptedSecret } from "../domain/encryption";
 import { config } from "../config";
 
 const router = require("express").Router();
@@ -53,6 +54,8 @@ router.post("/enable-totp", async (req: Request, res: Response) => {
         "Attempted to enable TOTP as an unauthenticated user",
       );
     }
+    if (!process.env.TOTP_SECRET_KEY)
+      throw new Error("TOTP secret key unavailable, unable to enable TOTP");
     const { otp, password } = req.body;
     if (!otp || !password)
       throw new BadRequestError("Required credentials not supplied");
@@ -63,6 +66,7 @@ router.post("/enable-totp", async (req: Request, res: Response) => {
         decryptedSecret(
           (await userTotpData(req.ctx.user.identifier)).secret,
           req.ctx.user.identifier,
+          process.env.TOTP_SECRET_KEY,
         ),
         otp,
       ))

@@ -15,7 +15,7 @@ import {
   signupEnabled,
   signupInvitationRequired,
 } from "../domain/service-settings.ts";
-import { decryptedURL } from "../domain/notifications.ts";
+import { decryptedSecret } from "../domain/encryption.ts";
 import { errorStatus } from "../errors.ts";
 import "http-errors";
 import createHttpError from "http-errors";
@@ -160,12 +160,16 @@ const instanceLogic = async (
         enabled: typeof notificationInfo.notification_endpoint == "string",
         service: notificationInfo.notification_service,
         url:
-          typeof notificationInfo.notification_endpoint == "string"
-            ? decryptedURL(
+          typeof notificationInfo.notification_endpoint == "string" &&
+          process.env.NOTIFICATION_URL_KEY
+            ? decryptedSecret(
                 notificationInfo.notification_endpoint,
                 req.ctx.instance,
+                process.env.NOTIFICATION_URL_KEY,
               )
-            : null,
+            : typeof notificationInfo.notification_endpoint == "string"
+              ? "Unable to decrypt URL"
+              : null,
       };
       res.setHeader("Cache-Control", "private");
     }

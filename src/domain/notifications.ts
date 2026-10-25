@@ -3,6 +3,7 @@ import { READER } from "../db";
 import crypto from "node:crypto";
 import { Instance, Post } from "../types/entities";
 import { LengthError } from "../errors";
+import { decryptedSecret } from "./encryption";
 
 export const notificationUrlIsValidForService = (
   service: string,
@@ -23,36 +24,6 @@ export const notificationUrlIsValidForService = (
   return true;
 };
 
-export const encryptedURL = (url: string, instance: string) => {
-  const KEY = Buffer.from(process.env.NOTIFICATION_URL_KEY!, "hex");
-  const iv = crypto.randomBytes(12);
-  const c = crypto.createCipheriv("aes-256-gcm", KEY, iv);
-  c.setAAD(Buffer.from(instance));
-  const ct = Buffer.concat([c.update(url, "utf8"), c.final()]);
-  const tag = c.getAuthTag();
-  return [
-    "v2",
-    iv.toString("base64"),
-    tag.toString("base64"),
-    ct.toString("base64"),
-  ].join(":");
-};
-export const decryptedURL = (stored: string, instance: string) => {
-  const KEY = Buffer.from(process.env.NOTIFICATION_URL_KEY!, "hex");
-  const [v, iv, tag, ct] = stored.split(":");
-  if (v !== "v2") throw new Error("unsupported notification_endpoint format");
-  const d = crypto.createDecipheriv(
-    "aes-256-gcm",
-    KEY,
-    Buffer.from(iv, "base64"),
-  );
-  d.setAAD(Buffer.from(instance));
-  d.setAuthTag(Buffer.from(tag, "base64"));
-  return Buffer.concat([
-    d.update(Buffer.from(ct, "base64")),
-    d.final(),
-  ]).toString("utf8");
-};
 export const notifyUser = async (
   instance: Instance["name"],
   post: Post | null = null,
@@ -60,6 +31,8 @@ export const notifyUser = async (
   DB = READER,
 ) => {
   if (!config.skybook.instance_notifications) return;
+  if (!process.env.NOTIFICATION_URL_KEY)
+    throw new Error("No notification key is available, unable to notify user");
   const [
     {
       notification_endpoint: encryptedUrl,
@@ -68,7 +41,11 @@ export const notifyUser = async (
   ] =
     await DB`SELECT notification_endpoint,notification_service FROM instances WHERE name = ${instance}`;
   if (!encryptedUrl || !webhookService) return;
-  const userUrl = decryptedURL(encryptedUrl, instance);
+  const userUrl = decryptedSecret(
+    encryptedUrl,
+    instance,
+    process.env.NOTIFICATION_URL_KEY,
+  );
 
   let reqHeaders = {
     "User-Agent": `Skybook/${config.skybook.version} (instance-notifications; +https://${config.skybook.domain}; https://gitlab.com/lantics/skybook)`,

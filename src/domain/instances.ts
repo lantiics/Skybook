@@ -11,10 +11,10 @@ import { setField, allFieldsAreWritable } from "./fields.ts";
 import { config } from "../config.ts";
 import { purgeInstanceCache } from "./cache.ts";
 import {
-  encryptedURL,
   notificationUrlIsValidForService,
   notifyUser,
 } from "./notifications.ts";
+import { encryptedSecret, decryptedSecret } from "./encryption.ts";
 
 const EXPORTABLE_COLUMN_NAMES = [
   "author",
@@ -335,6 +335,10 @@ export const enableInstanceNotifications = async (
 ) => {
   if (!config.skybook.instance_notifications)
     throw new UnavailableError("Instance notification sending is disabled");
+  if (!process.env.NOTIFICATION_URL_KEY)
+    throw new Error(
+      "Notification URL key unavailable, unable to enable notifications",
+    );
   if (!config.skybook.instance_notification_services.includes(service))
     throw new BadRequestError(
       "Specified notification endpoint is not supported by Skybook",
@@ -343,7 +347,7 @@ export const enableInstanceNotifications = async (
     throw new BadRequestError(
       "Specified URL is not valid for provided service while attempting to enable instance notifications",
     );
-  url = encryptedURL(url, instance);
+  url = encryptedSecret(url, instance, process.env.NOTIFICATION_URL_KEY);
   await WRITER`UPDATE instances SET notification_endpoint=${url},notification_service=${service} WHERE name=${instance}`;
   await notifyUser(
     instance,

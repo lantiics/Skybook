@@ -22,13 +22,12 @@ import {
 import { READER, WRITER } from "../db.ts";
 import { Session, User } from "../types/entities";
 import {
-  decryptedSecret,
-  encryptedSecret,
   generateRecoveryCodes,
   passwordIsSafe,
   recoveryCodeValid,
   verifyTotp,
 } from "./auth.ts";
+import { encryptedSecret, decryptedSecret } from "./encryption.ts";
 import { config } from "../config.ts";
 import { hashIp } from "./ip.ts";
 import { randomBytes } from "node:crypto";
@@ -163,9 +162,17 @@ export const loginUser = async (
       throw new UnauthorizedError("No MFA credential provided");
     }
     if (/^[0-9]{6}$/.test(mfaCredential)) {
+      if (!process.env.TOTP_SECRET_KEY)
+        throw new Error(
+          "TOTP secret key unavailable, unable to authenticate user",
+        );
       if (
         !(await verifyTotp(
-          decryptedSecret(userEntry.totp_secret!, userEntry.identifier),
+          decryptedSecret(
+            userEntry.totp_secret!,
+            userEntry.identifier,
+            process.env.TOTP_SECRET_KEY,
+          ),
           mfaCredential,
           userEntry.identifier,
         ))
@@ -222,7 +229,11 @@ export const initUserMfa = async (
   secret: string,
   recoveryCodes: string[],
 ) => {
-  await WRITER`UPDATE users SET totp_secret=${encryptedSecret(secret, identifier)}, mfa_recovery=${WRITER.array(recoveryCodes, "TEXT")} WHERE identifier = ${identifier}`;
+  if (!process.env.TOTP_SECRET_KEY)
+    throw new Error(
+      "TOTP secret key unavailable, unable to initialize user MFA",
+    );
+  await WRITER`UPDATE users SET totp_secret=${encryptedSecret(secret, identifier, process.env.TOTP_SECRET_KEY)}, mfa_recovery=${WRITER.array(recoveryCodes, "TEXT")} WHERE identifier = ${identifier}`;
 };
 
 export const regenerateRecoveryCodes = async (
