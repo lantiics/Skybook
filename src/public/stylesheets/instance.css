@@ -15,7 +15,7 @@ main {
   display: flex;
   flex-direction: column;
   border: 1px solid;
-  border-color: var(--border-color);
+  border-color: var(--primary-container);
   background-color: var(--primary-container);
   border-radius: var(--secondary-brad);
   padding: 8px;
@@ -166,7 +166,7 @@ main {
   border: 1px solid var(--border-color);
 }
 .entry:hover {
-  border-color: color-mix(in hsl, var(--border-color) 85%, white 15%);
+  border-color: color-mix(in hsl, var(--primary-container) 85%, white 15%);
 }
 .entry.queued {
   --border-color: var(--caution);
