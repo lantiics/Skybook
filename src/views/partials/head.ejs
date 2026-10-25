@@ -1,3 +1,5 @@
+<meta charset="UTF-8" />
+
 <style>
   html,
   body {
@@ -174,20 +176,33 @@ const toggleNav = () => {
 <% if (ctx && ctx.instance) { %>
 <link rel="stylesheet" href="/stylesheets/instance.css?v=<%=assetVersion%>">
 <meta name="instance-name" content="<%=ctx.instance%>" />
-<script src="/js/instance.min.js?v=<%=assetVersion%>"></script>
+
+<script src="/js/instance.min.js?v=<%=assetVersion%>" defer></script>
 <%}%>
 <% if (ctx && ctx.elevated) {%>
 <link rel="stylesheet" href="/stylesheets/elevated-instance.css?v=<%=assetVersion%>" />
 <% }%>
 
 
-<meta charset="UTF-8" />
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <link rel="canonical" href="<%=canonical%>" />
 <title><%=title%></title>
 <meta property="og:title" content="<%=ctx?.instance?ctx.instance+'\'s guestbook - Skybook':'Skybook - Your fully open source guestbook'%>">
 <meta name="description" content="Skybook is a fully open source guestbook service with an extended focus on privacy and security. You can create and moderate a guestbook for your online persona with ease.">
-<meta property="og:description" content="Skybook is a fully open source guestbook hosting service with an extended focus on privacy and security. You can quickly and easily create and moderate a guestbook for your online persona, website, or similar.">
+<meta property="og:description" content="Skybook is a fully open source guestbook hosting service with an extended focus on privacy and security.">
 <meta property="og:site_name" content="Skybook">
-
-<script src="/js/main.min.js?v=<%=assetVersion%>"></script>
+<meta property="og:image" content="<%=protocol%>://<%=skybook.domain%>/assets/skybook-opengraph.png">
+<meta property="og:image:height" content="630px"> 
+<meta property="og:image:width" content="1200px">
+<meta property="og:url" content="<%=canonical%>">
+<meta property="og:image:alt" content="Skybook's logo, a graphical depiction of a cloud and the name 'Skybook' to the right">
+<link rel="apple-touch-icon" sizes="180x180" href="/favicon.svg">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:site" content="@_lantics">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="<%=protocol%>://<%=skybook.domain%>/assets/skybook-opengraph.png">
+<meta property="og:logo" content="/favicon.ico">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="theme-color" content="#0c0d16">
+<script src="/js/main.min.js?v=<%=assetVersion%>" defer></script>
