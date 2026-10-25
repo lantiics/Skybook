@@ -67,6 +67,11 @@ describe("TOTP", async () => {
   });
 });
 
+const hashedInvitation = (token: string) => {
+  return new Bun.CryptoHasher("sha256", process.env.INVITATION_HASH_SECRET)
+    .update(token)
+    .digest("base64");
+};
 describe("Signup with invitations enabled", async () => {
   await WRITER`UPDATE service_settings SET value=true WHERE name='signup_requires_invitation'`;
   const code = await newInvitation(ctx.authorized.identifier!);
@@ -86,11 +91,11 @@ describe("Signup with invitations enabled", async () => {
       ),
     ).resolves.toBeString();
     const [{ uses: uses }] =
-      await WRITER`SELECT uses FROM invitations WHERE token=${code}`;
+      await WRITER`SELECT uses FROM invitations WHERE token=${hashedInvitation(code)}`;
     expect(uses).toBe(1);
   });
   test("Signing up with invitations at use limit rejects", async () => {
-    await WRITER`UPDATE invitations SET uses=3 WHERE token=${code}`;
+    await WRITER`UPDATE invitations SET uses=3 WHERE token=${hashedInvitation(code)}`;
     expect(
       createUser(
         harnessedUser(),
@@ -98,7 +103,7 @@ describe("Signup with invitations enabled", async () => {
         crypto.randomUUID(),
         code,
       ),
-    ).rejects.toThrow(NotFoundError);
+    ).rejects.toThrow(UnauthorizedError);
   });
 
   afterAll(async () => {
