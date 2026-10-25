@@ -61,7 +61,7 @@ the first script copies all required configuration files into your directory if 
 
 ```
 git clone https://gitlab.com/lantics/skybook.git &&
-cd skybook && ./setup.sh && cd dev && ./database.sh && cd ../ && bun install && bun --watch src/app.js
+cd skybook && ./setup.sh && cd dev && ./database.sh && cd ../ && bun install && bun --watch src/app.ts
 ```
 
 **_continue with the configuration sections below_**
