@@ -95,37 +95,48 @@ router.post("/logout", async (req: Request, res: Response) => {
   return res.sendStatus(200);
 });
 
-router.post("/password", async (req: Request, res: Response) => {
-  try {
-    const sessionKey = req.signedCookies.session;
-    if (!sessionKey) {
-      return res.sendStatus(401);
-    }
-    const userIdentifier = (await getSessionUser(sessionKey))?.identifier;
-    if (!userIdentifier) {
-      throw new UnauthorizedError(
-        "Provided session key is not linked to a user",
-      );
-    }
-    const { oldPassword, newPassword, otp } = req.body;
+router.post(
+  "/password",
+  authenticate,
+  authLimiter,
+  async (req: Request, res: Response) => {
+    try {
+      if (!req.ctx.authenticated) return res.sendStatus(401);
+      const sessionKey = req.signedCookies.session;
+      if (!sessionKey) {
+        return res.sendStatus(401);
+      }
+      const userIdentifier = (await getSessionUser(sessionKey))?.identifier;
+      if (!userIdentifier) {
+        throw new UnauthorizedError(
+          "Provided session key is not linked to a user",
+        );
+      }
+      console.log(req.body);
+      const { oldPassword, newPassword, otp } = req.body;
 
-    await changeUserPassword(userIdentifier, oldPassword, newPassword, otp);
-    res.clearCookie("session", {
-      domain: config.skybook.domain,
-    });
-    const encodedPopupText = btoa("Password changed");
-    return res.redirect("/login#pup:" + encodedPopupText);
-  } catch (e) {
-    const encodedPopupText = btoa("Failed to change password");
-    return res.redirect("/account#pup:" + encodedPopupText);
-  }
-});
+      await changeUserPassword(userIdentifier, oldPassword, newPassword, otp);
+      res.clearCookie("session", {
+        domain: config.skybook.domain,
+      });
+      const encodedPopupText = btoa("Password changed");
+      return res.redirect("/login#pup:" + encodedPopupText);
+    } catch (e) {
+      const encodedPopupText = btoa("Failed to change password");
+      return res.redirect("/account#pup:" + encodedPopupText);
+    }
+  },
+);
 router.post(
   "/invitation",
   authenticate,
   authLimiter,
   async (req: Request, res: Response) => {
     try {
+      if (!req.ctx.authenticated)
+        throw new UnauthorizedError(
+          "Authentication is required for invitation creation",
+        );
       const invitation = await newInvitation(req.ctx.user!.identifier);
       return res.status(201).send(invitation);
     } catch (e) {

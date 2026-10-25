@@ -1,3 +1,30 @@
+## [0.12.3] - 2026-10-23
+
+### <!-- 7 -->⚙️ Miscellaneous Tasks
+
+- Update bun version in dockerfile 
+## [0.12.2] - 2026-10-17
+
+### <!-- 1 -->🐛 Bug Fixes
+
+- Valid recovery codes fail after first login with recovery code 
+    (cherry picked from commit a18e860706a2d2709104b0bee21cf9a5ee76a5e4)
+
+
+### <!-- 7 -->⚙️ Miscellaneous Tasks
+
+- Update package.json version 
+- V0.12.2 
+## [0.12.1] - 2026-10-12
+
+### <!-- 1 -->🐛 Bug Fixes
+
+- Failure to check req.ctx.authenticated on some endpoints 
+
+### <!-- 7 -->⚙️ Miscellaneous Tasks
+
+- Add container_name to docker-compose.yml services 
+- V0.12.1 
 ## [0.12.0] - 2026-10-11
 
 ### <!-- 0 -->🚀 Features
@@ -122,6 +149,7 @@
 - Update CI bun image to 1.4 
 - Fix formatting; remove unused imports 
 - Fix formatting (clientside js) 
+- V0.12.0 
 ## [0.11.0] - 2026-10-04
 
 ### <!-- 0 -->🚀 Features

@@ -13,7 +13,6 @@ router.get("/enable-2fa", async (req: Request, res: Response) => {
     req.ctx.user.identifier,
   );
   await initUserMfa(req.ctx.user.identifier, secret, hashedCodes);
-
   res.locals.ctx = req.ctx;
   res.locals.secret = secret;
   res.locals.uri = uri;
@@ -22,13 +21,14 @@ router.get("/enable-2fa", async (req: Request, res: Response) => {
   return res.render("partials/account/enable-2fa");
 });
 router.get("/disable-2fa", async (req: Request, res: Response) => {
+  if (!req.ctx.authenticated) return res.sendStatus(401);
   res.locals.ctx = req.ctx;
   return res.render("partials/account/disable-2fa");
 });
 
 // regenerate MFA recovery codes
 router.get("/regen-recovery-gate", async (req: Request, res: Response) => {
-  if (!req.ctx.user || !req.ctx.user.mfaEnabled) return res.sendStatus(403);
+  if (!req.ctx.authenticated) return res.sendStatus(403);
   res.locals.ctx = req.ctx;
   return res.render("partials/account/regen-recovery-gate");
 });
@@ -48,6 +48,7 @@ router.post("/new-recovery-codes", async (req: Request, res: Response) => {
 });
 
 router.get("/delete-account", async (req: Request, res: Response) => {
+  if (!req.ctx.authenticated) return res.sendStatus(401);
   res.locals.ctx = req.ctx;
   return res.render("partials/account/delete-account");
 });
