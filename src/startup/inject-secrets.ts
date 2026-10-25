@@ -1,57 +1,22 @@
 export const injectSecrets = () => {
-  if (!process.env.COOKIE_SIGNING_SECRET) {
-    const fs = require("fs");
-    const secret = require("crypto").randomBytes(32).toString("hex");
-    fs.appendFile(".env", `\nCOOKIE_SIGNING_SECRET=${secret}`, (err: Error) => {
-      if (err) throw err;
-    });
-    process.env.COOKIE_SIGNING_SECRET = secret;
-  }
+  const fs = require("fs");
 
-  if (!process.env.IP_HASH_SECRET) {
-    const fs = require("fs");
-    const secret = require("crypto").randomBytes(32).toString("hex");
-    fs.appendFile(".env", `\nIP_HASH_SECRET=${secret}`, (err: Error) => {
-      if (err) throw err;
-    });
-    process.env.IP_HASH_SECRET = secret;
-  }
-  if (!process.env.SESSION_HASH_SECRET) {
-    const fs = require("fs");
-    const secret = require("crypto").randomBytes(32).toString("hex");
-    fs.appendFile(".env", `\nSESSION_HASH_SECRET=${secret}`, (err: Error) => {
-      if (err) throw err;
-    });
-    process.env.SESSION_HASH_SECRET = secret;
-  }
-  if (!process.env.TOKEN_HASH_SECRET) {
-    const fs = require("fs");
-    const secret = require("crypto").randomBytes(32).toString("hex");
-    fs.appendFile(".env", `\nTOKEN_HASH_SECRET=${secret}`, (err: Error) => {
-      if (err) throw err;
-    });
-    process.env.TOKEN_HASH_SECRET = secret;
-  }
-  if (!process.env.INVITATION_HASH_SECRET) {
-    const fs = require("fs");
-    const secret = require("crypto").randomBytes(32).toString("hex");
-    fs.appendFile(
-      ".env",
-      `\nINVITATION_HASH_SECRET=${secret}`,
-      (err: Error) => {
+  [
+    "COOKIE_SIGNING_SECRET",
+    "IP_HASH_SECRET",
+    "SESSION_HASH_SECRET",
+    "TOKEN_HASH_SECRET",
+    "INVITATION_HASH_SECRET",
+    "NOTIFICATION_URL_KEY",
+  ].forEach((key) => {
+    if (!process.env[key]) {
+      const secret = require("crypto").randomBytes(32).toString("hex");
+      fs.appendFile(".env", `\n${key}=${secret}`, (err: Error) => {
         if (err) throw err;
-      },
-    );
-    process.env.INVITATION_HASH_SECRET = secret;
-  }
-  if (!process.env.NOTIFICATION_URL_KEY) {
-    const fs = require("fs");
-    const secret = require("crypto").randomBytes(32).toString("hex");
-    fs.appendFile(".env", `\nNOTIFICATION_URL_KEY=${secret}`, (err: Error) => {
-      if (err) throw err;
-    });
-    process.env.NOTIFICATION_URL_KEY = secret;
-  }
+      });
+      process.env[key] = secret;
+    }
+  });
   if (!process.env.WRITE_DB_URL)
     throw new Error(
       "WRITE_DB_URL not present in environment variables; Is this being ran from the right directory?",
