@@ -37,11 +37,6 @@ export const runMigrations = async () => {
         (row: [string[]]) => row[0],
       ),
     );
-    if (!migrated.has(MFA_ENCRYPTION_MIGRATION_IDENTIFIER)) {
-      console.time("Encrypted all MFA columns");
-      await encryptMFA(MIGRATOR);
-      console.timeEnd("Encrypted all MFA columns");
-    }
 
     const files: string[] = (
       await Array.fromAsync(new Glob("*.sql").scan({ cwd: dir }))
@@ -63,6 +58,11 @@ export const runMigrations = async () => {
       await MIGRATOR`SELECT format('ALTER ROLE %I PASSWORD %L', ${decodeURIComponent(readerURL.username)}::text, ${decodeURIComponent(readerURL.password)}::text) AS stmt`;
     await MIGRATOR.unsafe(writerStmt);
     await MIGRATOR.unsafe(readerStmt);
+    if (!migrated.has(MFA_ENCRYPTION_MIGRATION_IDENTIFIER)) {
+      console.time("Encrypted all MFA columns");
+      await encryptMFA(MIGRATOR);
+      console.timeEnd("Encrypted all MFA columns");
+    }
   } finally {
     await MIGRATOR`SELECT pg_advisory_unlock(${MIGRATION_LOCK_KEY})`.catch(
       () => {},
