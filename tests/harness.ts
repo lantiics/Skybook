@@ -42,7 +42,7 @@ export const generateUser = async () => {
 export const baseUser = await generateUser();
 
 const btN = await generateUser();
-const btuM = await setupTwoFactor(btN.name);
+const btuM = await setupTwoFactor(btN.name, btN.identifier);
 export const baseTOTPUser = {
   ...btN,
   mfa: btuM,
