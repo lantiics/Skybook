@@ -148,6 +148,7 @@ const instanceLogic = async (
       res.locals.posts = posts;
     }
     if (req.ctx.elevated) {
+      res.locals.instances = config.instances;
       res.locals.blocks = await instanceIpBlocks(req.ctx.instance);
       res.locals.blocks.global = {
         proxy: config.ip_blocking.proxy_addresses_blocked,
