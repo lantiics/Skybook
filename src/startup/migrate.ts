@@ -1,5 +1,6 @@
 import { Glob, SQL } from "bun";
 import { join } from "node:path";
+import { encryptedSecret } from "../domain/auth";
 
 const MIGRATION_LOCK_KEY = 57568446;
 const dir = join(import.meta.dir, "../../migrations");
@@ -7,6 +8,22 @@ if (!process.env.SUPERUSER_DB_URL)
   throw new Error(
     "SUPERUSER_DB_URL is not specified in Skybook's environment variables. SUPERUSER_DB_URL is required to run key tasks for Skybook's database.",
   );
+
+// Due to an oversight, MFA secrets were not stored encrypted.
+// Luckily, Skybook has not reached a wide audience as of this implementation.
+// This one-off encrypts all MFA secrets.
+const MFA_ENCRYPTION_MIGRATION_IDENTIFIER = "PROGRAMMATIC-MFA-ENCRYPTION-0000";
+const encryptMFA = async (MIGRATOR: SQL) => {
+  const data: { identifier: string; totp_secret: string }[] =
+    await MIGRATOR`SELECT totp_secret, identifier FROM users WHERE totp_secret IS NOT NULL`;
+  await MIGRATOR.begin(async (TX) => {
+    for (const { identifier, totp_secret: secret } of data) {
+      await TX`UPDATE users SET totp_secret=${encryptedSecret(secret, identifier)} WHERE identifier = ${identifier}`;
+    }
+  });
+  await MIGRATOR`INSERT INTO schema_migrations (name) VALUES (${MFA_ENCRYPTION_MIGRATION_IDENTIFIER})`;
+  return;
+};
 
 export const runMigrations = async () => {
   console.time("Ran migrations");
@@ -20,6 +37,11 @@ export const runMigrations = async () => {
         (row: [string[]]) => row[0],
       ),
     );
+    if (!migrated.has(MFA_ENCRYPTION_MIGRATION_IDENTIFIER)) {
+      console.time("Encrypted all MFA columns");
+      await encryptMFA(MIGRATOR);
+      console.timeEnd("Encrypted all MFA columns");
+    }
 
     const files: string[] = (
       await Array.fromAsync(new Glob("*.sql").scan({ cwd: dir }))

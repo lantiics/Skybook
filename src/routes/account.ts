@@ -1,5 +1,10 @@
 import { Request, Response } from "express";
-import { BadRequestError, errorStatus, UnauthorizedError } from "../errors";
+import {
+  BadRequestError,
+  errorStatus,
+  ForbiddenError,
+  UnauthorizedError,
+} from "../errors";
 import {
   deleteUser,
   disableUserMfa,
@@ -7,7 +12,7 @@ import {
   userPasswordIsValid,
   userTotpData,
 } from "../domain/users";
-import { verifyTotp } from "../domain/auth";
+import { decryptedSecret, verifyTotp } from "../domain/auth";
 import { config } from "../config";
 
 const router = require("express").Router();
@@ -39,15 +44,22 @@ router.post("/delete", async (req: Request, res: Response) => {
 
 router.post("/enable-totp", async (req: Request, res: Response) => {
   try {
+    if (!req.ctx.user) {
+      throw new ForbiddenError(
+        "Attempted to enable TOTP as an unauthenticated user",
+      );
+    }
     const { otp, password } = req.body;
-
     if (!otp || !password)
       throw new BadRequestError("Required credentials not supplied");
-    if (!(await userPasswordIsValid(req.ctx.user!.identifier, password)))
+    if (!(await userPasswordIsValid(req.ctx.user.identifier, password)))
       throw new UnauthorizedError("Password incorrect");
     if (
       !(await verifyTotp(
-        (await userTotpData(req.ctx.user!.identifier)).secret,
+        decryptedSecret(
+          (await userTotpData(req.ctx.user.identifier)).secret,
+          req.ctx.user.identifier,
+        ),
         otp,
       ))
     )

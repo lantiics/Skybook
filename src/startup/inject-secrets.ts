@@ -8,6 +8,7 @@ export const injectSecrets = () => {
     "TOKEN_HASH_SECRET",
     "INVITATION_HASH_SECRET",
     "NOTIFICATION_URL_KEY",
+    "TOTP_SECRET_KEY",
   ].forEach((key) => {
     if (!process.env[key]) {
       const secret = require("crypto").randomBytes(32).toString("hex");

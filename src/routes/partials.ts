@@ -9,7 +9,8 @@ router.get("/enable-2fa", async (req: Request, res: Response) => {
     return res.sendStatus(400);
   }
   const { secret, uri, qrDataUrl, codes, hashedCodes } = await setupTwoFactor(
-    req.ctx.user!.name,
+    req.ctx.user.name,
+    req.ctx.user.identifier,
   );
   await initUserMfa(req.ctx.user.identifier, secret, hashedCodes);
 

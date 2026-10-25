@@ -22,6 +22,8 @@ import {
 import { READER, WRITER } from "../db.ts";
 import { Session, User } from "../types/entities";
 import {
+  decryptedSecret,
+  encryptedSecret,
   generateRecoveryCodes,
   passwordIsSafe,
   recoveryCodeValid,
@@ -163,7 +165,7 @@ export const loginUser = async (
     if (/^[0-9]{6}$/.test(mfaCredential)) {
       if (
         !(await verifyTotp(
-          userEntry.totp_secret!,
+          decryptedSecret(userEntry.totp_secret!, userEntry.identifier),
           mfaCredential,
           userEntry.identifier,
         ))
@@ -220,7 +222,7 @@ export const initUserMfa = async (
   secret: string,
   recoveryCodes: string[],
 ) => {
-  await WRITER`UPDATE users SET totp_secret=${secret}, mfa_recovery=${WRITER.array(recoveryCodes, "TEXT")} WHERE identifier = ${identifier}`;
+  await WRITER`UPDATE users SET totp_secret=${encryptedSecret(secret, identifier)}, mfa_recovery=${WRITER.array(recoveryCodes, "TEXT")} WHERE identifier = ${identifier}`;
 };
 
 export const regenerateRecoveryCodes = async (
