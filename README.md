@@ -31,7 +31,7 @@ The official hosted instance of Skybook is available at [skybook.page](https://s
 - Toggling requirement of fields
   - Optionally, specify a replacement value for a field which is required. If no replacement value is specified, entries without that field specified will be rejected.
 - Exports
-- Imports (maximum of 1000 entries)
+- Imports (default maximum of 100 entries, configurable per SKybook instance)
 - Iframe embedding @ yourinstance/embed
 
 ### Skybook Features:

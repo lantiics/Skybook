@@ -52,6 +52,7 @@ router.get(
       res.locals.user = req.ctx.user;
       res.locals.authenticated = req.ctx.authenticated;
       res.locals.title = "Features - Skybook";
+      res.locals.instances = config.instances;
 
       return renderWithLayout(req, res, "pages/features", res.locals);
     } catch (e) {

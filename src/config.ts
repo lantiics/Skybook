@@ -21,6 +21,7 @@ const config = raw as {
   };
   instances: {
     max_global_filter_length: number;
+    max_import_count: number;
   };
   captcha: {
     enabled: boolean;
@@ -73,7 +74,9 @@ const config = raw as {
   is_production: boolean;
 };
 config.is_production = process.env.NODE_ENV === "production";
-
+if (!config.instances.max_import_count) {
+  config.instances.max_import_count = 100;
+}
 const version = pkg.version;
 config.skybook.version = version;
 export { config };

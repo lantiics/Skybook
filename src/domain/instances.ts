@@ -395,7 +395,7 @@ export const importInstance = async (
   instance: Instance["name"],
   entries: Mutable<Post>[],
 ) => {
-  entries = entries.slice(0, 1000);
+  entries = entries.slice(0, config.instances.max_import_count);
   let extraKeys: Set<string> = new Set([]);
   const currentFields =
     await READER`SELECT name FROM fields WHERE instance = ${instance} AND name NOT IN ('author', 'content');`;

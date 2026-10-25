@@ -41,6 +41,7 @@ purge_endpoint="https://api.cloudflare.com/client/v4/zones/$ZONE_ID/purge_cache"
 # Maximum number of characters that can exist within a
 # guestbook's global filter (affecting all fields)
 max_global_filter_length=5000
+max_import_count=500
 [captcha]
 enabled = false
 implementation = "cloudflare"                                       # cap | cloudflare

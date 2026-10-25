@@ -218,10 +218,13 @@ router.post(
       const r: Post[] = [];
       //@ts-expect-error
       const stream = Readable.from([req.file.buffer]);
+      let iteration = 0;
+      let stopped = false;
       await new Promise<void>((resolve, reject) => {
         stream
           .pipe(csvParser())
           .on("data", (data: Mutable<Post>) => {
+            if (stopped) return;
             let parsed: unknown = {};
             if (data.extra) {
               try {
@@ -235,9 +238,20 @@ router.post(
                 ? (parsed as Record<string, string>)
                 : {};
             r.push(data);
+            iteration++;
+            if (iteration >= config.instances.max_import_count) {
+              stopped = true;
+              stream.destroy();
+              resolve();
+              throw "Reached maximum iteration count";
+            }
           })
-          .on("end", resolve)
-          .on("error", reject);
+          .on("end", () => {
+            if (!stopped) resolve();
+          })
+          .on("error", () => {
+            if (!stopped) reject();
+          });
       });
       await importInstance(req.ctx.instance, r);
 
