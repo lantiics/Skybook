@@ -51,6 +51,7 @@ export const authenticate = async (
         console.error(
           "An error occurred during middleware authentication " + e,
         );
+        throw e;
       }
     }
   }

@@ -112,7 +112,6 @@ router.post(
           "Provided session key is not linked to a user",
         );
       }
-      console.log(req.body);
       const { oldPassword, newPassword, otp } = req.body;
 
       await changeUserPassword(userIdentifier, oldPassword, newPassword, otp);

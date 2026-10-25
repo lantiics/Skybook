@@ -135,12 +135,14 @@ export const notifyUser = async (
   }
   if (process.env.NODE_ENV !== "test") {
     fetch(url, requestBody).then((res) => {
-      if (!res.ok)
+      if (!res.ok) {
         console.warn(
           "Notification request failed, Notifications proxied:" +
             config.skybook.instance_notification_proxy_url !==
             "",
         );
+        throw res;
+      }
     });
   }
 };
