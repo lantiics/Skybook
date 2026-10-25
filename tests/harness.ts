@@ -68,7 +68,6 @@ afterAll(async () => {
 const baseCtx = {
   instance: baseUser.name,
   elevated: false,
-  superAdmin: false,
   authenticated: false,
 };
 const userCtx = { name: baseUser.name, identifier: baseUser.identifier };
