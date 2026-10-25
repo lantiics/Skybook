@@ -1,4 +1,16 @@
-
 <nav>
-<%-include('./nav-content')%>
+    <style>
+        .header-logo {
+            position: absolute;
+            left:2rem;
+            @media only screen and (max-width:600px) {
+                position: relative;
+                left:unset;
+            }
+        }
+    </style>
+    <a class="header-logo" <% if (skybook.subdomain_vanity) {%> href="<%=protocol%>://<%=skybook.domain%>" <%} else {%> href="/" <%}%>>
+        <img src="/assets/skybook-text-transparent-light.png" width="150">
+    </a>
+    <%-include('./nav-content')%>
 </nav>

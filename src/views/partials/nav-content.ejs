@@ -1,13 +1,34 @@
-<div class="nav-part">   <a class="header-btn" <% if (skybook.subdomain_vanity) {%> href="<%=protocol%>://<%=skybook.domain%>" <%} else {%> href="/" <%}%>>Skybook</a>
-    <a class="header-btn" <% if (skybook.subdomain_vanity) {%> href="<%=protocol%>://<%=skybook.domain%>/features" <%} else {%> href="/features" <%}%>>Features</a>
-    <% if (ctx.authenticated) {%> <a class="header-btn" <% if (skybook.subdomain_vanity) {%> href="<%=protocol%>://<%=ctx.user.name%>.<%=skybook.domain%>" <%} else {%>href="/<%=ctx.user.name %>" <%}%>>My guestbook</a><%}%>
-  </div>
-
- <div class="auth-actions">
+<div class="nav-part">   
   
-  <% if (!ctx.authenticated) { %> <a class="header-btn" <% if (skybook.subdomain_vanity) {%>href="<%=protocol%>://<%=skybook.domain%>/login" <%} else {%> href="/login" <%}%>>Log in</a><a class="header-btn" <% if (skybook.subdomain_vanity)
-        {%>href="<%=protocol%>://<%=skybook.domain%>/signup" <%} else {%> href="/signup" <%}%>>Sign up</a>
+
+    <a class="header-btn" <% if (skybook.subdomain_vanity) {%>
+       href="<%=protocol%>://<%=skybook.domain%>/features" <%}
+        else {%> href="/features" <%}%>>
+        Features
+      </a>
+    <% if (ctx.authenticated) {%> <a class="header-btn" <% if (skybook.subdomain_vanity) {%> href="<%=protocol%>://<%=ctx.user.name%>.<%=skybook.domain%>" <%}
+       else {%>href="/<%=ctx.user.name %>" <%}%>>My guestbook
+      </a><%}%>
+  
+</div>
+<div class="auth-actions">
+  
+  <% if (!ctx.authenticated) { %>
+     <a class="header-btn" <% if (skybook.subdomain_vanity) {%>
+      href="<%=protocol%>://<%=skybook.domain%>/login" <%}
+       else {%> 
+        href="/login" <%}%>>
+        Log in
+      </a>
+       <a class="header-btn" 
+       <% if (skybook.subdomain_vanity)
+        {%>href="<%=protocol%>://<%=skybook.domain%>/signup" <%} 
+        else {%> href="/signup" <%}%>>
+        Sign up
+      </a>
       <% } else {%> 
-        <a class="header-btn" <% if (skybook.subdomain_vanity) {%>href="<%=protocol%>://<%=skybook.domain%>/account" <%} else {%> href="/account" <%}%>>My account</a> <button class="header-btn" onclick="fetch('/api/auth/logout', {method: 'POST'}).then((req)=> {if (req.ok) location.reload()})">Log
+        <a class="header-btn" <% if (skybook.subdomain_vanity) {%>href="<%=protocol%>://<%=skybook.domain%>/account" <%} else {%> href="/account" <%}%>>My account</a>
+         <button class="header-btn" onclick="fetch('/api/auth/logout', {method: 'POST'}).then((req)=> {if (req.ok) location.reload()})">Log
         out</button>
-      <% }%></div>
+      <% }%>
+      </div>
