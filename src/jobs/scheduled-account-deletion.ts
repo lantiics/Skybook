@@ -1,5 +1,3 @@
-require("dotenv");
-
 import { SUPERUSER } from "../db";
 
 export const deleteEligibleAccounts = async (): Promise<void> => {

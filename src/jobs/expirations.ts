@@ -1,5 +1,3 @@
-require("dotenv");
-
 import { config } from "../config";
 import { SUPERUSER } from "../db";
 
