@@ -1,3 +1,11 @@
+## [1.0.1] - 2026-10-26
+
+### <!-- 1 -->🐛 Bug Fixes
+
+- Embed page entry form unusually small 
+- Protocol not defined on error page 
+- Elevated instance not fetching minified js 
+- Release.sh pushing incorrectly 
 ## [1.0.0] - 2026-10-26
 
 ### <!-- 0 -->🚀 Features
@@ -119,6 +127,7 @@
 - Remove dead imports 
 - Update bun version in dockerfile 
 - Update dependencies 
+- V1.0.0 
 ## [0.12.3] - 2026-10-23
 
 ### <!-- 7 -->⚙️ Miscellaneous Tasks
