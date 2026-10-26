@@ -40,7 +40,7 @@ bun git-cliff --tag "$TAG" -o CHANGELOG.md
 git add CHANGELOG.md
 git commit -q -m "chore(release): $TAG"
 git tag -a "$TAG" -m "$TAG"
-git push --atomic origin "$TAG"
+git push --atomic origin master "$TAG"
 echo "Released $TAG"
 else
 bun git-cliff -o CHANGELOG.md
