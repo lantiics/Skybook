@@ -1,8 +1,130 @@
+## [1.0.0] - 2026-10-26
+
+### <!-- 0 -->🚀 Features
+
+- Implement toggling of ability to flag entries guestbook-wide 
+- Script to minify clientside js (closes #37) 
+- Script to minify clientside js (closes #37) 
+- Version number query in release.sh 
+- Implement LengthError for invalid content lengths 
+- Implement MFA replay protection (closes #39) 
+- Cryptographically hash invitations, session tokens, and entry tokens 
+- Store who invited a user if user signed up with invitation 
+- Create privacy policy page (closes #40) 
+- Implement customization of maximum import counts 
+
+### <!-- 1 -->🐛 Bug Fixes
+
+- User enforcement lifting can cycle through null enforcements 
+- Still sending server-generated mfa information client-side, unused server-side 
+- Valid recovery codes fail after first login with recovery code 
+- LiftUserEnforcements does not select enforcement ids 
+- ToggleUserLocked checks against wrong column 
+- GlobalBlock incorrectly specifies reason on insertion 
+- TryUserEnforcement doesn't count current block when checking blocks 
+- Accidental removal of unblockLapsedIps 
+- Authentic posts not shown as authentic 
+- Returning 202 on submit always says filtered 
+- Release.sh specifying v in package.json version 
+- Superadmin still checked in some places 
+- Tabs not switched based on location hash if notifications disabled 
+- No limits on character count of notification urls 
+- Instance.js creates popup using raw response status on error 
+- Uncaught error if updated instance flag threshold is above postgres limits 
+- Field replacements can be above max content length 
+- Whitespace-only field replacements can be submitted 
+- Author field can be set as not required 
+- Header border still visible on mobile 
+- Landing page auth buttons not working 
+- Instance embed fails 
+- Error rendering fails 
+- Signup never detected as requiring invitation 
+- NotFoundError thrown on invalid invitation, rather than UnauthorizedError 
+- Wrong naming of sql migration (unpushed) 
+- MFA secrets unsafely stored 
+- Users.test.ts expects incorrect responses for invitation testing 
+    invitations were changed to be hashed, but testing code was not updated to reflect this
+
+- Release.sh specifying v in package.json version 
+- V in package.json version 
+- SetupTwoFactor incorrectly called 
+- Migrate.ts can run encryption logic before any tables are created 
+- Accidentally renamed sql migration 
+- Authentic property only added upon edit 
+- Some post indicators only showing with authentic=true 
+
+### <!-- 2 -->🚜 Refactor
+
+- Remove superadmin features & key 
+- Remove automated user enforcements 
+- Remove verbose logging (closes #36; 1.0.0 prep) 
+- Only use morgan logging during development 
+- Remove verbose logging (closes #36; 1.0.0 prep) 
+- Remove dead code, imports, comments; use console.time statements for one-offs 
+- Remove hard-coded development banner 
+- Optimize for SEO 
+- Render error pages in pages.ts 
+- Only redirect to skybook root on 404 if on root path of a guestbook 
+- Remove unused import, redundant catch statement from users.ts 
+- Remove logging from errorStatus (errors.ts) 
+- Use const rather than var in app.js 
+- Remove superadmin from testing harness baseCtx 
+- Convert entry app.js to typescript 
+- Remove usage of dotenv 
+    bun natively reads .env files, so we do not have a need for dotenv
+
+- Iterate through array for .env secret creation 
+- Remove ability to disable TOTP instance-wide 
+- Fully remove verbosity; update some logging (closes #36) 
+- Use unified decryption/encryption functions for notifications, totp secrets 
+
+### <!-- 3 -->📚 Documentation
+
+- Remove environment from config.sample.toml 
+- Normalize usage of 'entry' term (rather than mixed post & entry) 
+- Update about.ejs 
+- Add site description 
+- Update README.md to use Skybook logo, remove indev info 
+- Add badges to README.md 
+- Update .env.example to reflect added .env vars 
+- Introduce Skybook logo w/ footer text 
+- Fix typo in README.md 
+
+### <!-- 5 -->🎨 Styling
+
+- Remove TODO from domain/posts.ts (impractical) 
+- Remove TBD comment from notifications.ts (decided) 
+- Update styling of post authentic indicators 
+- Completely overhaul skybook visuals 
+- Brighten some elements on hover 
+- Update landing text 
+- Set invitation requirement notice to information-box class 
+- Update error page (closes #41) 
+- Update header margin 
+- Format elevated-instance.js 
+- Add spacing between 2fa disablement and mfa regeneration (account.ejs) 
+- Update menu styling, add skybook logo to header 
+- Reflect maximum entry count per import in settings 
+
+### <!-- 6 -->🧪 Testing
+
+- Only specify baseTOTPUser.identifier while enabling MFA 
+- Update env vars in .gitlab-ci.yml 
+
+### <!-- 7 -->⚙️ Miscellaneous Tasks
+
+- Remove unused src/reserved.ts 
+- Ensure entities.d.ts is at parity with db schema 
+- Remove dead app.js from root dir (used for iframe testing) 
+- Remove dead imports 
+- Update bun version in dockerfile 
+- Update dependencies 
 ## [0.12.3] - 2026-10-23
 
 ### <!-- 7 -->⚙️ Miscellaneous Tasks
 
 - Update bun version in dockerfile 
+- V0.12.3 
 ## [0.12.2] - 2026-10-17
 
 ### <!-- 1 -->🐛 Bug Fixes
