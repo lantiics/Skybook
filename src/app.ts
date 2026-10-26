@@ -84,6 +84,7 @@ app.use(function (
   // render the error page
   res.status(err.status || 500);
   res.locals.canonical = `${req.protocol}://${req.hostname}${req.path}`;
+  res.locals.protocol = req.protocol;
   res.render("error");
 });
 export default app;
