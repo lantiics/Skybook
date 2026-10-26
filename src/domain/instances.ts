@@ -1,15 +1,20 @@
 import { RequestContext } from "../types/context.ts";
 import { Instance, Mutable, Post, User } from "../types/entities.ts";
 import { READER, WRITER } from "../db.ts";
-import { BadRequestError, LockedError, UnavailableError } from "../errors.ts";
+import {
+  BadRequestError,
+  LengthError,
+  LockedError,
+  UnavailableError,
+} from "../errors.ts";
 import { setField, allFieldsAreWritable } from "./fields.ts";
 import { config } from "../config.ts";
 import { purgeInstanceCache } from "./cache.ts";
 import {
-  encryptedURL,
   notificationUrlIsValidForService,
   notifyUser,
 } from "./notifications.ts";
+import { encryptedSecret, decryptedSecret } from "./encryption.ts";
 
 const EXPORTABLE_COLUMN_NAMES = [
   "author",
@@ -268,7 +273,7 @@ export const updateInstanceSuppliedFilter = async (
   filter: string,
 ) => {
   if (filter.length > config.instances.max_global_filter_length)
-    throw new BadRequestError(
+    throw new LengthError(
       "Provided filter character count is above global filter limit",
     );
   try {
@@ -287,6 +292,9 @@ export const updateInstanceQueueFlaggedThreshold = async (
 ): Promise<void> => {
   if (Math.sign(threshold) === -1)
     throw new BadRequestError("Threshold must be positive");
+  if (threshold > 10000) {
+    throw new LengthError("Flag threshold is above configured length limit");
+  }
   await WRITER`UPDATE instances SET queue_flags_threshold = ${threshold} WHERE name = ${instance}`;
 };
 
@@ -327,6 +335,10 @@ export const enableInstanceNotifications = async (
 ) => {
   if (!config.skybook.instance_notifications)
     throw new UnavailableError("Instance notification sending is disabled");
+  if (!process.env.NOTIFICATION_URL_KEY)
+    throw new Error(
+      "Notification URL key unavailable, unable to enable notifications",
+    );
   if (!config.skybook.instance_notification_services.includes(service))
     throw new BadRequestError(
       "Specified notification endpoint is not supported by Skybook",
@@ -335,7 +347,7 @@ export const enableInstanceNotifications = async (
     throw new BadRequestError(
       "Specified URL is not valid for provided service while attempting to enable instance notifications",
     );
-  url = encryptedURL(url, instance);
+  url = encryptedSecret(url, instance, process.env.NOTIFICATION_URL_KEY);
   await WRITER`UPDATE instances SET notification_endpoint=${url},notification_service=${service} WHERE name=${instance}`;
   await notifyUser(
     instance,
@@ -383,7 +395,7 @@ export const importInstance = async (
   instance: Instance["name"],
   entries: Mutable<Post>[],
 ) => {
-  entries = entries.slice(0, 1000);
+  entries = entries.slice(0, config.instances.max_import_count);
   let extraKeys: Set<string> = new Set([]);
   const currentFields =
     await READER`SELECT name FROM fields WHERE instance = ${instance} AND name NOT IN ('author', 'content');`;

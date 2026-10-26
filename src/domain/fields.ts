@@ -4,6 +4,7 @@ import { Field, Instance, Mutable } from "../types/entities.ts";
 import { RESERVED_COLUMN_NAMES } from "../defaults.ts";
 import {
   BadRequestError,
+  LengthError,
   ReservedError,
   UnauthorizedError,
 } from "../errors.ts";
@@ -69,6 +70,10 @@ export const setField = async (
       "Unable to alter required/replacement status for field 'content'",
     );
   }
+  if (field.name === "author" && field.is_required === false)
+    throw new BadRequestError(
+      "Attempted to disable requirement of author field",
+    );
   if (
     !["content", "author"].includes(field.name) &&
     !fieldNameAccepted(field.name)
@@ -88,13 +93,23 @@ export const setField = async (
     is_required: field.is_required,
   };
   if (field.replacement) {
+    if (
+      field.replacement.length > config.fields.typical_max_length ||
+      (field.name === "author" &&
+        field.replacement.length > config.fields.author_max_length)
+    ) {
+      throw new LengthError(
+        "Field replacement length is above configured limits",
+      );
+    }
+    if (field.replacement.replace(/ /g, "").length === 0) {
+      throw new BadRequestError("Field replacement cannot be blank");
+    }
     record.replacement = field.replacement;
   }
   if (field.filter) {
     if (field.filter.length > config.fields.max_filter_length)
-      throw new BadRequestError(
-        "Field filter is above maximum character length",
-      );
+      throw new LengthError("Field filter is above maximum character length");
     record.filter = field.filter;
   }
   return (
@@ -146,9 +161,7 @@ export const setFieldFilter = (
   filter: RegExp,
 ) => {
   if (filter.toString().length > config.fields.max_filter_length)
-    throw new BadRequestError(
-      "Provided filter character length is above limit",
-    );
+    throw new LengthError("Provided filter character length is above limit");
   try {
     new RegExp(filter);
   } catch {

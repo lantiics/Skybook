@@ -13,4 +13,4 @@ ENV PORT=3000
 EXPOSE 3000/tcp
 USER bun
 
-ENTRYPOINT [ "bun", "run", "./src/app.js" ]
+ENTRYPOINT [ "bun", "run", "./src/app.ts" ]

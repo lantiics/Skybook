@@ -103,7 +103,6 @@ router.post(
         req.body[config.captcha.token_property_name],
       );
       delete req.body[config.captcha.token_property_name];
-      console.log(req.body, "aa");
       const createdEntry = await createPost(req.ctx, req.body);
       if (createdEntry.token) {
         res.setHeader(
@@ -219,10 +218,13 @@ router.post(
       const r: Post[] = [];
       //@ts-expect-error
       const stream = Readable.from([req.file.buffer]);
+      let iteration = 0;
+      let stopped = false;
       await new Promise<void>((resolve, reject) => {
         stream
           .pipe(csvParser())
           .on("data", (data: Mutable<Post>) => {
+            if (stopped) return;
             let parsed: unknown = {};
             if (data.extra) {
               try {
@@ -236,9 +238,20 @@ router.post(
                 ? (parsed as Record<string, string>)
                 : {};
             r.push(data);
+            iteration++;
+            if (iteration >= config.instances.max_import_count) {
+              stopped = true;
+              stream.destroy();
+              resolve();
+              throw "Reached maximum iteration count";
+            }
           })
-          .on("end", resolve)
-          .on("error", reject);
+          .on("end", () => {
+            if (!stopped) resolve();
+          })
+          .on("error", () => {
+            if (!stopped) reject();
+          });
       });
       await importInstance(req.ctx.instance, r);
 
@@ -469,7 +482,6 @@ router
       try {
         req.body.name = req.params.field;
         const field = await setField(req.ctx.instance, req.body);
-        console.log(field, "mhm");
         return res.status(201).send(field);
       } catch (e) {
         return res.sendStatus(errorStatus(e, req.ctx.elevated));
@@ -496,7 +508,6 @@ router.patch(
   async (req: Request, res: Response) => {
     if (!req.ctx.elevated) return res.sendStatus(403);
     try {
-      console.log(req.body, "reason");
       await blockPostCreator(
         req.ctx,
         req.params.identifier as string,
@@ -616,87 +627,3 @@ router.patch(
 );
 //#endregion ENTRIES
 //#endregion ELEVATED
-
-//#region OVERRIDES
-// router.patch(
-//   "/entry/:identifier/lock",
-//   alterationLimiter,
-//   async (req: Request, res: Response, next: NextFunction) => {
-//     if (!req.ctx.superAdmin) return res.sendStatus(403);
-//     try {
-//       const entry = await lockPostMethods(
-//         req.ctx,
-//         req.params.identifier as string,
-//       );
-//       return res.status(200).send(entry);
-//     } catch (e) {
-//       return res.sendStatus(errorStatus(e, req.ctx.elevated));
-//     }
-//   },
-// );
-
-// router.patch("/lock", async (req: Request, res: Response) => {
-//   if (!req.ctx.superAdmin) return res.sendStatus(403);
-//   try {
-//     await
-//   } catch (e) {}
-// });
-// router
-//   .route("/override/:method")
-//   .patch(async (req: Request, res: Response) => {
-//     try {
-//       if (!req.ctx.superAdmin)
-//         throw new UnauthorizedError(
-//           "Insufficient permissions to access system-level endpoint",
-//         );
-
-//       switch (req.params.method as string) {
-//         case "visibility":
-//           break;
-//         case "submission":
-//           break;
-//         case "replying":
-//           break;
-//         case "approval":
-//           break;
-//         case "flagging":
-//           break;
-//         case "queue-filtered":
-//           break;
-//         default:
-//           throw new NotFoundError("Requested method is not available");
-//       }
-//       return res.sendStatus(200);
-//     } catch (e) {
-//       return res.sendStatus(errorStatus(e, req.ctx.authenticated));
-//     }
-//   })
-//   .delete(async (req: Request, res: Response) => {
-//     try {
-//       if (!req.ctx.superAdmin)
-//         throw new UnauthorizedError(
-//           "Insufficient permissions to access system-level endpoint",
-//         );
-
-//       switch (req.params.method as string) {
-//         case "visibility":
-//           break;
-//         case "submission":
-//           break;
-//         case "replying":
-//           break;
-//         case "approval":
-//           break;
-//         case "flagging":
-//           break;
-//         case "queue-filtered":
-//           break;
-//         default:
-//           throw new NotFoundError("Requested method is not available");
-//       }
-//       return res.sendStatus(200);
-//     } catch (e) {
-//       return res.sendStatus(errorStatus(e, req.ctx.authenticated));
-//     }
-//   });
-//#endregion

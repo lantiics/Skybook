@@ -27,9 +27,9 @@ import {
   recoveryCodeValid,
   verifyTotp,
 } from "./auth.ts";
+import { encryptedSecret, decryptedSecret } from "./encryption.ts";
 import { config } from "../config.ts";
 import { hashIp } from "./ip.ts";
-import { generateToken } from "./tokens.ts";
 import { randomBytes } from "node:crypto";
 import { invitationIsValid } from "./invitations.ts";
 
@@ -81,30 +81,26 @@ export const createUser = async (
   if (password.length < 8) {
     throw new ForbiddenError("Password is too short");
   }
-
-  if (await signupInvitationRequired()) {
+  const inviteRequired = await signupInvitationRequired();
+  if (inviteRequired) {
     if (!invite) throw new UnauthorizedError("No invitation provided");
     if (!(await invitationIsValid(invite)))
       throw new UnauthorizedError("Provided invitation token is invalid");
   }
-  try {
-    password = await Bun.password.hash(password);
-    const userIdentifier = generateToken();
-    const user = await DB.begin(async (tx) => {
-      const [user] =
-        await tx`INSERT INTO users (name, identifier, password_hash, ip_hash) VALUES (${name},${userIdentifier},${password},${hashIp(ip)}) RETURNING name`;
 
-      await tx`INSERT INTO instances (name, user_identifier) VALUES (${name}, ${userIdentifier})`;
+  password = await Bun.password.hash(password);
+  const userIdentifier = crypto.randomUUID();
+  const user = await DB.begin(async (tx) => {
+    const [user] =
+      await tx`INSERT INTO users (name, identifier, password_hash, ip_hash ${inviteRequired ? tx`, invited_by` : tx``}) VALUES (${name},${userIdentifier},${password},${hashIp(ip)}${inviteRequired ? tx`, ${(await tx`SELECT created_by FROM invitations WHERE token=${new Bun.CryptoHasher("sha256", process.env.INVITATION_HASH_SECRET).update(invite!).digest("base64")}`)[0].created_by}` : tx``}) RETURNING name`;
 
-      return user;
-    });
+    await tx`INSERT INTO instances (name, user_identifier) VALUES (${name}, ${userIdentifier})`;
 
-    const token = await createSession(name, DB);
-    return token;
-  } catch (e) {
-    console.error(e);
-    throw e;
-  }
+    return user;
+  });
+
+  const token = await createSession(name, DB);
+  return token;
 };
 let DUMMY_PASSWORD_HASH: string;
 (async () => {
@@ -166,7 +162,21 @@ export const loginUser = async (
       throw new UnauthorizedError("No MFA credential provided");
     }
     if (/^[0-9]{6}$/.test(mfaCredential)) {
-      if (!(await verifyTotp(userEntry.totp_secret!, mfaCredential)))
+      if (!process.env.TOTP_SECRET_KEY)
+        throw new Error(
+          "TOTP secret key unavailable, unable to authenticate user",
+        );
+      if (
+        !(await verifyTotp(
+          decryptedSecret(
+            userEntry.totp_secret!,
+            userEntry.identifier,
+            process.env.TOTP_SECRET_KEY,
+          ),
+          mfaCredential,
+          userEntry.identifier,
+        ))
+      )
         throw new UnauthorizedError("Invalid one-time password provided");
     } else {
       if (
@@ -184,6 +194,12 @@ export const loginUser = async (
     await cancelUserDeletion(identifier);
 
   return await createSession(name);
+};
+
+export const userTotpData = async (identifier: User["identifier"]) => {
+  const [{ totp_secret: secret, mfa_recovery: recovery }] =
+    await READER`SELECT totp_secret, mfa_recovery FROM users WHERE identifier = ${identifier}`;
+  return { secret, recovery };
 };
 
 const updateUserLastSeenTime = async (
@@ -213,7 +229,11 @@ export const initUserMfa = async (
   secret: string,
   recoveryCodes: string[],
 ) => {
-  await WRITER`UPDATE users SET totp_secret=${secret}, mfa_recovery=${WRITER.array(recoveryCodes, "TEXT")} WHERE identifier = ${identifier}`;
+  if (!process.env.TOTP_SECRET_KEY)
+    throw new Error(
+      "TOTP secret key unavailable, unable to initialize user MFA",
+    );
+  await WRITER`UPDATE users SET totp_secret=${encryptedSecret(secret, identifier, process.env.TOTP_SECRET_KEY)}, mfa_recovery=${WRITER.array(recoveryCodes, "TEXT")} WHERE identifier = ${identifier}`;
 };
 
 export const regenerateRecoveryCodes = async (
@@ -238,8 +258,6 @@ export const regenerateRecoveryCodes = async (
 
 export const enableUserMfa = async (
   identifier: User["identifier"],
-  secret: string,
-  recoveryCodes: string[],
 ): Promise<void> => {
   const [userEntry] =
     await READER`SELECT name, identifier, mfa_enabled FROM users WHERE identifier=${identifier}`;
@@ -275,7 +293,6 @@ export const changeUserPassword = async (
     | "can_change_password"
     | "password_hash"
   >;
-  console.log(userEntry);
   if (
     !userEntry.can_change_password ||
     !(await Bun.password.verify(oldPassword, userEntry.password_hash)) ||

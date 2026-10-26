@@ -1,0 +1,1 @@
+DELETE FROM service_settings WHERE name = 'totp_enabled';

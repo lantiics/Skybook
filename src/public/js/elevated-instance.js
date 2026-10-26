@@ -21,7 +21,6 @@ const openTab = (btn, tabName) => {
 
 const toggleStatus = async (btn) => {
   event.preventDefault();
-  console.log("arr");
   const action = btn.getAttribute("data-action");
   btn.disabled = true;
   try {
@@ -57,13 +56,18 @@ const toggleStatus = async (btn) => {
         );
         if (!queueFiltered.ok) throw new Error(queueFiltered.status);
         break;
+      case "entry-flagging":
+        const entryFlagging = await fetch(`/api/${instanceName()}/flagging`, {
+          method: "PATCH",
+        });
+        if (!entryFlagging.ok) throw new Error(entryFlagging.status);
+        break;
       default: {
         throw new Error("Action is not specified");
       }
     }
 
     btn.checked = !btn.checked;
-    console.log(btn.checked);
     btn.removeAttribute("disabled");
   } catch (e) {
     const errorMessage = errorStatus(e.message);
@@ -252,7 +256,6 @@ const createNewField = async (btn) => {
       "th > input#newfield-filter",
     );
     const fieldFilter = fieldFilterElem.value;
-    console.log(fieldName);
     if (fieldName.length > 50 || fieldName.replace(/ /g, "").length === 0) {
       throw new Error("Field name is not permitted");
     }
@@ -403,7 +406,6 @@ const initializeEventListeners = () => {
     const em = document.querySelector(
       `tr[data-field-name=${JSON.stringify(field)}] > th`,
     );
-    console.log(em.getAttribute("contenteditable"), field);
     if (!em.getAttribute("contenteditable")) continue;
     em.addEventListener("keydown", (event) => {
       if (event.key === "Enter" && !event.shiftKey) {
@@ -411,17 +413,21 @@ const initializeEventListeners = () => {
       }
     });
   }
-  document
-    .getElementById("notification-service-url")
-    .addEventListener("keydown", async (e) => {
-      if (e.key == "Enter") {
-        if (e.target.value !== "") {
-          enableEntryNotifications(e.target);
-        } else {
-          disableEntryNotifications(e.target);
+  try {
+    document
+      .getElementById("notification-service-url")
+      .addEventListener("keydown", async (e) => {
+        if (e.key == "Enter") {
+          if (e.target.value !== "") {
+            enableEntryNotifications(e.target);
+          } else {
+            disableEntryNotifications(e.target);
+          }
         }
-      }
-    });
+      });
+  } catch (e) {
+    if (!(e instanceof TypeError)) throw e;
+  }
 };
 const removeEventListeners = () => {
   const fieldReplacementElems = document.querySelectorAll(

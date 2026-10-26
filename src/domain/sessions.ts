@@ -21,7 +21,12 @@ export const createSession = async (
   DB = WRITER,
 ): Promise<string> => {
   const token = await generateSessionKey();
-  const tokenHash = new Bun.CryptoHasher("sha256").update(token).digest("hex");
+  const tokenHash = new Bun.CryptoHasher(
+    "sha256",
+    process.env.SESSION_HASH_SECRET,
+  )
+    .update(token)
+    .digest("base64");
 
   await DB`INSERT INTO sessions (token, user_name, user_identifier, expires_at) VALUES (${tokenHash}, ${name}, ${await userIdentifier(name)}, (NOW() + make_interval(days => ${config.sessions.expiry_days})))`;
 
@@ -32,7 +37,7 @@ export const getSessionUser = async (
   token: Session["token"],
 ): Promise<RequestContext["user"]> => {
   const [row] =
-    await READER`SELECT user_name,user_identifier FROM sessions WHERE token = ${new Bun.CryptoHasher("sha256").update(token).digest("hex")} AND expires_at > now()`;
+    await READER`SELECT user_name,user_identifier FROM sessions WHERE token = ${new Bun.CryptoHasher("sha256", process.env.SESSION_HASH_SECRET).update(token).digest("base64")} AND expires_at > now()`;
   if (!row) {
     throw new UnauthorizedError("There is no specified session key available");
   }
@@ -46,9 +51,10 @@ export const getSessionUser = async (
 };
 
 export const revokeSession = async (token: Session["token"]): Promise<void> => {
-  token = new Bun.CryptoHasher("sha256").update(token).digest("hex");
+  token = new Bun.CryptoHasher("sha256", process.env.SESSION_HASH_SECRET)
+    .update(token)
+    .digest("base64");
   const r = await WRITER`DELETE FROM sessions WHERE token = ${token}`;
-  console.log(r, "a");
 };
 export const revokeAllSessions = async (
   identifier: User["identifier"],

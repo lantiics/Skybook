@@ -1,21 +1,19 @@
 <div class="actions">
   <% if ((post.authenticated_user_identifier==(ctx.user ? ctx.user.identifier:'not an identifier'))||ctx.elevated) { %>
   <button onclick="actOnPost(this.parentNode.parentNode,this)" data-action="delete" class="deleteBtn" title="Delete post" <% if
-      (post.sys_lock && !ctx.superAdmin) {%> disabled="true" <% }%>></button>
+      (post.sys_lock ) {%> disabled="true" <% }%>></button>
   <% if (ctx.elevated) { %>
 
-  <% if (ctx.user && post.authenticated_user_identifier !==ctx.user.identifier) {%><button onclick="actOnPost(this.parentNode.parentNode,this)" title="<%=post.creator_blocked?'Unblock creator':'Block creator'%>" class="<%=post.creator_blocked?'unblockBtn':'blockBtn'%>" data-action="<% if(post.creator_blocked)  {%>unblock<% } else {%>block<%}%>" <% if (post.sys_lock &&
-          !ctx.superAdmin) {%> disabled=" true" <% }%>>
+  <% if (ctx.user && post.authenticated_user_identifier !==ctx.user.identifier) {%><button onclick="actOnPost(this.parentNode.parentNode,this)" title="<%=post.creator_blocked?'Unblock creator':'Block creator'%>" class="<%=post.creator_blocked?'unblockBtn':'blockBtn'%>" data-action="<% if(post.creator_blocked)  {%>unblock<% } else {%>block<%}%>" <% if (post.sys_lock) {%> disabled=" true" <% }%>>
   </button>
   <%}%>
-    <button onclick="actOnPost(this.parentNode.parentNode,this)" title="<%=post.is_visible?'Hide post':'Show post'%>" class="<%=post.is_visible?'hideBtn':'showBtn'%>" data-action="visibility" <% if (post.sys_lock && !ctx.superAdmin) {%> disabled=" true" <% }%>></button>
+    <button onclick="actOnPost(this.parentNode.parentNode,this)" title="<%=post.is_visible?'Hide post':'Show post'%>" class="<%=post.is_visible?'hideBtn':'showBtn'%>" data-action="visibility" <% if (post.sys_lock ) {%> disabled=" true" <% }%>></button>
   <button onclick="actOnPost(this.parentNode.parentNode,this)" title="<%=post.is_highlighted?'Un-highlight post':'Highlight post'%>" class="<%=post.is_highlighted?'unhighlightBtn':'highlightBtn'%>" data-action="highlight" <% if
-            (post.sys_lock && !ctx.superAdmin) {%> disabled=" true" <% }%>></button>
-  <button onclick="actOnPost(this.parentNode.parentNode,this)" data-action="pin" title="<%=post.is_pinned?'Unpin post':'Pin post'%>" class="<%=post.is_pinned?'unpinBtn':'pinBtn'%>" <% if (post.sys_lock && !ctx.superAdmin) {%> disabled="
+            (post.sys_lock ) {%> disabled=" true" <% }%>></button>
+  <button onclick="actOnPost(this.parentNode.parentNode,this)" data-action="pin" title="<%=post.is_pinned?'Unpin post':'Pin post'%>" class="<%=post.is_pinned?'unpinBtn':'pinBtn'%>" <% if (post.sys_lock ) {%> disabled="
             true" <% }%>></button>
   <% if (post.is_queued) { %>
-  <button onclick="actOnPost(this.parentNode.parentNode,this)" data-action="approve" class="approveBtn" title="Approve post" <% if (post.sys_lock
-                  && !ctx.superAdmin) {%> disabled="true" <% }%>></button>
+  <button onclick="actOnPost(this.parentNode.parentNode,this)" data-action="approve" class="approveBtn" title="Approve post" <% if (post.sys_lock) {%> disabled="true" <% }%>></button>
   <% } %>
   <% if (!post.reply) {%>
   <button class="replyBtn" title="Reply to post" onclick="reply(this.parentNode.parentNode)"></button>
@@ -23,11 +21,10 @@
                       <% if (post.flag_count) {%><button onclick="actOnPost(this.parentNode.parentNode,this)" title="Clear flags" class="clearFlagsBtn" data-action="clear-flags"></button>
   <%}%>
                           <% if (!post.sys_lock&&ctx.elevated&&!post.postedByRequestor) {%><button onclick="actOnPost(this.parentNode.parentNode,this)" title="<%=post.can_flag?'Disable flagging':'Enable flagging'%>" class="<%=post.can_flag?'flaggedBtn':'flagBtn'%>" data-action="toggle-flagging" <%
-                              if(ctx.user&&
-                              post.authenticated_user_identifier&&post.authenticated_user_identifier===ctx.user.identifier)
+                              if (ctx.user&& post.authenticated_user_identifier&&post.authenticated_user_identifier===ctx.user.identifier)
                               {%>disabled <%}%>></button>
                             <%} %> <% } %> <% } %> <% if(status.submission_enabled.status||ctx.elevated) {%> <% if
-                                      (status.flagging_enabled&&post.can_flag&&!ctx.elevated&&!post.postedByRequestor)
+                                      (status.flagging_enabled.status&&post.can_flag&&!ctx.elevated&&!post.postedByRequestor)
                                       {%> <button onclick="actOnPost(this.parentNode.parentNode,this)" class="flagBtn" data-action="flag" title="Flag post"></button>
   <%}%>
                                         <% }%>

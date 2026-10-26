@@ -31,7 +31,6 @@ export const authenticate = async (
   res: Response,
   next: NextFunction,
 ) => {
-  console.time("Authenticated");
   if (
     config.ip_blocking.proxy_addresses_blocked ||
     config.ip_blocking.vpn_addresses_blocked ||
@@ -48,9 +47,11 @@ export const authenticate = async (
       );
       user = authenticatedUser;
     } catch (e) {
-      if (e instanceof UnauthorizedError) {
-      } else {
-        console.error(e); // during development
+      if (!(e instanceof UnauthorizedError)) {
+        console.error(
+          "An error occurred during middleware authentication " + e,
+        );
+        throw e;
       }
     }
   }
@@ -58,18 +59,12 @@ export const authenticate = async (
   req.ctx = {
     ...req.ctx,
     user: user,
-    superAdmin:
-      ![undefined, null, ""].includes(process.env.SUPERADMIN_KEY) &&
-      req.headers["x-superadmin-key"] === process.env.SUPERADMIN_KEY,
     authenticated: !!user,
     ip: req.ip!,
   };
   res.locals.skybook = config.skybook;
 
-  if (!req.ctx?.instance) {
-  }
-  let elevated = req.ctx.superAdmin ?? false;
-  console.log(elevated, "elevated");
+  let elevated = false;
   if (!elevated && user && req.ctx.instance && user.name === req.ctx.instance) {
     elevated = true;
   }
@@ -80,8 +75,6 @@ export const authenticate = async (
     token: token,
     identifier: req.params.identifier as string,
   };
-
-  console.timeEnd("Authenticated");
 
   next();
 };

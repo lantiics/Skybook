@@ -1,7 +1,7 @@
 <link rel="stylesheet" href="/stylesheets/style.css?v=<%=assetVersion%>">
 <link rel="stylesheet" href="/stylesheets/instance.css?v=<%=assetVersion%>">
-<script src="/js/main.js?v=<%=assetVersion%>"></script>
-<script src="/js/instance.js?v=<%=assetVersion%>"></script>
+<script src="/js/main.min.js?v=<%=assetVersion%>"></script>
+<script src="/js/instance.min.js?v=<%=assetVersion%>"></script>
 <meta name="instance-name" content="<%=ctx.instance%>">
 <style>
   input {
@@ -12,7 +12,6 @@
   .entry-submission {
     width: 90vw;
     margin-inline: 0px;
-    /* display: none; */
   }
 
   textarea {
@@ -45,10 +44,7 @@
     max-width: 100%;
   }
 
-  cap-widget {
-    /* width: fit-content; */
-    /* max-width: 100%; */
-  }
+
 </style>
 
 <div style="display:flex;flex-direction: column;align-items: center;margin-block:1rem">
@@ -75,7 +71,6 @@
 </div>
 <footer>
   <p style="text-align: center;">
-    Powered by <a href="http://<%=skybook.domain%>">Skybook</a> | <a href="https://gitlab.com/lantics/skybook">Source available on GitLab</a><br />
-    Skybook is currently under development
+    Powered by <a href="<%=protocol%>://<%=skybook.domain%>">Skybook</a> | <a href="https://gitlab.com/lantics/skybook">Source available on GitLab</a>
   </p>
 </footer>

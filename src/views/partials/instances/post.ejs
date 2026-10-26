@@ -1,22 +1,27 @@
-<div class="entry <% if (post.is_highlighted) {%>highlighted<%}%> " data-identifier="<%=post.identifier%>" data-can-alter="<%=((post.authenticated_user_identifier==(ctx.user ? ctx.user.identifier:'not an identifier'))||ctx.elevated&&!post.sys_lock||ctx.superAdmin)%>">
+<div class="entry <% if (post.is_highlighted) {%>highlighted<%}%> " data-identifier="<%=post.identifier%>" data-can-alter="<%=((post.authenticated_user_identifier==(ctx.user ? ctx.user.identifier:'not an identifier'))||ctx.elevated&&!post.sys_lock)%>">
   <div style="display:flex;flex-direction: row;">
+    <% if (post.is_pinned) {%><div class="postpinned-indicator" title="This is a pinned entry"></div><%}%>
+    <% if (post.is_authentic) {%><div class="verified" title="This post was created and last altered by the Skybook user '<%=post.author%>'"></div> <%}%>
     <% if (post.is_queued) {%> <div title="queued" class="postqueued-indicator"></div><%}%>
-  <% if (!post.is_visible) {%> <div title="hidden" class="posthidden-indicator"></div> <%}%></div>
+  <% if (!post.is_visible) {%> <div title="hidden" class="posthidden-indicator"></div> <%}%>
+    
+    
+</div>
   <div class="entry-time" data-field="added-at">
     <%= post.added %>
     <% if (ctx.elevated && post.flag_count) {%> | flagged <%=post.flag_count%> times <%}%> <% if (ctx.elevated && post.creator_blocked && post.block_reason) {%> | blocked: <%=post.block_reason%> <%}%>
   </div>
   <div>
-    <div class="entry-author <% if (post.authentic) {%> authentic-author <% } %>" data-field="author" spellcheck="false" contenteditable="<%=((post.authenticated_user_identifier==(ctx.user ? ctx.user.identifier:'not an identifier'))||ctx.elevated&&!post.sys_lock||ctx.superAdmin)%>">
+    <div class="entry-author" data-field="author" spellcheck="false" contenteditable="<%=((post.authenticated_user_identifier==(ctx.user ? ctx.user.identifier:'not an identifier'))||ctx.elevated&&!post.sys_lock)%>">
     <%= post.author %>
   </div>
 </div>
 <% for (field of post.extra) { if (field[1]){ %> <div>
   <div style="font-weight: bold;  width: fit-content;position: relative;margin-left:4px;"><%=field[0]%></div>
-  <div data-field="<%=field[0]%>" spellcheck="false" contenteditable="<%=((post.authenticated_user_identifier==(ctx.user ? ctx.user.identifier:'not an identifier'))||ctx.elevated&&!post.sys_lock||ctx.superAdmin)%>"><%=field[1]%></div>
+  <div data-field="<%=field[0]%>" spellcheck="false" contenteditable="<%=((post.authenticated_user_identifier==(ctx.user ? ctx.user.identifier:'not an identifier'))||ctx.elevated&&!post.sys_lock)%>"><%=field[1]%></div>
 </div> <%} }%>
 <div>
-  <div class="entry-content" data-field="content" spellcheck="false" contenteditable="<%=((post.authenticated_user_identifier==(ctx.user ? ctx.user.identifier:'not an identifier'))||ctx.elevated&&!post.sys_lock||ctx.superAdmin)%>">
+  <div class="entry-content" data-field="content" spellcheck="false" contenteditable="<%=((post.authenticated_user_identifier==(ctx.user ? ctx.user.identifier:'not an identifier'))||ctx.elevated&&!post.sys_lock)%>">
     <%= post.content %>
   </div>
 </div>
@@ -34,6 +39,3 @@
   </div>
 </div> <%}%>
   </div>
-
-  <!--   <% if (post.replies) {%> <div class="replies"> <% for (post of post.replies) {%> <%-include('./post', {post:post, ctx:ctx})%><%}%></div><%}%>
-  -->

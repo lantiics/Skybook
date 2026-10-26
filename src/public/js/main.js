@@ -12,6 +12,9 @@ const errorStatus = (status) => {
     case "409":
       status = "You can only do this action once";
       break;
+    case "413":
+      status = "Submission length is above configured limit";
+      break;
     case "422":
       status = "At least one field was filtered";
       break;
@@ -49,18 +52,15 @@ const createPopup = (text, duration = 1500) => {
   setTimeout(() => removePopup(popupElem), duration);
 };
 const removePopup = (popupElem) => {
-  //   console.log(popup);
   const index = popups.indexOf(popupElem);
   if (index !== -1) popups.splice(index, 1);
   popupElem.style.opacity = 0;
-  //   popupElem.classList.remove("visible");
   setTimeout(() => {
     popupElem.remove();
     repositionPopups();
   }, 350);
 };
 const repositionPopups = () => {
-  console.log(popups.length);
   const gap = 10;
   let offset = 0;
   for (const popup of popups) {

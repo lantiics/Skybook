@@ -1,14 +1,10 @@
-import {
-  PUBLIC_COLUMN_NAMES,
-  PRIVATE_COLUMN_NAMES,
-  SYSTEM_COLUMN_NAMES,
-} from "../defaults.ts";
+import { PUBLIC_COLUMN_NAMES, PRIVATE_COLUMN_NAMES } from "../defaults.ts";
 import {
   UnauthorizedError,
   FilteredError,
   NotFoundError,
-  LockedError,
   BadRequestError,
+  LengthError,
 } from "../errors.ts";
 import { RequestContext } from "../types/context.ts";
 import { generateToken, entryTokenValid } from "./tokens.ts";
@@ -26,7 +22,6 @@ import { Field, Mutable, Post } from "../types/entities.ts";
 import { hashIp, ipSource } from "./ip.ts";
 import { userCanBeBlocked, userCanPost } from "./users.ts";
 import { config } from "../config.ts";
-import { tryGlobalBlock, tryUserEnforcement } from "./enforcements.ts";
 import { purgeInstanceCache } from "./cache.ts";
 import { notifyUser } from "./notifications.ts";
 import { RE2JS } from "re2js";
@@ -40,7 +35,6 @@ const validatedEntry = async (
   fields: Record<string, any>,
   isEdit: boolean = false,
 ): Promise<Record<string, unknown>> => {
-  // console.time("Validated entry");
   const instanceStatus = await compiledInstanceStatus(ctx.instance);
   if (!instanceStatus.submission_enabled.status && !ctx.elevated)
     throw new UnauthorizedError("Submission is disabled");
@@ -153,9 +147,9 @@ const validatedEntry = async (
   let extra: Record<string, string> = {};
   for (const [field, content] of Object.entries(fields)) {
     if (field === "author" && content.length > config.fields.author_max_length)
-      throw new FilteredError("Field length is above limit");
+      throw new LengthError("Field length is above limit");
     else if (content && content.length > config.fields.typical_max_length)
-      throw new FilteredError("Field length is above limit");
+      throw new LengthError("Field length is above limit");
     if (!["author", "content"].includes(field)) {
       if (!validFields.has(field))
         throw new BadRequestError(
@@ -167,7 +161,6 @@ const validatedEntry = async (
   }
   fields.extra = extra;
   entry = { ...entry, ...fields };
-  // console.timeEnd("Validated entry");
   return entry;
 };
 
@@ -176,6 +169,8 @@ export const replyToPost = async (
   identifier: string,
   message: string,
 ) => {
+  if (message.length > config.fields.typical_max_length)
+    throw new LengthError("Field length is above limit");
   await WRITER`UPDATE posts SET reply = ${message} WHERE identifier = ${identifier} AND instance = ${ctx.instance}`;
   purgeInstanceCache(ctx.instance);
 };
@@ -200,27 +195,21 @@ export const createPost = async (
     can_flag: !ctx.elevated,
   };
 
-  if (ctx.user?.name) {
+  if (ctx.user?.identifier) {
     entry.authenticated_user_identifier = ctx.user.identifier;
+    entry.last_edited_by = ctx.user.identifier;
   }
 
-  const columns = ctx.superAdmin
-    ? [
-        ...PRIVATE_COLUMN_NAMES,
-        ...PUBLIC_COLUMN_NAMES,
-        ...SYSTEM_COLUMN_NAMES,
-      ].join(",")
-    : (ctx.elevated
-        ? [...PRIVATE_COLUMN_NAMES]
-        : [...PUBLIC_COLUMN_NAMES]
-      ).join(",");
+  const columns = (
+    ctx.elevated ? [...PRIVATE_COLUMN_NAMES] : [...PUBLIC_COLUMN_NAMES]
+  ).join(",");
 
   const row = await WRITER.begin(async (tx) => {
     const [row] =
       await tx`INSERT INTO posts ${tx(entry)} RETURNING ${tx.unsafe(columns)}`;
     const [{ expires_at: tokenExpiresIn }] = await tx`
   INSERT INTO tokens (instance, identifier, token, created_at, expires_at)
-  VALUES (${entry.instance},  ${row.identifier}, ${_token}, NOW(), (NOW() + make_interval(hours => ${config.tokens.expiry_hours}))) RETURNING expires_at
+  VALUES (${entry.instance},  ${row.identifier}, ${_token.hashed}, NOW(), (NOW() + make_interval(hours => ${config.tokens.expiry_hours}))) RETURNING expires_at
 `;
 
     return [row, tokenExpiresIn];
@@ -230,7 +219,7 @@ export const createPost = async (
   await notifyUser(ctx.instance, row[0]);
   return {
     row: row[0],
-    token: _token,
+    token: _token.token,
     tokenExpires: row[1],
     wasQueued: entry.is_queued,
   };
@@ -246,13 +235,6 @@ export const editPost = async (
       "Not authorized to alter entry with identifier " + identifier,
     );
   }
-  if (!ctx.superAdmin) {
-    if (await _getPostStatus(ctx.instance, identifier, "sys_lock")) {
-      throw new LockedError(
-        "Attempted to update a locked post without system-level privileges",
-      );
-    }
-  }
 
   const entry = await validatedEntry(ctx, fields, true);
   if (ctx.elevated || !entry.is_queued) {
@@ -260,13 +242,10 @@ export const editPost = async (
   }
   let extra: Record<string, string> = entry.extra as Record<string, string>;
   delete entry.extra;
-  const columns = ctx.superAdmin
-    ? `*`
-    : (ctx.elevated
-        ? [...PRIVATE_COLUMN_NAMES]
-        : [...PUBLIC_COLUMN_NAMES]
-      ).join(",");
-  if (ctx.user) fields.last_edited_by = ctx.user.identifier;
+  const columns = (
+    ctx.elevated ? [...PRIVATE_COLUMN_NAMES] : [...PUBLIC_COLUMN_NAMES]
+  ).join(",");
+  if (ctx.user) entry.last_edited_by = ctx.user.identifier;
   const hasExtra = Object.keys(extra as Record<any, any>).length > 0;
   const hasFields = Object.keys(entry).length > 0;
   if (!hasExtra && !hasFields) throw new BadRequestError("No fields specified");
@@ -278,7 +257,6 @@ export const editPost = async (
       delete extra[k];
     }
   });
-  console.log("extra: ", extra, "fields: ", entry, toDelete);
   // convert array of fields to be deleted into a postgres-compatible array
   const literal = `{${toDelete.map((s) => `"${s.replace(/"/g, '\\"')}"`).join(",")}}`;
 
@@ -305,13 +283,6 @@ export const deletePost = async (ctx: RequestContext, identifier: string) => {
       );
     }
   }
-  if (!ctx.superAdmin) {
-    if (await _getPostStatus(ctx.instance, identifier, "sys_lock")) {
-      throw new LockedError(
-        "Attempted to update a locked post without system-level privileges",
-      );
-    }
-  }
   const post = await WRITER.begin(async (tx) => {
     const [post] =
       await tx`DELETE FROM posts WHERE identifier = ${identifier} AND instance = ${ctx.instance} RETURNING is_queued, is_visible`;
@@ -321,28 +292,6 @@ export const deletePost = async (ctx: RequestContext, identifier: string) => {
   if (!post.is_queued && post.is_visible) purgeInstanceCache(ctx.instance);
 };
 
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-/* 
-  TODO:
-        Queue every post made by the blocked creator. If using a user identifier, we don't use a time limit. If there is only
-        a hashed IP address attached, we queue every post made by that IP addresses within the past 60 days 
-        in order to to account for IP address changes.
-*/
 export const blockPostCreator = async (
   ctx: RequestContext,
   identifier: string,
@@ -354,11 +303,6 @@ export const blockPostCreator = async (
     await READER`SELECT ip_hash,authenticated_user_identifier FROM posts WHERE identifier = ${identifier} AND instance = ${ctx.instance}`;
   await WRITER.begin(async (tx) => {
     await tx`INSERT INTO instance_blocks (instance, ip_hash, user_identifier, reason) VALUES (${ctx.instance},${postData.ip_hash},${postData.authenticated_user_identifier},${reason})`;
-    const [{ count: blockCount }] =
-      await tx`SELECT COUNT(*) FROM instance_blocks WHERE ip_hash = ${postData.ip_hash} OR user_identifier = ${postData.authenticated_user_identifier}`;
-    await tryGlobalBlock(postData.ip_hash, blockCount, tx);
-    if (postData.authenticated_user_identifier)
-      await tryUserEnforcement(postData.authenticated_user_identifier);
   });
 };
 export const unblockPostCreator = async (
@@ -383,19 +327,9 @@ export const _updatePost = async (
   identifier: string,
   property: string,
 ) => {
-  const columns = ctx.superAdmin
-    ? `*`
-    : (ctx.elevated
-        ? [...PRIVATE_COLUMN_NAMES]
-        : [...PUBLIC_COLUMN_NAMES]
-      ).join(",");
-  if (!ctx.superAdmin) {
-    if (await _getPostStatus(ctx.instance, identifier, "sys_lock")) {
-      throw new LockedError(
-        "Attempted to update a locked post without system-level privileges",
-      );
-    }
-  }
+  const columns = (
+    ctx.elevated ? [...PRIVATE_COLUMN_NAMES] : [...PUBLIC_COLUMN_NAMES]
+  ).join(",");
   if (
     [
       "is_visible",
@@ -558,18 +492,14 @@ export const getPosts = async (
         "block_count DESC, is_pinned DESC, is_queued DESC, flag_count DESC, seq DESC",
       )
     : READER.unsafe("is_pinned DESC,is_queued DESC, is_visible ASC, seq DESC");
-  let columnList = ctx.superAdmin
-    ? "*"
-    : (ctx.elevated
-        ? [...PRIVATE_COLUMN_NAMES]
-        : [...PUBLIC_COLUMN_NAMES]
-      ).join(",");
+  let columnList = (
+    ctx.elevated ? [...PRIVATE_COLUMN_NAMES] : [...PUBLIC_COLUMN_NAMES]
+  ).join(",");
   if (returnsPublic) {
     columnList = columnList.replace(/,authenticated_user_identifier/, "");
   }
+  columnList = columnList.replace(/([a-zA-Z0-9_]+)/g, "posts.$1");
   if (ctx.elevated) {
-    columnList = columnList.replace("ip_hash", "posts.ip_hash");
-    columnList = columnList.replace("instance", "posts.instance");
     columnList += ",instance_blocks.reason AS block_reason";
     columnList += `,(
     SELECT COUNT(*)
@@ -578,17 +508,24 @@ export const getPosts = async (
     AND (ib.ip_hash = posts.ip_hash OR ib.user_identifier = posts.authenticated_user_identifier)
     ) AS block_count`;
   }
-  const query = ctx.elevated
-    ? READER`LEFT JOIN instance_blocks
-      ON posts.instance = instance_blocks.instance
-      AND (posts.ip_hash = instance_blocks.ip_hash OR posts.authenticated_user_identifier = instance_blocks.user_identifier)
-    WHERE posts.instance = ${ctx.instance}`
-    : READER`WHERE instance = ${ctx.instance}`;
+  const query = READER`
+  ${
+    ctx.elevated
+      ? READER`LEFT JOIN instance_blocks
+    ON posts.instance = instance_blocks.instance
+    AND (posts.ip_hash = instance_blocks.ip_hash OR posts.authenticated_user_identifier = instance_blocks.user_identifier)`
+      : READER``
+  }
+    LEFT JOIN users
+      ON posts.authenticated_user_identifier = users.identifier
+      AND posts.author = users.name
+    WHERE posts.instance = ${ctx.instance}`;
+  columnList +=
+    ",users.identifier IS NOT NULL AND posts.last_edited_by IS NOT NULL AND posts.last_edited_by = posts.authenticated_user_identifier AS is_authentic";
   const entries = await READER`SELECT ${READER.unsafe(columnList)} FROM posts
-      ${query}
+      ${query} 
     ${additionalRequirements}
     ORDER BY ${order} LIMIT ${perPage} OFFSET ${page * perPage}`;
-
   return entries;
 };
 
@@ -600,10 +537,6 @@ export const pageCount = async (ctx: RequestContext) => {
 
 export const countPosts = async (ctx: RequestContext) => {
   const filter = ctx.elevated ? "" : "AND NOT is_queued AND is_visible";
-  console.log(
-    await READER`SELECT COUNT(*) FROM posts WHERE instance = ${ctx.instance} ${READER.unsafe(filter)}`,
-    "this the countttt",
-  );
   return (
     await READER`SELECT COUNT(*) FROM posts WHERE instance = ${ctx.instance}  ${READER.unsafe(filter)}`
   )[0].count;

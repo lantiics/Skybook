@@ -42,7 +42,7 @@ export const generateUser = async () => {
 export const baseUser = await generateUser();
 
 const btN = await generateUser();
-const btuM = await setupTwoFactor(btN.name);
+const btuM = await setupTwoFactor(btN.name, btN.identifier);
 export const baseTOTPUser = {
   ...btN,
   mfa: btuM,
@@ -55,11 +55,7 @@ beforeAll(async () => {
     baseTOTPUser.mfa.secret,
     baseTOTPUser.mfa.hashedCodes,
   );
-  await enableUserMfa(
-    baseTOTPUser.identifier,
-    baseTOTPUser.mfa.secret,
-    baseTOTPUser.mfa.hashedCodes,
-  );
+  await enableUserMfa(baseTOTPUser.identifier);
 });
 
 afterAll(async () => {
@@ -72,7 +68,6 @@ afterAll(async () => {
 const baseCtx = {
   instance: baseUser.name,
   elevated: false,
-  superAdmin: false,
   authenticated: false,
 };
 const userCtx = { name: baseUser.name, identifier: baseUser.identifier };

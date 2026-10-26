@@ -56,14 +56,12 @@ router.post("/signup", authLimiter, async (req: Request, res: Response) => {
 router.post("/login", authLimiter, async (req: Request, res: Response) => {
   try {
     await assertCaptchaTokenValid(req.body[config.captcha.token_property_name]);
-    console.time("Logged in");
     req.body.username = req.body.username.toLowerCase();
     const sessionKey = await loginUser(
       req.body.username,
       req.body.password,
       req.body.otp ?? undefined,
     );
-    console.log("");
     res.cookie("session", sessionKey, {
       signed: true,
       httpOnly: true,
@@ -71,7 +69,6 @@ router.post("/login", authLimiter, async (req: Request, res: Response) => {
       sameSite: "strict",
       domain: config.skybook.domain,
     });
-    console.timeEnd("Logged in");
     return res
       .status(200)
       .setHeader(
@@ -82,7 +79,6 @@ router.post("/login", authLimiter, async (req: Request, res: Response) => {
       )
       .send();
   } catch (e) {
-    console.error(e, "error!");
     return res.sendStatus(errorStatus(e, false));
   }
 });
@@ -92,7 +88,6 @@ router.post("/logout", async (req: Request, res: Response) => {
   if (!sessionKey) {
     return res.sendStatus(400);
   }
-  console.log(sessionKey);
   await revokeSession(sessionKey);
   res.clearCookie("session", {
     domain: config.skybook.domain,
@@ -117,7 +112,6 @@ router.post(
           "Provided session key is not linked to a user",
         );
       }
-      console.log(req.body);
       const { oldPassword, newPassword, otp } = req.body;
 
       await changeUserPassword(userIdentifier, oldPassword, newPassword, otp);

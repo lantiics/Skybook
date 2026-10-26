@@ -7,7 +7,7 @@ import {
 } from "otplib";
 import QRCode from "qrcode";
 import { User } from "../types/entities";
-import { WRITER } from "../db";
+import { READER, WRITER } from "../db";
 const crypto = require("node:crypto");
 export const generateOTP = async (secret: string) => {
   return await generate({ secret });
@@ -16,7 +16,10 @@ export const passwordIsSafe = (password: string) => {
   return password.length >= 8;
 };
 
-export const setupTwoFactor = async (user: User["name"]) => {
+export const setupTwoFactor = async (
+  user: User["name"],
+  uuid: User["identifier"],
+) => {
   const secret = generateSecret();
 
   const uri = generateURI({
@@ -88,6 +91,40 @@ export const recoveryCodeValid = async (
   return false;
 };
 
-export const verifyTotp = async (secret: string, token: string) => {
+export const saveLastTotpWindow = async (
+  identifier: User["identifier"],
+  window: number,
+) => {
+  await WRITER`UPDATE users SET last_totp_window = ${window} WHERE identifier = ${identifier}`;
+};
+export const lastTotpWindow = async (
+  identifier: User["identifier"],
+): Promise<User["last_totp_window"]> => {
+  return (
+    await READER`SELECT last_totp_window FROM users WHERE identifier = ${identifier}`
+  )[0].last_totp_window;
+};
+export const verifyTotp = async (
+  secret: string,
+  token: string,
+  identifier?: User["identifier"],
+) => {
+  let res;
+  if (identifier) {
+    const window = await lastTotpWindow(identifier);
+    if (window) {
+      res = await verify({ secret, token, afterTimeStep: window });
+    } else {
+      res = await verify({ secret, token });
+    }
+    if (res.valid) {
+      if (!("timeStep" in res)) {
+        throw new Error("Timestep is not present in TOTP");
+      }
+      await saveLastTotpWindow(identifier, res.timeStep);
+      return true;
+    }
+    return false;
+  }
   return (await verify({ secret, token })).valid;
 };

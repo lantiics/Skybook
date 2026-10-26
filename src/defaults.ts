@@ -18,13 +18,13 @@ export const PUBLIC_COLUMN_NAMES: Set<keyof Post> = new Set([
 ]);
 export const PRIVATE_COLUMN_NAMES: Set<keyof Post> = new Set([
   ...PUBLIC_COLUMN_NAMES,
-  "last_edited_by",
   "instance",
   "flag_count",
 ]);
 export const SYSTEM_COLUMN_NAMES: Set<keyof Post> = new Set([
   ...PUBLIC_COLUMN_NAMES,
   ...PRIVATE_COLUMN_NAMES,
+  "last_edited_by",
   "ip_hash",
 ]);
 export const RESERVED_COLUMN_NAMES: Set<keyof Post> = new Set([

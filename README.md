@@ -1,10 +1,12 @@
-# Skybook
+# <img src="Skybook_YFO-SGB.png">
 
-Skybook is a fully open-source, self-hostable guestbook host akin to [123Guestbook](https://www.123guestbook.com) and [Atabook](https://atabook.org).
-
-Skybook is currently unfinished but in a very usable state.
+Skybook is a fully open-source, self-hostable guestbook host akin to [123Guestbook](https://www.123guestbook.com) and [Atabook](https://atabook.org). Skybook is highly focused on user privacy and security, and attempts to store as little data as possible. All sensitive data is always stored as a salted hash, or encrypted.
 
 The official hosted instance of Skybook is available at [skybook.page](https://skybook.page)
+
+![](https://img.shields.io/badge/gitlab-repo-red?logo=gitlab) ![](https://badgen.net/docker/pulls/lanticss/skybook) ![](https://badgen.net/gitlab/issues/lantics/skybook) ![](https://badgen.net/gitlab/open-issues/lantics/skybook) ![](https://badgen.net/gitlab/releases/lantics/skybook) ![](https://badgen.net/gitlab/release/lantics/skybook)
+
+![](https://badgen.net/gitlab/license/lantics/skybook)
 
 ## Features:
 
@@ -16,21 +18,20 @@ The official hosted instance of Skybook is available at [skybook.page](https://s
 - Ability to reply to entries
 - Toggle submission, visibility of your guestbook
 - Optionally require approval for all entries before they become visible
-- The ability to block post creators
-  - This contributes to a global record which can result in the IP address associated with the post being temporarily blocked (IP addresses are not immutable identifiers), or the account associated to be permanently disabled (deleted after 1 year, or as specified per Skybook instance)
-- The ability for users to flag posts on your guestbook
-  - Posts which surpass a user-defined threshold of flags automatically become queued
-  - Flagging can be disabled per-post, and is always unavailable for the guestbook owner
-  - Each account/IP address can only flag a post once, we store post flaggers alongside account identifiers/their hashed IP address
+- The ability to block entry creators
+- The ability for users to flag entries on your guestbook
+  - Entries which surpass a user-defined threshold of flags automatically become queued
+  - Flagging can be disabled per entry, and is always unavailable for the guestbook owner
+  - Each account/IP address can only flag an entry once, we store entry flaggers alongside account identifiers/their hashed IP address
 - Filters (utilizing regular expressions)
   - Custom per-field filters
   - Custom guestbook-wide filters (applies to all fields)
-  - Optionally queue filtered posts (otherwise, they are immediately discarded)
+  - Optionally queue filtered entries (otherwise, they are immediately discarded)
 - Creation of custom fields
 - Toggling requirement of fields
-  - Optionally, specify a replacement value for a field which is required. If no replacement value is specified, posts without that field specified will be rejected.
+  - Optionally, specify a replacement value for a field which is required. If no replacement value is specified, entries without that field specified will be rejected.
 - Exports
-- Imports (maximum of 1000 entries)
+- Imports (default maximum of 100 entries, configurable per Skybook instance)
 - Iframe embedding @ yourinstance/embed
 
 ### Skybook Features:
@@ -60,7 +61,7 @@ the first script copies all required configuration files into your directory if 
 
 ```
 git clone https://gitlab.com/lantics/skybook.git &&
-cd skybook && ./setup.sh && cd dev && ./database.sh && cd ../ && bun install && bun --watch src/app.js
+cd skybook && ./setup.sh && cd dev && ./database.sh && cd ../ && bun install && bun --watch src/app.ts
 ```
 
 **_continue with the configuration sections below_**

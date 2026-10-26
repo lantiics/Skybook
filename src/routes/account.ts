@@ -1,12 +1,19 @@
 import { Request, Response } from "express";
-import { BadRequestError, errorStatus, UnauthorizedError } from "../errors";
+import {
+  BadRequestError,
+  errorStatus,
+  ForbiddenError,
+  UnauthorizedError,
+} from "../errors";
 import {
   deleteUser,
   disableUserMfa,
   enableUserMfa,
   userPasswordIsValid,
+  userTotpData,
 } from "../domain/users";
 import { verifyTotp } from "../domain/auth";
+import { decryptedSecret } from "../domain/encryption";
 import { config } from "../config";
 
 const router = require("express").Router();
@@ -42,25 +49,30 @@ router.post("/delete", async (req: Request, res: Response) => {
 
 router.post("/enable-totp", async (req: Request, res: Response) => {
   try {
-    if (!req.ctx.authenticated) {
-      throw new UnauthorizedError(
-        "A logged in session is required to enable TOTP",
+    if (!req.ctx.authenticated || !req.ctx.user) {
+      throw new ForbiddenError(
+        "Attempted to enable TOTP as an unauthenticated user",
       );
     }
-    const { secret, otp, password, codes } = req.body;
-
-    if (!secret || !otp || !password || !codes)
+    if (!process.env.TOTP_SECRET_KEY)
+      throw new Error("TOTP secret key unavailable, unable to enable TOTP");
+    const { otp, password } = req.body;
+    if (!otp || !password)
       throw new BadRequestError("Required credentials not supplied");
-    if (!(await userPasswordIsValid(req.ctx.user!.identifier, password)))
+    if (!(await userPasswordIsValid(req.ctx.user.identifier, password)))
       throw new UnauthorizedError("Password incorrect");
-    if (!(await verifyTotp(secret, otp)))
+    if (
+      !(await verifyTotp(
+        decryptedSecret(
+          (await userTotpData(req.ctx.user.identifier)).secret,
+          req.ctx.user.identifier,
+          process.env.TOTP_SECRET_KEY,
+        ),
+        otp,
+      ))
+    )
       throw new UnauthorizedError("Incorrect one time password supplied");
-    console.log(req.ctx);
-    await enableUserMfa(
-      req.ctx.user!.identifier,
-      secret,
-      JSON.parse(atob(codes)),
-    );
+    await enableUserMfa(req.ctx.user!.identifier);
     res.clearCookie("session", {
       domain: config.skybook.domain,
     });

@@ -1,0 +1,1 @@
+ALTER TABLE users ADD COLUMN last_totp_window INTEGER;

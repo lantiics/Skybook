@@ -9,7 +9,8 @@ router.get("/enable-2fa", async (req: Request, res: Response) => {
     return res.sendStatus(400);
   }
   const { secret, uri, qrDataUrl, codes, hashedCodes } = await setupTwoFactor(
-    req.ctx.user!.name,
+    req.ctx.user.name,
+    req.ctx.user.identifier,
   );
   await initUserMfa(req.ctx.user.identifier, secret, hashedCodes);
   res.locals.ctx = req.ctx;
@@ -35,7 +36,6 @@ router.get("/regen-recovery-gate", async (req: Request, res: Response) => {
 router.post("/new-recovery-codes", async (req: Request, res: Response) => {
   try {
     if (!req.ctx.user) return res.sendStatus(401);
-    console.log(req.ctx.user);
     const codes = await regenerateRecoveryCodes(
       req.ctx.user.identifier,
       req.body.password,

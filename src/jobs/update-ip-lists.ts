@@ -1,5 +1,3 @@
-require("dotenv");
-
 import { SUPERUSER, READER } from "../db";
 import { PipelineSource, Transform } from "node:stream";
 import { pipeline } from "node:stream/promises";
@@ -80,28 +78,21 @@ export const doProxy = async () => {
     });
     const BATCH = 1000;
     let batch: string[] = [];
-    console.log("beginning");
     await SUPERUSER.begin(async (tx) => {
-      console.log("delete");
       await tx`DELETE FROM blocklist_ranges WHERE source = 'proxy'`;
-      console.log("deleted, querying");
       for await (const ip of rl) {
         batch.push(ip);
         if (batch.length >= BATCH) {
           const literal = `{${batch.map((s) => `"${s.replace(/"/g, '\\"')}"`).join(",")}}`;
-          console.log(literal);
-
           await tx`INSERT INTO blocklist_ranges (source, range) SELECT 'proxy', unnest(${literal}::text[])::cidr`;
           batch = [];
         }
       }
       if (batch.length) {
         const literal = `{${batch.map((s) => `"${s.replace(/"/g, '\\"')}"`).join(",")}}`;
-        console.log(literal);
         await tx`INSERT INTO blocklist_ranges (source, range) SELECT 'proxy', unnest(${literal}::text[])::cidr`;
       }
     });
-    console.log("done");
   } finally {
     rmSync(tmpDir, { recursive: true, force: true });
   }
@@ -146,13 +137,13 @@ export const doVpn = async () => {
 const TorDownloadURL = "https://www.dan.me.uk/torlist/?exit";
 export const doTor = async () => {
   if (!(await sourceElapsedMinutesUpdateThreshold("tor", "30"))) return;
+  console.time("Updated Tor IP addresses");
   const res = await fetch(TorDownloadURL, {
     headers: {
       "User-Agent": "Skybook IP blocklist updating (gitlab:lantics/skybook)",
     },
   });
   if (!res.ok) return;
-  console.log("it was ok");
   const text = await res.text();
 
   const ips: string[] = text
@@ -168,6 +159,7 @@ export const doTor = async () => {
     await tx`DELETE FROM blocklist_ranges WHERE source = 'tor'`;
     await tx`INSERT INTO blocklist_ranges (source, range) SELECT 'tor', unnest(${literal}::text[])::cidr ON CONFLICT DO NOTHING`;
   });
+  console.timeEnd("Updated Tor IP addresses");
 };
 
 export const reindex = async () => {

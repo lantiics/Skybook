@@ -2,12 +2,15 @@ import { config } from "../config";
 import { READER } from "../db";
 import crypto from "node:crypto";
 import { Instance, Post } from "../types/entities";
+import { LengthError } from "../errors";
+import { decryptedSecret } from "./encryption";
 
 export const notificationUrlIsValidForService = (
   service: string,
   url: string,
 ) => {
   if (!url.startsWith("https://")) return false;
+  if (url.length >= 400) throw new LengthError("URL Length is too large");
   switch (service) {
     case "ntfy":
       break; // NTFY can be self-hosted.
@@ -15,40 +18,12 @@ export const notificationUrlIsValidForService = (
       break;
     case "discord":
       if (!url.startsWith("https://discord.com/api")) return false;
+    default:
+      return false;
   }
   return true;
 };
 
-export const encryptedURL = (url: string, instance: string) => {
-  const KEY = Buffer.from(process.env.NOTIFICATION_URL_KEY!, "hex");
-  const iv = crypto.randomBytes(12);
-  const c = crypto.createCipheriv("aes-256-gcm", KEY, iv);
-  c.setAAD(Buffer.from(instance));
-  const ct = Buffer.concat([c.update(url, "utf8"), c.final()]);
-  const tag = c.getAuthTag();
-  return [
-    "v2",
-    iv.toString("base64"),
-    tag.toString("base64"),
-    ct.toString("base64"),
-  ].join(":");
-};
-export const decryptedURL = (stored: string, instance: string) => {
-  const KEY = Buffer.from(process.env.NOTIFICATION_URL_KEY!, "hex");
-  const [v, iv, tag, ct] = stored.split(":");
-  if (v !== "v2") throw new Error("unsupported notification_endpoint format");
-  const d = crypto.createDecipheriv(
-    "aes-256-gcm",
-    KEY,
-    Buffer.from(iv, "base64"),
-  );
-  d.setAAD(Buffer.from(instance));
-  d.setAuthTag(Buffer.from(tag, "base64"));
-  return Buffer.concat([
-    d.update(Buffer.from(ct, "base64")),
-    d.final(),
-  ]).toString("utf8");
-};
 export const notifyUser = async (
   instance: Instance["name"],
   post: Post | null = null,
@@ -56,6 +31,8 @@ export const notifyUser = async (
   DB = READER,
 ) => {
   if (!config.skybook.instance_notifications) return;
+  if (!process.env.NOTIFICATION_URL_KEY)
+    throw new Error("No notification key is available, unable to notify user");
   const [
     {
       notification_endpoint: encryptedUrl,
@@ -64,7 +41,11 @@ export const notifyUser = async (
   ] =
     await DB`SELECT notification_endpoint,notification_service FROM instances WHERE name = ${instance}`;
   if (!encryptedUrl || !webhookService) return;
-  const userUrl = decryptedURL(encryptedUrl, instance);
+  const userUrl = decryptedSecret(
+    encryptedUrl,
+    instance,
+    process.env.NOTIFICATION_URL_KEY,
+  );
 
   let reqHeaders = {
     "User-Agent": `Skybook/${config.skybook.version} (instance-notifications; +https://${config.skybook.domain}; https://gitlab.com/lantics/skybook)`,
@@ -109,30 +90,6 @@ export const notifyUser = async (
         username: "Skybook",
         content: message + ` \n-# <t:${Math.floor(Date.now() / 1000)}:R>`,
       });
-
-      /*
-
-      TBD whether we include post content in messages.
-      Main worry: Providing potentially excessive data
-      to third party services (in the event the entry is
-      not immediately visible to anyone who comes across the guestbook instance
-      )
-
-      // updateBody({
-      //   username: "Skybook",
-      //   embeds: [
-      //     {
-      //       author: { name: post!.author },
-      //       description: post!.content,
-      //       footer: {
-      //         text: `this post is ${post!.is_queued ? "queued" : "not queued"}`,
-      //       },
-      //     },
-      //   ],
-      // });
-
-
-      */
       requestBody.headers["Content-Type"] = "application/json";
       break;
     }
@@ -155,12 +112,14 @@ export const notifyUser = async (
   }
   if (process.env.NODE_ENV !== "test") {
     fetch(url, requestBody).then((res) => {
-      if (!res.ok)
+      if (!res.ok) {
         console.warn(
           "Notification request failed, Notifications proxied:" +
             config.skybook.instance_notification_proxy_url !==
             "",
         );
+        throw res;
+      }
     });
   }
 };

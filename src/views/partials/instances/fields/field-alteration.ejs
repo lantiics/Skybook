@@ -10,10 +10,10 @@
   </tr>
   <% for (field of fields) {%> <tr data-field-name="<%=field.name%>">
     <th contenteditable="<%=!['content','author'].includes(field.name)%>" data-field="name"><%=field.name%></th>
-    <th><input type="checkbox" <% if (field.name==='content') { %> disabled <% } %> <% if (field.is_required) {%> checked <%}%> <% if (field.name!=='content') {%> onclick='toggleFieldRequired(this)' <%}%>></th>
+    <th><input type="checkbox" <% if (['content','author'].includes(field.name)) { %> disabled <% } %> <% if (field.is_required) {%> checked <%}%> <% if (field.name!=='content') {%> onclick='toggleFieldRequired(this)' <%}%>></th>
     <th ><input <% if (field.name==='content'||!field.is_required) {%> disabled <%}%> type="text" maxlength="50" value="<%=field.replacement%>" data-field-replacement="<%=field.name%>"></th>
     <th><input value="<%=field.filter%>" maxlength="1000" data-field-filter="<%=field.name%>" placeholder="EXCLUDE DELIMITERS (e.g, */*hello*/*)"></th>
-    <% if (!['author','content'].includes(field.name)) {%> <th><button onclick="deleteField(this)">Delete</button></th> <%}%>
+    <% if (!['author','content'].includes(field.name)) {%> <th><button class="deleteBtn" onclick="deleteField(this)"></button></th> <%}%>
   </tr> <% } %>
   <tr style="width:1px;height:15px;">
   </tr>
@@ -29,12 +29,3 @@
 </table>
 
 <button class="creation" onclick='document.getElementById("newField-row").removeAttribute("style");this.innerText="submit";this.setAttribute("onclick","createNewField(this)")'>new field</button>
-<!-- <form id="newField" style="display:none">
-  <fieldset class="table-form">
-    <input type="text" name="name" maxlength="50" placeholder="name" required>
-    <span>required</span><input type="checkbox" name="required">
-    <input type="text" name="replacement" maxlength="50" placeholder="replacement">
-    <input type="text" name="filter" maxlength="50" placeholder="filter">
-    <input type="submit">
-  </fieldset>
-</form> -->

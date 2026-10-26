@@ -3,7 +3,6 @@ import { NotFoundError } from "../errors";
 import { revokeAllSessions } from "./sessions";
 import { RequestContext } from "../types/context";
 import { userUUID } from "./users";
-import { config } from "../config.ts";
 import { User } from "../types/entities";
 export const userInformation = async (UUID: User["identifier"]) => {
   const [uI] =
@@ -11,7 +10,6 @@ export const userInformation = async (UUID: User["identifier"]) => {
   if (uI === undefined) {
     throw new NotFoundError("Requested user could not be found");
   }
-  console.log(uI);
   return uI;
 };
 const userEnforcementStatus = async (name: User["name"]) => {
@@ -75,7 +73,7 @@ export const toggleUserLocked = async (
   DB = WRITER,
 ) => {
   await DB.begin(async (tx) => {
-    await tx`UPDATE users SET can_login = NOT can_login WHERE user_identifier = ${UUID}`;
+    await tx`UPDATE users SET can_login = NOT can_login WHERE identifier = ${UUID}`;
     await tx`UPDATE instances SET submission_enabled = false, is_visible = false WHERE user_identifier = ${UUID}`;
     await recordUserEnforcement(UUID, "locked", details, null, DB);
   });
@@ -83,68 +81,4 @@ export const toggleUserLocked = async (
 };
 export const toggleUserPosting = async (ctx: RequestContext, name: string) => {
   await WRITER`UPDATE users SET can_post = NOT can_post WHERE name = ${name}`;
-};
-
-export const tryUserEnforcement = async (UUID: string, DB = READER) => {
-  if (!config.skybook.user_enforcements_enabled) return;
-  const history =
-    await DB`SELECT id,type,created_at,expires_at FROM user_enforcements WHERE user_identifier = ${UUID}`;
-
-  const frequency: [string, string][] = []; // created,expires
-  const [f] =
-    await DB`SELECT COUNT(*) FROM instance_blocks WHERE user_identifier = ${UUID} AND blocked_at > NOW() - INTERVAL '30 days'`;
-  const [l] =
-    await DB`SELECT COUNT(*) FROM instance_blocks WHERE user_identifier = ${UUID} AND blocked_at > NOW() - INTERVAL '240 days'`;
-  const longUserBlocks = l.count;
-  const userBlocks = f.count;
-  let enforced = false;
-  for (const enforcement of history) {
-    frequency.push([enforcement.created_at, enforcement.expires_at]);
-  }
-  if (frequency.length >= 3) {
-    await toggleUserLocked("SYSTEM: Exceeded enforcement threshold", UUID);
-    enforced = true;
-  }
-  const intBlocks = parseInt(userBlocks);
-  const intLongBlocks = parseInt(longUserBlocks);
-  if (!enforced) {
-    switch (intBlocks) {
-      case 3:
-        await temporarilyBlockUserPosting(
-          UUID,
-          2 * 24 * 60 * 60 * 1000,
-          "SYSTEM: Exceeded 30 day block threshold",
-        );
-        break;
-      case 5:
-        await temporarilyLockUser(
-          UUID,
-          2 * 24 * 60 * 60 * 1000,
-          "SYSTEM: Exceeded 30 day block threshold",
-        );
-        break;
-    }
-    if (intBlocks >= 6 || intLongBlocks >= 9)
-      await toggleUserLocked("SYSTEM: Exceeded block threshold", UUID);
-  }
-  return;
-};
-
-export const tryGlobalBlock = async (
-  ipHash: string,
-  blockCount: number,
-  DB = WRITER,
-): Promise<void> => {
-  if (
-    !config.ip_blocking.automated_enforcements_enabled ||
-    blockCount < config.ip_blocking.global_block_threshold
-  )
-    return;
-  await globalBlock(ipHash, DB);
-};
-
-export const globalBlock = async (ipHash: string, DB = WRITER) => {
-  await DB`
-    INSERT INTO global_ip_blocks (ip_hash, reason) VALUES (${ipHash}, ${DB`SYSTEM: Exceeded per-instance block threshold of ${config.ip_blocking.global_block_threshold}`})
-    ON CONFLICT (ip_hash) DO NOTHING`;
 };

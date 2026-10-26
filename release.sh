@@ -13,7 +13,6 @@ echo "Working branch is not clean; exiting"
 exit 1
 fi
 
-
 LAST_TAG=$(git tag --list 'v[0-9]*' --sort=-v:refname | grep -v -- '-' | head -1 || true)
 
 IFS=. read -r MA MI PA <<<"${LAST_TAG#v}"
@@ -29,7 +28,11 @@ TAG="v$v"
 
 echo "Releasing $TAG"
 read -rp "Continue? [y/N] " ok; [[ "$ok" == y ]] || { echo aborted; exit 1; }
+./minify-clientside-js.sh
+NOTES=$(git cliff --unreleased --tag "$TAG" --strip all)
 if $push; then
+bun pm version $v --no-git-tag-version
+git add package.json
 bun pm version $v --no-git-tag-version
 git add package.json
 docker buildx build -t lanticss/skybook:latest -t lanticss/skybook:$TAG --push .
