@@ -2,7 +2,6 @@ import { READER, WRITER } from "../db.ts";
 import { NotFoundError } from "../errors";
 import { revokeAllSessions } from "./sessions";
 import { RequestContext } from "../types/context";
-import { userUUID } from "./users";
 import { User } from "../types/entities";
 export const userInformation = async (UUID: User["identifier"]) => {
   const [uI] =
@@ -12,13 +11,7 @@ export const userInformation = async (UUID: User["identifier"]) => {
   }
   return uI;
 };
-const userEnforcementStatus = async (name: User["name"]) => {
-  const UUID = await userUUID(name);
-  const [user] =
-    await READER`SELECT status FROM user_enforcements WHERE identifier = ${UUID}`;
-  if (user === "undefined") return "active";
-  return user.status;
-};
+
 const recordUserEnforcement = async (
   UUID: User["identifier"],
   enforcementAction: "posting_blocked" | "locked",
