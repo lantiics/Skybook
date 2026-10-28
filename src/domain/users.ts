@@ -347,9 +347,6 @@ export const cancelUserDeletion = async (
   await WRITER`UPDATE users SET pending_deletion = false, delete_at = null WHERE identifier = ${identifier}`;
 };
 
-// Clear users who have not been seen for over one year
-export const clearUnseenUsers = async (): Promise<void> => {};
-
 export const userCanBeBlocked = async (
   uuid: User["identifier"],
 ): Promise<boolean> => {
