@@ -16,21 +16,24 @@ export const ipSource = async (ip: string) => {
 const ipIsBlockedOnInstance = async (
   ip: string,
   instance: Instance["name"],
-) => {
+): Promise<boolean> => {
   const ipHash = hashIp(ip);
   const [block] =
     await READER`SELECT EXISTS(SELECT 1 FROM instance_blocks WHERE ip_hash = ${ipHash} AND instance = ${instance})`;
   return block.exists;
 };
 
-export const ipIsBlockedGlobally = async (ip: string) => {
+export const ipIsBlockedGlobally = async (ip: string): Promise<boolean> => {
   const ipHash = hashIp(ip);
   const [block] =
     await READER`SELECT EXISTS(SELECT 1 FROM global_ip_blocks WHERE ip_hash IS ${ipHash})`;
   return block.exists;
 };
 
-export const ipIsBlocked = async (ip: string, instance: Instance["name"]) => {
+export const ipIsBlocked = async (
+  ip: string,
+  instance: Instance["name"],
+): Promise<boolean> => {
   const blockedLocally = await ipIsBlockedOnInstance(ip, instance);
   const blockedGlobally = await ipIsBlockedGlobally(ip);
   if (!blockedLocally) {

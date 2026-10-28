@@ -9,6 +9,11 @@ import {
   UnauthorizedError,
 } from "../errors.ts";
 import { config } from "../config.ts";
+
+/**
+ * Returns all the fields available on an instance.
+ * Useful for validating entries and ensuring all submitted fields actually exist.
+ */
 const allWritableFields = async (
   instance: Instance["name"],
 ): Promise<Set<string>> => {
@@ -24,13 +29,20 @@ const allWritableFields = async (
   }
   return dbFields;
 };
+
+/**
+ * Returns false if any fields in the provided field array (string[]) are not
+ * a member of allWritableFields.
+ * Useful for ensuring all submitted fields for an entry actually exist.
+ */
 export const allFieldsAreWritable = async (
   instance: Instance["name"],
   fields: string[],
-) => {
+): Promise<boolean> => {
   const writableFields = await allWritableFields(instance);
   return writableFields.isSupersetOf(new Set(fields));
 };
+
 export const getFieldData = async (
   instance: Instance["name"],
 ): Promise<Field[]> => {
@@ -53,6 +65,7 @@ export const getFieldData = async (
   );
   return merged;
 };
+
 const fieldNameAccepted = (name: string): boolean => {
   if (
     RESERVED_COLUMN_NAMES.has(name as any) ||
@@ -61,6 +74,7 @@ const fieldNameAccepted = (name: string): boolean => {
     return false;
   return true;
 };
+
 export const setField = async (
   instance: Instance["name"],
   field: Partial<Field> & Required<Pick<Field, "name">>,
@@ -118,6 +132,7 @@ export const setField = async (
   RETURNING *`
   )[0];
 };
+
 export const instanceFieldCount = async (
   instance: Instance["name"],
   DB = READER,
@@ -126,11 +141,12 @@ export const instanceFieldCount = async (
     await DB`SELECT COUNT(*) FROM fields WHERE instance = ${instance} AND name NOT IN ('content','author')`;
   return count.count;
 };
+
 export const renameField = async (
   ctx: RequestContext,
   oldName: string,
   newName: string,
-) => {
+): Promise<Field> => {
   if (!fieldNameAccepted(newName)) {
     throw new UnauthorizedError("Provided field name is not accepted");
   }
@@ -155,6 +171,10 @@ export const deleteField = async (
   });
 };
 
+/**
+ * Updates the filter for the specified field on an instance, setting it to
+ * the provided filter parameter
+ */
 export const setFieldFilter = async (
   ctx: RequestContext,
   field: string,

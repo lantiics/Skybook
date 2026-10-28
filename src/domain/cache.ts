@@ -1,7 +1,11 @@
 import { config } from "../config";
 import { Instance } from "../types/entities";
 
-export const purgeCache = async (tag: string) => {
+/**
+ * Purges CDN cache for the provided cache-tag,
+ * using an API token provided in the environment as authentication.
+ */
+export const purgeCache = async (tag: string): Promise<void> => {
   if (!config.caching.purging) return;
   const endpoint = config.caching.purge_endpoint;
   const body = JSON.stringify({ tags: [tag] });
@@ -16,10 +20,16 @@ export const purgeCache = async (tag: string) => {
     body: body,
   });
   if (!res.ok) throw res;
-  return res;
+  return;
 };
 
-export const purgeInstanceCache = async (instance: Instance["name"]) => {
-  const res = await purgeCache(`instance-${instance}`);
-  return 0;
+/**
+ * Purges the CDN cache for the supplied instance,
+ * using a cache-tag formed from the instance name.
+ */
+export const purgeInstanceCache = async (
+  instance: Instance["name"],
+): Promise<void> => {
+  await purgeCache(`instance-${instance}`);
+  return;
 };

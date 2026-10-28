@@ -3,7 +3,21 @@ import { NotFoundError } from "../errors";
 import { revokeAllSessions } from "./sessions";
 import { RequestContext } from "../types/context";
 import { User } from "../types/entities";
-export const userInformation = async (UUID: User["identifier"]) => {
+export const userInformation = async (
+  UUID: User["identifier"],
+): Promise<
+  Pick<
+    User,
+    | "name"
+    | "identifier"
+    | "can_login"
+    | "can_post"
+    | "created_at"
+    | "last_seen"
+    | "can_create_invitations"
+    | "mfa_enabled"
+  >
+> => {
   const [uI] =
     await READER`SELECT name, identifier, can_login, can_post, created_at, last_seen, can_create_invitations, mfa_enabled FROM users WHERE identifier = ${UUID}`;
   if (uI === undefined) {
@@ -12,6 +26,10 @@ export const userInformation = async (UUID: User["identifier"]) => {
   return uI;
 };
 
+/**
+ * Records a user enforcement in the user_enforcements
+ * database table alongside the date created
+ */
 const recordUserEnforcement = async (
   UUID: User["identifier"],
   enforcementAction: "posting_blocked" | "locked",
@@ -35,7 +53,7 @@ const temporarilyLockUser = async (
   UUID: User["identifier"],
   duration: number,
   details: string,
-) => {
+): Promise<void> => {
   await WRITER.begin(async (tx) => {
     await tx`UPDATE users SET can_login = NOT can_login WHERE identifier = ${UUID}`;
     await revokeAllSessions(UUID, tx);
@@ -52,7 +70,7 @@ const temporarilyBlockUserPosting = async (
   UUID: User["identifier"],
   duration: number,
   details: string,
-) => {
+): Promise<void> => {
   await WRITER.begin(async (tx) => {
     await tx`UPDATE users SET can_post = NOT can_post WHERE identifier = ${UUID}`;
     await revokeAllSessions(UUID, tx);
@@ -64,7 +82,7 @@ export const toggleUserLocked = async (
   details: string,
   UUID: User["identifier"],
   DB = WRITER,
-) => {
+): Promise<void> => {
   await DB.begin(async (tx) => {
     await tx`UPDATE users SET can_login = NOT can_login WHERE identifier = ${UUID}`;
     await tx`UPDATE instances SET submission_enabled = false, is_visible = false WHERE user_identifier = ${UUID}`;
@@ -72,6 +90,9 @@ export const toggleUserLocked = async (
   });
   await revokeAllSessions(UUID, DB);
 };
-export const toggleUserPosting = async (ctx: RequestContext, name: string) => {
+export const toggleUserPosting = async (
+  ctx: RequestContext,
+  name: string,
+): Promise<void> => {
   await WRITER`UPDATE users SET can_post = NOT can_post WHERE name = ${name}`;
 };

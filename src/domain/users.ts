@@ -33,7 +33,9 @@ import { hashIp } from "./ip.ts";
 import { randomBytes } from "node:crypto";
 import { assertInvitationValid } from "./invitations.ts";
 
-export const userUUID = async (name: User["name"]) => {
+export const userUUID = async (
+  name: User["name"],
+): Promise<User["identifier"]> => {
   const [user] =
     await READER`SELECT identifier FROM users WHERE name = ${name}`;
   if (!user.identifier) {
@@ -45,7 +47,7 @@ export const userUUID = async (name: User["name"]) => {
 };
 
 const allowedRegex = /^[A-Za-z0-9_-]+$/;
-export const assertUserNameAllowed = async (name: string) => {
+export const assertUserNameAllowed = async (name: string): Promise<boolean> => {
   if (!name.match(allowedRegex)) {
     throw new UnauthorizedError("Filtered username");
   }
@@ -101,6 +103,7 @@ export const createUser = async (
   const token = await createSession(name, DB);
   return token;
 };
+
 let DUMMY_PASSWORD_HASH: string;
 (async () => {
   DUMMY_PASSWORD_HASH = await Bun.password.hash(
@@ -195,7 +198,9 @@ export const loginUser = async (
   return await createSession(name);
 };
 
-export const userTotpData = async (identifier: User["identifier"]) => {
+export const userTotpData = async (
+  identifier: User["identifier"],
+): Promise<{ secret: User["totp_secret"]; recovery: User["mfa_recovery"] }> => {
   const [{ totp_secret: secret, mfa_recovery: recovery }] =
     await READER`SELECT totp_secret, mfa_recovery FROM users WHERE identifier = ${identifier}`;
   return { secret, recovery };
@@ -227,7 +232,7 @@ export const initUserMfa = async (
   identifier: User["identifier"],
   secret: string,
   recoveryCodes: string[],
-) => {
+): Promise<void> => {
   if (!process.env.TOTP_SECRET_KEY)
     throw new Error(
       "TOTP secret key unavailable, unable to initialize user MFA",
@@ -238,7 +243,7 @@ export const initUserMfa = async (
 export const regenerateRecoveryCodes = async (
   identifier: User["identifier"],
   password: string,
-) => {
+): Promise<string[]> => {
   const [userData] =
     await READER`SELECT password_hash, mfa_enabled, identifier FROM users WHERE identifier = ${identifier}`;
 
@@ -314,7 +319,9 @@ export const changeUserPassword = async (
     await revokeAllSessions(identifier, tx);
   });
 };
-export const resetUserPassword = async (identifier: User["identifier"]) => {
+export const resetUserPassword = async (
+  identifier: User["identifier"],
+): Promise<string> => {
   const password = btoa(crypto.getRandomValues(new BigUint64Array(2)).join());
 
   await WRITER.begin(async (tx) => {

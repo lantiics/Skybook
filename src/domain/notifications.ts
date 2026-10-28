@@ -8,7 +8,7 @@ import { decryptedSecret } from "./encryption";
 export const notificationUrlIsValidForService = (
   service: string,
   url: string,
-) => {
+): boolean => {
   if (!url.startsWith("https://")) return false;
   if (url.length >= 400) throw new LengthError("URL Length is too large");
   switch (service) {
@@ -29,7 +29,7 @@ export const notifyUser = async (
   post: Post | null = null,
   message: string = `A new entry has just been made on your guestbook at ${config.skybook.subdomain_vanity ? `${instance}.${config.skybook.domain}` : `${config.skybook.domain}/${instance}`}!`,
   DB = READER,
-) => {
+): Promise<void> => {
   if (!config.skybook.instance_notifications) return;
   if (!process.env.NOTIFICATION_URL_KEY)
     throw new Error("No notification key is available, unable to notify user");

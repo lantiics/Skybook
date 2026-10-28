@@ -28,7 +28,9 @@ interface Status {
   locked?: boolean;
 }
 
-export const instanceExists = async (instance: Instance["name"]) => {
+export const instanceExists = async (
+  instance: Instance["name"],
+): Promise<boolean> => {
   const [instanceExists] =
     await READER`SELECT EXISTS(SELECT 1 FROM instances WHERE name = ${instance})`;
   return instanceExists.exists;
@@ -36,7 +38,7 @@ export const instanceExists = async (instance: Instance["name"]) => {
 const _getInstanceOverride = async (
   instance: Instance["name"],
   name: string,
-) => {
+): Promise<boolean> => {
   const [override] = await READER`
   SELECT value FROM overrides
   WHERE name = ${name} AND instance = ${instance}
@@ -197,10 +199,9 @@ export const compiledInstanceStatus = async (
 
 export const instanceHasRequesterBlocked = async (
   instance: Instance["name"],
-
   ipHash: string,
   uuid?: User["identifier"],
-) => {
+): Promise<boolean> => {
   if (
     (
       await READER`SELECT EXISTS(SELECT 1 FROM instance_blocks WHERE instance = ${instance} AND ${uuid ? READER`(user_identifier = ${uuid} OR ip_hash = ${ipHash})` : READER`ip_hash = ${ipHash}`}) OR EXISTS (SELECT 1 FROM global_ip_blocks WHERE ip_hash=${ipHash})`
@@ -214,7 +215,7 @@ export const instanceHasRequesterBlocked = async (
 const _toggleSpecifiedInstanceStatus = async (
   instance: Instance["name"],
   name: string,
-) => {
+): Promise<Status> => {
   if (
     ![
       "is_visible",
@@ -271,7 +272,7 @@ export const toggleInstanceQueueOnFiltered = async (
 export const updateInstanceSuppliedFilter = async (
   instance: Instance["name"],
   filter: string,
-) => {
+): Promise<string> => {
   if (filter.length > config.instances.max_global_filter_length)
     throw new LengthError(
       "Provided filter character count is above global filter limit",
@@ -283,7 +284,9 @@ export const updateInstanceSuppliedFilter = async (
       "Provided regular expression for instance global filter is invalid",
     );
   }
-  return await WRITER`UPDATE instances SET custom_filter = ${filter} WHERE name = ${instance}`;
+  return (
+    await WRITER`UPDATE instances SET custom_filter = ${filter} WHERE name = ${instance} RETURNING custom_filter`
+  ).custom_filter;
 };
 
 export const updateInstanceQueueFlaggedThreshold = async (
@@ -332,7 +335,7 @@ export const enableInstanceNotifications = async (
   url: string,
   service: string,
   DB = WRITER,
-) => {
+): Promise<void> => {
   if (!config.skybook.instance_notifications)
     throw new UnavailableError("Instance notification sending is disabled");
   if (!process.env.NOTIFICATION_URL_KEY)
@@ -355,23 +358,25 @@ export const enableInstanceNotifications = async (
     "Notifications will now be sent to you when an entry is created on your guestbook!",
   );
 };
+
 export const disableInstanceNotifications = async (
   instance: Instance["name"],
   DB = WRITER,
-) => {
+): Promise<void> => {
   await DB`UPDATE instances SET notification_endpoint=null,notification_service=null WHERE name=${instance}`;
-  return 0;
 };
 
 export const instanceNotificationInfo = async (
   instance: Instance["name"],
   DB = READER,
-) => {
+): Promise<
+  Pick<Instance, "notification_endpoint" | "notification_service">
+> => {
   const [info] =
     await DB`SELECT notification_endpoint,notification_service FROM instances WHERE name = ${instance}`;
   return info;
 };
-export const exportInstance = async (ctx: RequestContext) => {
+export const exportInstance = async (ctx: RequestContext): Promise<string> => {
   const entries =
     await READER`SELECT ${READER.unsafe(EXPORTABLE_COLUMN_NAMES.join(","))} FROM posts WHERE instance = ${ctx.instance}`;
   const header = EXPORTABLE_COLUMN_NAMES.join(",");

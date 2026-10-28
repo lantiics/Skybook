@@ -23,6 +23,10 @@ export const invalidateInvitation = async (
 ): Promise<void> => {
   await WRITER`DELETE FROM invitations WHERE token = ${new Bun.CryptoHasher("sha256", process.env.INVITATION_HASH_SECRET).update(token).digest("base64")}`;
 };
+
+/**
+ * Creates a new Skybook invitation if the provided creatorIdentifier has the permission to do so.
+ */
 export const newInvitation = async (
   creatorIdentifier: User["identifier"],
 ): Promise<string> => {

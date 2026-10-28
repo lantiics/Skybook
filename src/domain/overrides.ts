@@ -3,7 +3,7 @@ import { RequestContext } from "../types/context";
 import { InvalidStatusError } from "../errors.ts";
 import { purgeInstanceCache } from "./cache.ts";
 
-const ACCEPTED_STATUSES = [
+const ACCEPTED_STATUSES: string[] = [
   "approval_required",
   "submission_enabled",
   "replying_enabled",
@@ -11,7 +11,10 @@ const ACCEPTED_STATUSES = [
   "flagging_enabled",
 ];
 
-const _toggleOverride = async (ctx: RequestContext, status: string) => {
+const _toggleOverride = async (
+  ctx: RequestContext,
+  status: string,
+): Promise<void> => {
   if (!ACCEPTED_STATUSES.includes(status)) {
     throw new InvalidStatusError(
       "Invalid status specified while attempting to toggle override",
@@ -21,7 +24,10 @@ const _toggleOverride = async (ctx: RequestContext, status: string) => {
     purgeInstanceCache(ctx.instance);
   await WRITER`INSERT INTO overrides (instance,name,value) VALUES (${ctx.instance ?? null},${status}, ${false}) ON CONFLICT ${ctx.instance ? WRITER.unsafe(`(instance, name) WHERE instance IS NOT NULL`) : WRITER.unsafe(`(name) WHERE instance IS NULL `)} DO UPDATE SET value = NOT overrides.value`;
 };
-const _deleteOverride = async (ctx: RequestContext, status: string) => {
+const _deleteOverride = async (
+  ctx: RequestContext,
+  status: string,
+): Promise<void> => {
   if (!ACCEPTED_STATUSES.includes(status)) {
     throw new InvalidStatusError(
       "Invalid status specified while attempting to delete override",

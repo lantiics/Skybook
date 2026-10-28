@@ -1,6 +1,18 @@
 import crypto from "node:crypto";
 
-export const encryptedSecret = (secret: string, aad: string, key: string) => {
+/**
+ * Encrypts the provided secret using the provided AAD for integrity and the provided key for encryption.
+ * This is especially useful as a helper function for storing any potentially sensitive data.
+ *
+ * @param secret The string to encrypt
+ * @param aad Additional authentication data to use for keeping integrity of the encrypted secret
+ * @param key The key to use for encryption
+ */
+export const encryptedSecret = (
+  secret: string,
+  aad: string,
+  key: string,
+): string => {
   if (!key || typeof key !== "string") {
     throw new Error("Invalid encryption key provided");
   }
@@ -18,7 +30,19 @@ export const encryptedSecret = (secret: string, aad: string, key: string) => {
   ].join(":");
 };
 
-export const decryptedSecret = (secret: string, aad: string, key: string) => {
+/**
+ * Decrypts the provided secret using the provided AAD for integrity and the provided key for decreyption.
+ * This is especially useful as a helper function for storing any potentially sensitive data.
+ *
+ * @param secret The secret to decrypt
+ * @param aad Additional authentication data to use for keeping integrity of the secret
+ * @param key The key to use for decryption
+ */
+export const decryptedSecret = (
+  secret: string,
+  aad: string,
+  key: string,
+): string => {
   if (!key || typeof key !== "string") {
     throw new Error("Invalid decryption key provided");
   }
