@@ -30,7 +30,6 @@ echo "Releasing $TAG"
 read -rp "Continue? [y/N] " ok; [[ "$ok" == y ]] || { echo aborted; exit 1; }
 ./minify-clientside-js.sh
 git add src/public/js/*.min.js
-NOTES=$(git cliff --unreleased --tag "$TAG" --strip all)
 if $push; then
 bun pm version $v --no-git-tag-version
 git add package.json
