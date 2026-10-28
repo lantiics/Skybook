@@ -1,3 +1,26 @@
+## [1.0.3] - 2026-10-28
+
+### <!-- 1 -->🐛 Bug Fixes
+
+- Field filters not being asynchronously set 
+- FlagPost always throws 
+
+### <!-- 2 -->🚜 Refactor
+
+- Remove unused userEnforcement function from enforcements.ts 
+- Return void in importInstance 
+- Change invitationIsValid to assertion (assertInvitationValid) 
+- Remove dead clearExpiredTokens function from tokens.ts 
+    this is now handled by a separate function as a job
+
+- Remove clearUnseenUsers stub 
+    this has been handled by a separaate job in expirations.ts
+
+- Add explicit typing to all functions, partial JSDoc annotation (#43) 
+
+### <!-- 5 -->🎨 Styling
+
+- Fix typing of userTotpdata 
 ## [1.0.2] - 2026-10-27
 
 ### <!-- 0 -->🚀 Features
@@ -329,3 +352,4 @@
 - V0.12.3 
 - V1.0.0 
 - V1.0.1 
+- V1.0.2 
