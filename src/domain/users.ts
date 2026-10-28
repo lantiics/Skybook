@@ -31,7 +31,7 @@ import { encryptedSecret, decryptedSecret } from "./encryption.ts";
 import { config } from "../config.ts";
 import { hashIp } from "./ip.ts";
 import { randomBytes } from "node:crypto";
-import { invitationIsValid } from "./invitations.ts";
+import { assertInvitationValid } from "./invitations.ts";
 
 export const userUUID = async (name: User["name"]) => {
   const [user] =
@@ -84,8 +84,7 @@ export const createUser = async (
   const inviteRequired = await signupInvitationRequired();
   if (inviteRequired) {
     if (!invite) throw new UnauthorizedError("No invitation provided");
-    if (!(await invitationIsValid(invite)))
-      throw new UnauthorizedError("Provided invitation token is invalid");
+    await assertInvitationValid(invite);
   }
 
   password = await Bun.password.hash(password);

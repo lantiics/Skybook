@@ -2,7 +2,7 @@ import { READER, WRITER } from "../db.ts";
 import { NotFoundError, UnauthorizedError } from "../errors";
 import { Invitation, User } from "../types/entities";
 
-export const invitationIsValid = async (
+export const assertInvitationValid = async (
   token: Invitation["token"],
 ): Promise<boolean> => {
   token = new Bun.CryptoHasher("sha256", process.env.INVITATION_HASH_SECRET)
