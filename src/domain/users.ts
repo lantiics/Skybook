@@ -200,10 +200,13 @@ export const loginUser = async (
 
 export const userTotpData = async (
   identifier: User["identifier"],
-): Promise<{ secret: User["totp_secret"]; recovery: User["mfa_recovery"] }> => {
+): Promise<{
+  secret: string;
+  recovery: string[];
+}> => {
   const [{ totp_secret: secret, mfa_recovery: recovery }] =
     await READER`SELECT totp_secret, mfa_recovery FROM users WHERE identifier = ${identifier}`;
-  return { secret, recovery };
+  return { secret, recovery } as { secret: string; recovery: string[] };
 };
 
 const updateUserLastSeenTime = async (
