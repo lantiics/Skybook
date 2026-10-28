@@ -23,7 +23,3 @@ export const entryTokenValid = async (
     await READER`SELECT EXISTS(SELECT 1 FROM tokens WHERE instance = ${ctx.instance} AND identifier = ${identifier} AND token = ${token} AND created_at > NOW() - make_interval(hours => ${config.tokens.expiry_hours}))`;
   return row.exists;
 };
-
-export const clearExpiredTokens = () => {
-  WRITER`DELETE FROM tokens WHERE expires_at<=${Date.now()}`;
-};
