@@ -394,7 +394,7 @@ export const exportInstance = async (ctx: RequestContext) => {
 export const importInstance = async (
   instance: Instance["name"],
   entries: Mutable<Post>[],
-) => {
+): Promise<void> => {
   entries = entries.slice(0, config.instances.max_import_count);
   let extraKeys: Set<string> = new Set([]);
   const currentFields =
@@ -444,5 +444,4 @@ export const importInstance = async (
       throw new BadRequestError("Not all fields are writable");
     }
   }
-  return { ok: true };
 };
