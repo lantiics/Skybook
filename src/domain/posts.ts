@@ -387,6 +387,7 @@ export const flagPost = async (
         purgeInstanceCache(ctx.instance);
       }
     });
+    return;
   }
   throw new UnauthorizedError(
     "Flagging is disabled on either the specified post or instance",
