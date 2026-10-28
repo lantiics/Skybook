@@ -155,11 +155,11 @@ export const deleteField = async (
   });
 };
 
-export const setFieldFilter = (
+export const setFieldFilter = async (
   ctx: RequestContext,
   field: string,
   filter: RegExp,
-) => {
+): Promise<{ field: string; filter: RegExp }> => {
   if (filter.toString().length > config.fields.max_filter_length)
     throw new LengthError("Provided filter character length is above limit");
   try {
@@ -169,7 +169,7 @@ export const setFieldFilter = (
       "Provided regular expression for field filter is invalid",
     );
   }
-  WRITER`UPDATE FIELDS SET filter = ${filter} WHERE name = ${field} AND instance = ${
+  await WRITER`UPDATE FIELDS SET filter = ${filter} WHERE name = ${field} AND instance = ${
     ctx.instance
   }`;
 
