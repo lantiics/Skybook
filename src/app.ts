@@ -1,6 +1,7 @@
 import { config } from "./config.ts";
 import { injectSecrets } from "@/startup/inject-secrets";
 injectSecrets();
+import { minifyClientsideJS } from "./startup/minify.ts";
 import cookieParser from "cookie-parser";
 import { authenticate } from "./middleware/authenticate.ts";
 import { resolveInstance } from "./middleware/resolve-instance.ts";
@@ -9,6 +10,7 @@ import { runMigrations } from "@startup/migrate";
 import createError, { HttpError } from "http-errors";
 import path from "path";
 await runMigrations();
+await minifyClientsideJS();
 require("./jobs/cron.ts");
 const VERSION = hash("SHA1", Date.now().toString()).slice(0, 8);
 const app = express();
