@@ -169,7 +169,7 @@ export const replyToPost = async (
   identifier: string,
   message: string,
 ) => {
-  if (message.length > config.fields.typical_max_length)
+  if ((message?.length ?? 0) > config.fields.typical_max_length)
     throw new LengthError("Field length is above limit");
   await WRITER`UPDATE posts SET reply = ${message} WHERE identifier = ${identifier} AND instance = ${ctx.instance}`;
   purgeInstanceCache(ctx.instance);
