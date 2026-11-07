@@ -284,18 +284,19 @@ export const deletePost = async (
   ctx: RequestContext,
   identifier: string,
 ): Promise<void> => {
-  if (!ctx.elevated) {
-    if (!(await entryTokenValid(ctx, identifier))) {
-      throw new UnauthorizedError(
-        "Not authorized to specified delete entry with provided credentials",
-      );
-    }
+  if (!(await entryTokenValid(ctx, identifier))) {
+    throw new UnauthorizedError(
+      "Not authorized to specified delete entry with provided credentials",
+    );
   }
+
   const post = await WRITER.begin(async (tx) => {
     const post: Post = (
-      await tx`DELETE FROM posts WHERE identifier = ${identifier} AND instance = ${ctx.instance} RETURNING is_queued, is_visible`
+      await tx`DELETE FROM posts WHERE identifier = ${identifier} AND instance = ${ctx.instance} AND NOT sys_lock RETURNING is_queued, is_visible`
     )[0];
+
     await tx`DELETE FROM tokens WHERE identifier = ${identifier} AND instance = ${ctx.instance}`;
+
     return post;
   });
   if (!post.is_queued && post.is_visible) purgeInstanceCache(ctx.instance);
