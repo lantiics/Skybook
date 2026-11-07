@@ -3,7 +3,6 @@ import type { Post, Instance } from "./types/entities.ts";
 export const PUBLIC_COLUMN_NAMES: Set<keyof Post> = new Set([
   "seq",
   "identifier",
-  "authenticated_user_identifier",
   "author",
   "content",
   "extra",
@@ -12,7 +11,6 @@ export const PUBLIC_COLUMN_NAMES: Set<keyof Post> = new Set([
   "reply",
   "is_pinned",
   "is_highlighted",
-  "sys_lock",
   "is_visible",
   "is_queued",
 ]);
@@ -26,6 +24,8 @@ export const SYSTEM_COLUMN_NAMES: Set<keyof Post> = new Set([
   ...PRIVATE_COLUMN_NAMES,
   "last_edited_by",
   "ip_hash",
+  "sys_lock",
+  "authenticated_user_identifier",
 ]);
 export const RESERVED_COLUMN_NAMES: Set<keyof Post> = new Set([
   ...PUBLIC_COLUMN_NAMES,

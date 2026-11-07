@@ -509,8 +509,8 @@ export const getPosts = async (
   let columnList = (
     ctx.elevated ? [...PRIVATE_COLUMN_NAMES] : [...PUBLIC_COLUMN_NAMES]
   ).join(",");
-  if (returnsPublic) {
-    columnList = columnList.replace(/,authenticated_user_identifier/, "");
+  if (!returnsPublic) {
+    columnList += ",authenticated_user_identifier,sys_lock";
   }
   columnList = columnList.replace(/([a-zA-Z0-9_]+)/g, "posts.$1");
   if (ctx.elevated) {
