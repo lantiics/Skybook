@@ -5,9 +5,11 @@ import {
   NotFoundError,
   BadRequestError,
   LengthError,
+  LockedError,
+  ForbiddenError,
 } from "../errors.ts";
 import { RequestContext } from "../types/context.ts";
-import { generateToken, entryTokenValid } from "./tokens.ts";
+import { generateToken } from "./tokens.ts";
 import { READER, WRITER } from "../db.ts";
 import {
   flaggingEnabled,
@@ -164,6 +166,52 @@ const validatedEntry = async (
   return entry;
 };
 
+export const assertEntryAlterationPossible = async (
+  ctx: RequestContext,
+  identifier: Post["identifier"],
+  requiresElevation: boolean = false,
+): Promise<void> => {
+  const [row] =
+    await READER`SELECT posts.identifier, posts.sys_lock, tokens.created_at, tokens.token
+    FROM tokens
+    LEFT JOIN posts ON posts.identifier = tokens.identifier
+    WHERE tokens.instance = ${ctx.instance}
+      AND tokens.identifier = ${identifier}
+      `;
+
+  if (!row.identifier)
+    throw new NotFoundError("Specified post cannot be found");
+  if (requiresElevation && !ctx.elevated)
+    throw new UnauthorizedError("Action requires elevated privileges");
+  if (ctx.elevated) {
+    // locked posts cannot be altered whatsoever
+    if (row.sys_lock) throw new LockedError("Attempted to alter locked entry");
+    return;
+  }
+
+  const token = ctx.token
+    ? new Bun.CryptoHasher("sha256", process.env.TOKEN_HASH_SECRET)
+        .update(
+          ctx.token ??
+            (crypto.randomUUID() + Math.random() * 127 * 12).toString(),
+        )
+        .digest("base64")
+    : crypto.randomUUID();
+  const expiration = new Date(
+    Date.now() + config.tokens.expiry_hours * 3600 * 1000,
+  );
+  if (!(row.created_at < expiration) || !(token === row.token)) {
+    throw new ForbiddenError(
+      "Attempted to alter entry using invalid credentials",
+    );
+  } else if (token === row.token && row.created_at < expiration) {
+    if (row.sys_lock) throw new LockedError("Attempted to alter locked entry");
+    return;
+  }
+
+  throw new ForbiddenError("Attempted to alter post with invalid credentials");
+};
+
 export const replyToPost = async (
   ctx: RequestContext,
   identifier: string,
@@ -236,11 +284,7 @@ export const editPost = async (
   identifier: string,
   fields: Record<string, string | undefined>,
 ): Promise<void> => {
-  if (!(await entryTokenValid(ctx, identifier))) {
-    throw new UnauthorizedError(
-      "Not authorized to alter entry with identifier " + identifier,
-    );
-  }
+  await assertEntryAlterationPossible(ctx, identifier);
 
   const entry = await validatedEntry(ctx, fields, true);
   if (ctx.elevated || !entry.is_queued) {
@@ -284,11 +328,7 @@ export const deletePost = async (
   ctx: RequestContext,
   identifier: string,
 ): Promise<void> => {
-  if (!(await entryTokenValid(ctx, identifier))) {
-    throw new UnauthorizedError(
-      "Not authorized to specified delete entry with provided credentials",
-    );
-  }
+  await assertEntryAlterationPossible(ctx, identifier);
 
   const post = await WRITER.begin(async (tx) => {
     const post: Post = (
@@ -353,9 +393,12 @@ export const _updatePost = async (
   ) {
     purgeInstanceCache(ctx.instance);
   }
-  return (
-    await WRITER`UPDATE posts SET ${WRITER.unsafe(property)} WHERE identifier = ${identifier} AND instance = ${ctx.instance} returning ${WRITER.unsafe(columns)}`
-  )[0];
+  {
+    await assertEntryAlterationPossible(ctx, identifier, true);
+    return (
+      await WRITER`UPDATE posts SET ${WRITER.unsafe(property)} WHERE identifier = ${identifier} AND instance = ${ctx.instance} returning ${WRITER.unsafe(columns)}`
+    )[0];
+  }
 };
 export const postFlaggedByRequestor = async (
   ctx: RequestContext,
