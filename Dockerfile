@@ -12,5 +12,6 @@ RUN bun install --frozen-lockfile --production
 ENV PORT=3000
 EXPOSE 3000/tcp
 USER bun
+RUN chown bun ./src/public/*
 
 ENTRYPOINT [ "bun", "run", "./src/app.ts" ]
