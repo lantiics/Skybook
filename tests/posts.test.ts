@@ -8,7 +8,7 @@ import {
   getPosts,
 } from "@domain/posts";
 import { RequestContext } from "@/types/context";
-import { BadRequestError, UnauthorizedError } from "@/errors";
+import { BadRequestError, ForbiddenError, UnauthorizedError } from "@/errors";
 import { READER, WRITER } from "root/src/db";
 import {
   withSubmissionDisabled,
@@ -41,7 +41,7 @@ describe("Post logic without valid credentials", () => {
 
     expect(
       deletePost(ctx.anonymous as RequestContext, identifier),
-    ).rejects.toThrow(UnauthorizedError);
+    ).rejects.toThrow(ForbiddenError);
   });
 
   test("Trying to alter a post with invalid credentials fails", async () => {
@@ -51,7 +51,7 @@ describe("Post logic without valid credentials", () => {
       editPost(ctx.anonymous as RequestContext, identifier, {
         content: "meow",
       }),
-    ).rejects.toThrow(UnauthorizedError);
+    ).rejects.toThrow(ForbiddenError);
   });
 
   test("Trying to get posts on an invisible instance without an elevated context fails", async () => {
