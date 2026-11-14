@@ -1,8 +1,17 @@
+## [1.0.6] - 2026-11-14
+
+### <!-- 1 -->🐛 Bug Fixes
+
+- Dockerized skybook unable to minify clientside js due to permission errors 
 ## [1.0.5] - 2026-11-14
 
 ### <!-- 1 -->🐛 Bug Fixes
 
 - Dockerized skybook unable to minify clientside js due to permission errors 
+
+### <!-- 7 -->⚙️ Miscellaneous Tasks
+
+- V1.0.5 
 ## [1.0.4] - 2026-11-14
 
 ### <!-- 0 -->🚀 Features
