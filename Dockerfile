@@ -11,7 +11,7 @@ COPY migrations ./migrations
 RUN bun install --frozen-lockfile --production
 ENV PORT=3000
 EXPOSE 3000/tcp
+RUN chown -R bun:bun ./src/public/js
 USER bun
-RUN chown bun ./src/public/*
 
 ENTRYPOINT [ "bun", "run", "./src/app.ts" ]
