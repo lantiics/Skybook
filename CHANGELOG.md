@@ -1,3 +1,27 @@
+## [1.0.4] - 2026-11-14
+
+### <!-- 0 -->🚀 Features
+
+- Script to toggle system-level locks of posts 
+
+### <!-- 1 -->🐛 Bug Fixes
+
+- Sys_lock not enforced on entries 
+- Serverside minification removes 'dead code' which is used inside of html 
+- Entry replies unable to be deleted 
+- Alteration of entries which are locked does not fail 
+- Update test expectations to align with return/throw values 
+
+### <!-- 2 -->🚜 Refactor
+
+- Miniside clientside javascript on server start 
+    previously, clientside js was minified while running the release.sh script (or minify-clientside-js.sh). this could potentially (and, on v1.0, did) result in minified js files not being created/pushed. this prevents the need for minified files to be pushed to skybook's git repo, and files can be minified locally.
+
+- Manually add sensitive column names to column retrieval list, rather than remove based on publicity 
+
+### <!-- 7 -->⚙️ Miscellaneous Tasks
+
+- Update dependencies 
 ## [1.0.3] - 2026-10-28
 
 ### <!-- 1 -->🐛 Bug Fixes
@@ -21,6 +45,10 @@
 ### <!-- 5 -->🎨 Styling
 
 - Fix typing of userTotpdata 
+
+### <!-- 7 -->⚙️ Miscellaneous Tasks
+
+- V1.0.3 
 ## [1.0.2] - 2026-10-27
 
 ### <!-- 0 -->🚀 Features
